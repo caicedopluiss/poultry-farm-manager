@@ -5,6 +5,15 @@
 		},
 		{
 			"path": "server/PoultryFarmManager.WebAPI"
+		},
+		{
+			"path": "server/PoultryFarmManager.Application"
+		},
+		{
+			"path": "server/PoultryFarmManager.Core"
+		},
+		{
+			"path": "server/PoultryFarmManager.Infrastructure"
 		}
 	],
 	"settings": {}
