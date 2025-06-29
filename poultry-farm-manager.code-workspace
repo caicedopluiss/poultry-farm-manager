@@ -14,6 +14,9 @@
 		},
 		{
 			"path": "server/PoultryFarmManager.Infrastructure"
+		},
+		{
+			"path": "server/Tests/PoultryFarmManager.Tests.Integration"
 		}
 	],
 	"settings": {}
