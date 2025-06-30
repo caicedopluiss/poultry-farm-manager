@@ -1,4 +1,8 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using PoultryFarmManager.Core;
 using PoultryFarmManager.Core.Operations.Models;
 
 namespace PoultryFarmManager.Infrastructure;
@@ -14,53 +18,23 @@ public class ApplicationDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        modelBuilder.Entity<BroilerBatch>(entity =>
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+    }
+
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        foreach (var entry in ChangeTracker.Entries<IDbEntity>())
         {
-            entity.ToTable(nameof(ApplicationDbContext.BroilerBatches));
+            var currentDate = DateTime.UtcNow;
 
-            entity.HasKey(b => b.Id);
+            entry.Entity.ModifiedAt = currentDate;
 
-            entity.Property(b => b.Id)
-                .ValueGeneratedOnAdd();
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = currentDate;
+            }
+        }
 
-            entity.Property(b => b.BatchName)
-                .HasMaxLength(100);
-
-            entity.Property(b => b.InitialPopulation)
-                .IsRequired()
-                .HasDefaultValue(0);
-
-            entity.Property(b => b.CurrentPopulation)
-                .IsRequired()
-                .HasDefaultValue(0);
-
-            entity.Property(b => b.Status)
-                .IsRequired();
-
-            entity.Property(b => b.Breed)
-                .HasMaxLength(50)
-                .IsRequired(false);
-
-            entity.Property(b => b.StartDate)
-                .IsRequired(false);
-
-            entity.Property(b => b.ProcessingStartDate)
-                .IsRequired(false);
-
-            entity.Property(b => b.ProcessingEndDate)
-                .IsRequired(false);
-
-            entity.Property(b => b.Notes)
-                .HasMaxLength(500)
-                .IsRequired(false);
-
-            entity.Property(b => b.CreatedAt)
-                .IsRequired()
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-            entity.Property(b => b.ModifiedAt)
-                .IsRequired(false);
-        });
-        // modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+        return base.SaveChangesAsync(cancellationToken);
     }
 }

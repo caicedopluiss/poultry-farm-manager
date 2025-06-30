@@ -15,7 +15,7 @@ public record NewBroilerBatchDto
     public string Status { get; set; } = nameof(BroilerBatchStatus.Draft);
     public string? Notes { get; set; } = string.Empty;
 
-    public BroilerBatch ToCoreModel() => new()
+    public virtual BroilerBatch ToCoreModel() => new()
     {
         BatchName = BatchName,
         Breed = Breed,
@@ -24,6 +24,26 @@ public record NewBroilerBatchDto
         Status = Enum.Parse<BroilerBatchStatus>(Status),
         Notes = Notes
     };
+}
+
+public record UpdateBroilerBatchDto : NewBroilerBatchDto
+{
+    public int CurrentPopulation { get; set; }
+    public string? ProcessingStartClientDate { get; set; }
+    public string? ProcessingEndClientDate { get; set; }
+
+    public override BroilerBatch ToCoreModel()
+    {
+        var batch = base.ToCoreModel();
+        batch.CurrentPopulation = CurrentPopulation;
+        batch.ProcessingStartDate = !string.IsNullOrEmpty(ProcessingStartClientDate?.Trim())
+            ? Utils.ParseIso8601DateTimeString(ProcessingStartClientDate!).UtcDateTime
+            : null;
+        batch.ProcessingEndDate = !string.IsNullOrEmpty(ProcessingEndClientDate?.Trim())
+            ? Utils.ParseIso8601DateTimeString(ProcessingEndClientDate!).UtcDateTime
+            : null;
+        return batch;
+    }
 }
 
 public record BroilerBatchDto
