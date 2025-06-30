@@ -19,12 +19,13 @@ public class UpdateBroilerBatchCommandTests(InfrastructureContextFixture fixture
     public async Task DisposeAsync()
     {
         var dbContext = fixture.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        dbContext.Set<BroilerBatch>().RemoveRange(dbContext.Set<BroilerBatch>());
+        dbContext.BroilerBatches.RemoveRange(dbContext.BroilerBatches);
         await dbContext.SaveChangesAsync();
     }
 
     public Task InitializeAsync()
     {
+        dbContext.BroilerBatches.RemoveRange(dbContext.BroilerBatches);
         return Task.CompletedTask;
     }
 
@@ -81,5 +82,7 @@ public class UpdateBroilerBatchCommandTests(InfrastructureContextFixture fixture
         Assert.Equal(existingBatch.ProcessingStartDate?.ToString(Constants.DateTimeFormat), result.Value.BatchDto.ProcessingStartDate?.ToString(Constants.DateTimeFormat));
         Assert.Equal(existingBatch.ProcessingEndDate?.ToString(Constants.DateTimeFormat), result.Value.BatchDto.ProcessingEndDate?.ToString(Constants.DateTimeFormat));
         Assert.Equal(existingBatch.Breed, result.Value.BatchDto.Breed);
+        Assert.NotEqual(default, result.Value.BatchDto.ModifiedAt);
+        Assert.True(result.Value.BatchDto.ModifiedAt > existingBatch.CreatedAt, "ModifiedAt should be greater than CreatedAt");
     }
 }

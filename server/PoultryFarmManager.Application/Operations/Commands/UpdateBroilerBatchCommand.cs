@@ -24,7 +24,7 @@ public sealed class UpdateBroilerBatchCommand
             await unitOfWork.BroilerBatches.UpdateAsync(batch, cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            var updatedBatch = await unitOfWork.BroilerBatches.GetByIdAsync(args.Id, cancellationToken, true) ?? throw new InvalidOperationException($"Batch with ID {args.Id} not found after update.");
+            var updatedBatch = await unitOfWork.BroilerBatches.GetByIdAsync(args.Id, false, cancellationToken) ?? throw new InvalidOperationException($"Batch with ID {args.Id} not found after update.");
             var result = BroilerBatchDto.FromCore(updatedBatch);
 
             return new(result);
@@ -40,7 +40,7 @@ public sealed class UpdateBroilerBatchCommand
             }
             else
             {
-                var updatingEntity = await unitOfWork.BroilerBatches.GetByIdAsync(args.Id, cancellationToken);
+                var updatingEntity = await unitOfWork.BroilerBatches.GetByIdAsync(args.Id, false, cancellationToken);
                 if (updatingEntity is null)
                 {
                     errors.Add(("id", "Batch not found."));

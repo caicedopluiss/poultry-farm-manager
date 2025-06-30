@@ -16,7 +16,7 @@ public class CreateBroilerBatchCommandTests(InfrastructureContextFixture fixture
     public async Task DisposeAsync()
     {
         var dbContext = fixture.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        dbContext.Set<BroilerBatch>().RemoveRange(dbContext.Set<BroilerBatch>());
+        dbContext.BroilerBatches.RemoveRange(dbContext.BroilerBatches);
         await dbContext.SaveChangesAsync();
     }
 
