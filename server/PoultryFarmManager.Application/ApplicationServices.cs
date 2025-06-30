@@ -16,5 +16,6 @@ public static class ApplicationServices
     private static void AddCommandHandlers(IServiceCollection services)
     {
         services.AddScoped<IAppRequestHandler<CreateBroilerBatchCommand.Args, CreateBroilerBatchCommand.Result>, CreateBroilerBatchCommand.Handler>();
+        services.AddScoped<IAppRequestHandler<UpdateBroilerBatchCommand.Args, UpdateBroilerBatchCommand.Result>, UpdateBroilerBatchCommand.Handler>();
     }
 }
