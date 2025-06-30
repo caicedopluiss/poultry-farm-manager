@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +18,14 @@ public class BroilerBatchRepository(ApplicationDbContext dbContext) : IBroilerBa
         return result;
     }
 
-    public Task<BroilerBatch?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default, bool track = false)
+    public async Task<IReadOnlyCollection<BroilerBatch>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        var query = dbContext.BroilerBatches.AsQueryable();
+        var batches = await query.AsNoTracking().ToListAsync(cancellationToken);
+        return batches.AsReadOnly();
+    }
+
+    public Task<BroilerBatch?> GetByIdAsync(Guid id, bool track = false, CancellationToken cancellationToken = default)
     {
         var query = dbContext.BroilerBatches.AsQueryable();
         if (!track) query = query.AsNoTracking();
