@@ -1,4 +1,5 @@
 using System;
+using PoultryFarmManager.Application.Finances.DTOs;
 using PoultryFarmManager.Core.Operations.Models;
 
 namespace PoultryFarmManager.Application.Operations.DTOs;
@@ -15,15 +16,21 @@ public record NewBroilerBatchDto
     public string Status { get; set; } = nameof(BroilerBatchStatus.Draft);
     public string? Notes { get; set; } = string.Empty;
 
-    public virtual BroilerBatch ToCoreModel() => new()
+    public virtual BroilerBatch ToCoreModel(BroilerBatch? baseBatch = null)
     {
-        BatchName = BatchName,
-        Breed = Breed,
-        StartDate = string.IsNullOrEmpty(StartClientDate?.Trim()) ? Utils.ParseIso8601DateTimeString(StartClientDate!).UtcDateTime : null,
-        InitialPopulation = InitialPopulation,
-        Status = Enum.Parse<BroilerBatchStatus>(Status),
-        Notes = Notes
-    };
+        var result = baseBatch ?? new();
+
+        result.BatchName = BatchName;
+        result.Breed = Breed;
+        result.StartDate = !string.IsNullOrWhiteSpace(StartClientDate) ?
+            Utils.ParseIso8601DateTimeString(StartClientDate).UtcDateTime :
+            null;
+        result.InitialPopulation = InitialPopulation;
+        result.Status = Enum.Parse<BroilerBatchStatus>(Status);
+        result.Notes = Notes;
+
+        return result;
+    }
 }
 
 public record UpdateBroilerBatchDto : NewBroilerBatchDto
@@ -32,17 +39,21 @@ public record UpdateBroilerBatchDto : NewBroilerBatchDto
     public string? ProcessingStartClientDate { get; set; }
     public string? ProcessingEndClientDate { get; set; }
 
-    public override BroilerBatch ToCoreModel()
+    public override BroilerBatch ToCoreModel(BroilerBatch? baseBatch = null)
     {
-        var batch = base.ToCoreModel();
-        batch.CurrentPopulation = CurrentPopulation;
-        batch.ProcessingStartDate = !string.IsNullOrEmpty(ProcessingStartClientDate?.Trim())
-            ? Utils.ParseIso8601DateTimeString(ProcessingStartClientDate!).UtcDateTime
+        // Only update the properties that are relevant for an update
+
+        var result = base.ToCoreModel(baseBatch);
+
+        result.CurrentPopulation = CurrentPopulation;
+        result.ProcessingStartDate = !string.IsNullOrWhiteSpace(ProcessingStartClientDate)
+            ? Utils.ParseIso8601DateTimeString(ProcessingStartClientDate).UtcDateTime
             : null;
-        batch.ProcessingEndDate = !string.IsNullOrEmpty(ProcessingEndClientDate?.Trim())
-            ? Utils.ParseIso8601DateTimeString(ProcessingEndClientDate!).UtcDateTime
+        result.ProcessingEndDate = !string.IsNullOrWhiteSpace(ProcessingEndClientDate)
+            ? Utils.ParseIso8601DateTimeString(ProcessingEndClientDate).UtcDateTime
             : null;
-        return batch;
+
+        return result;
     }
 }
 
@@ -58,6 +69,7 @@ public record BroilerBatchDto
     public DateTime? ProcessingStartDate { get; set; }
     public DateTime? ProcessingEndDate { get; set; }
     public string? Notes { get; set; } = string.Empty;
+    public FinancialTransactionDto? FinancialTransaction { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? ModifiedAt { get; set; }
 
@@ -73,6 +85,9 @@ public record BroilerBatchDto
         ProcessingStartDate = batch.ProcessingStartDate,
         ProcessingEndDate = batch.ProcessingEndDate,
         Notes = batch.Notes,
+        FinancialTransaction = batch.FinancialTransaction is not null
+            ? FinancialTransactionDto.FromCore(batch.FinancialTransaction)
+            : null,
         CreatedAt = batch.CreatedAt,
         ModifiedAt = batch.ModifiedAt
     };

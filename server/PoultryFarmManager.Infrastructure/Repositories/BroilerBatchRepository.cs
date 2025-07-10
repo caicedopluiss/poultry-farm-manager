@@ -18,17 +18,19 @@ public class BroilerBatchRepository(ApplicationDbContext dbContext) : IBroilerBa
         return result;
     }
 
-    public async Task<IReadOnlyCollection<BroilerBatch>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<BroilerBatch>> GetAllAsync(bool includeFinancialTransaction = false, CancellationToken cancellationToken = default)
     {
         var query = dbContext.BroilerBatches.AsQueryable();
+        if (includeFinancialTransaction) query = query.Include(b => b.FinancialTransaction).ThenInclude(ft => ft!.FinancialEntity);
         var batches = await query.AsNoTracking().ToListAsync(cancellationToken);
         return batches.AsReadOnly();
     }
 
-    public Task<BroilerBatch?> GetByIdAsync(Guid id, bool track = false, CancellationToken cancellationToken = default)
+    public Task<BroilerBatch?> GetByIdAsync(Guid id, bool track = false, bool includeFinancialTransaction = false, CancellationToken cancellationToken = default)
     {
         var query = dbContext.BroilerBatches.AsQueryable();
         if (!track) query = query.AsNoTracking();
+        if (includeFinancialTransaction) query = query.Include(b => b.FinancialTransaction).ThenInclude(ft => ft!.FinancialEntity);
         return query.FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
     }
 

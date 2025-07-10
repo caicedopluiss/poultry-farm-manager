@@ -9,49 +9,51 @@ using Microsoft.EntityFrameworkCore;
 
 namespace PoultryFarmManager.Tests.Integration;
 
-public class InfrastructureContextFixture : IAsyncLifetime, IDisposable
+/// <summary>
+/// This Fixture is meant to manage a database per each class test. So do not use is with the Collection attribute.
+/// </summary>
+public class InfrastructureContextFixture : IDisposable
 {
+    private readonly IntegrationTestsDbContext dbContext;
     private readonly IServiceProvider serviceProvider;
     private readonly IServiceScope serviceScope;
 
     public IServiceProvider ServiceProvider => serviceScope.ServiceProvider;
 
-    public InfrastructureContextFixture()
+    public InfrastructureContextFixture(string? name = null)
     {
-        var services = new ServiceCollection();
-
+        string dbName = $"TestDb_{name ?? Guid.NewGuid().ToString()}";
         var configData = new Dictionary<string, string?>
         {
-            { "ConnectionStrings:SqlServerConnection", "Server=localhost;Database=PoultryFarmManagerTestDb;User Id=sa;Password=P@55word;TrustServerCertificate=True;" }
+            { "ConnectionStrings:SqlServerConnection", $"Server=localhost;Database={dbName};User Id=sa;Password=P@55word;TrustServerCertificate=True;"}
         };
-
+        var services = new ServiceCollection();
         IConfiguration configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(configData)
             .Build();
 
         services.AddApplicationServices();
         services.AddInfrastructureServices(configuration);
+        services.AddDbContext<IntegrationTestsDbContext>(options =>
+        {
+            options.UseSqlServer(
+                configuration.GetConnectionString("SqlServerConnection"),
+                sqlServerOptions => sqlServerOptions.EnableRetryOnFailure())
+                .EnableSensitiveDataLogging()
+                .EnableDetailedErrors();
+        });
 
         serviceProvider = services.BuildServiceProvider();
         serviceScope = serviceProvider.CreateScope();
+        dbContext = serviceScope.ServiceProvider.GetRequiredService<IntegrationTestsDbContext>();
+        dbContext.Database.EnsureDeleted();
+        dbContext.Database.EnsureCreated();
     }
 
     public void Dispose()
     {
-        serviceScope.Dispose();
-        if (serviceProvider is IDisposable disposable) disposable.Dispose();
-    }
-
-    public Task DisposeAsync()
-    {
-        return Task.CompletedTask;
-    }
-
-    public Task InitializeAsync()
-    {
-        var dbContext = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         dbContext.Database.EnsureDeleted();
-        dbContext.Database.EnsureCreated();
-        return Task.CompletedTask;
+        dbContext.Dispose();
+        serviceScope.Dispose();
     }
 }

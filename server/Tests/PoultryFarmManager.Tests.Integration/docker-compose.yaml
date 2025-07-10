@@ -1,29 +1,30 @@
 name: poultry_farm_manager_integration_tests
 services:
-  sql:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    pull_policy: if_not_present # always, missing, never, build
-    container_name: poultry_farm_manager-sql
-    ports:
-      - "1433:1433"
-    networks:
-      - poultry_farm_manager
-    volumes:
-      - poultry_farm_manager:/var/opt/mssql
-    environment:
-      - ACCEPT_EULA=Y
-      - MSSQL_PID=Express
-      - MSSQL_SA_PASSWORD=P@55word
-    healthcheck:
-      test: [ "CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P P@55word -C -Q 'SELECT 1' || exit 1" ]
-      interval: 10s
-      start_period: 10s
-      timeout: 5s
-      retries: 5
+    sql:
+        image: mcr.microsoft.com/mssql/server:2025-latest
+        pull_policy: if_not_present # always, missing, never, build
+        container_name: poultry_farm_manager-sql
+        ports:
+            - "1433:1433"
+        networks:
+            - poultry_farm_manager
+        volumes:
+            - poultry_farm_manager:/var/opt/mssql
+        environment:
+            - ACCEPT_EULA=Y
+            - MSSQL_PID=Express
+            - MSSQL_SA_PASSWORD=P@55word
+            - SA_PASSWORD=P@55word
+        healthcheck:
+            test: [ "CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P P@55word -C -Q 'SELECT 1' || exit 1" ]
+            interval: 10s
+            start_period: 10s
+            timeout: 5s
+            retries: 5
 volumes:
-  poultry_farm_manager:
-    name: poultry_farm_manager_integration_tests
+    poultry_farm_manager:
+        name: poultry_farm_manager_integration_tests
 networks:
-  poultry_farm_manager:
-    name: poultry_farm_manager_integration_tests
-    driver: bridge
+    poultry_farm_manager:
+        name: poultry_farm_manager_integration_tests
+        driver: bridge

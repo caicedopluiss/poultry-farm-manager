@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using PoultryFarmManager.Application;
+using PoultryFarmManager.Application.Finances;
 using PoultryFarmManager.Application.Operations.Repositories;
 using PoultryFarmManager.Infrastructure.Repositories;
 
@@ -21,5 +23,6 @@ public static class InfrastructureServices
     {
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IBroilerBatchRepository, BroilerBatchRepository>();
+        services.AddScoped<IFinancesRepository, Finances>();
     }
 }

@@ -4,28 +4,31 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using PoultryFarmManager.Application.Operations.Queries;
+using PoultryFarmManager.Core.Finances;
+using PoultryFarmManager.Core.Finances.Models;
 using PoultryFarmManager.Core.Operations.Models;
-using PoultryFarmManager.Infrastructure;
 using SharedLib.CQRS;
 
 namespace PoultryFarmManager.Tests.Integration.Operations;
 
-[Collection(InfrastructureContextCollection.Name)]
-public class ReadAllBroilerBatchQueryTests(InfrastructureContextFixture fixture) : IAsyncLifetime
+public class ReadAllBroilerBatchQueryTests : IAsyncLifetime
 {
-    private readonly ApplicationDbContext dbContext = fixture.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-    public async Task DisposeAsync()
+    private static readonly InfrastructureContextFixture fixture = new InfrastructureContextFixture(nameof(ReadAllBroilerBatchQueryTests));
+
+    private readonly IntegrationTestsDbContext dbContext;
+
+    public ReadAllBroilerBatchQueryTests()
     {
-        dbContext.BroilerBatches.RemoveRange(dbContext.BroilerBatches);
-        await dbContext.SaveChangesAsync();
+        dbContext = fixture.ServiceProvider.GetRequiredService<IntegrationTestsDbContext>();
     }
 
-    public Task InitializeAsync()
+    public async Task InitializeAsync()
     {
-        dbContext.BroilerBatches.RemoveRange(dbContext.BroilerBatches);
-        return Task.CompletedTask;
+        await dbContext.ClearDatabaseAsync();
     }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task ReadAllBroilerBatchQuery_ShouldReturnAllBatches()
@@ -41,7 +44,23 @@ public class ReadAllBroilerBatchQueryTests(InfrastructureContextFixture fixture)
                 StartDate = DateTime.UtcNow,
                 Status = BroilerBatchStatus.Active,
                 CreatedAt = DateTime.UtcNow,
-                Notes = "First batch for testing"
+                Notes = "First batch for testing",
+                FinancialTransaction = new FinancialTransaction
+                {
+                    Amount = 5000,
+                    PaidAmount = 5000,
+                    TransactionDate = DateTime.UtcNow,
+                    Type = FinancialTransactionType.Expense,
+                    Category = FinancialTransactionCategory.LivestockPurchase,
+                    Status = PaymentStatus.Paid,
+                    Notes = "Initial purchase for batch",
+                    FinancialEntity = new FinancialEntity
+                    {
+                        Name = "Test Supplier",
+                        Type = FinancialEntityType.Supplier,
+                        CreatedAt = DateTime.UtcNow
+                    }
+                }
             },
             new BroilerBatch
             {
@@ -51,7 +70,23 @@ public class ReadAllBroilerBatchQueryTests(InfrastructureContextFixture fixture)
                 StartDate = DateTime.UtcNow.AddDays(-10),
                 Status = BroilerBatchStatus.Active,
                 CreatedAt = DateTime.UtcNow.AddDays(-10),
-                Notes = "Second batch for testing"
+                Notes = "Second batch for testing",
+                FinancialTransaction = new FinancialTransaction
+                {
+                    Amount = 10000,
+                    PaidAmount = 10000,
+                    TransactionDate = DateTime.UtcNow.AddDays(-10),
+                    Type = FinancialTransactionType.Expense,
+                    Category = FinancialTransactionCategory.LivestockPurchase,
+                    Status = PaymentStatus.Paid,
+                    Notes = "Initial purchase for batch",
+                    FinancialEntity = new FinancialEntity
+                    {
+                        Name = "Test Supplier 2",
+                        Type = FinancialEntityType.Supplier,
+                        CreatedAt = DateTime.UtcNow.AddDays(-10)
+                    }
+                }
             }
         };
 
@@ -79,6 +114,8 @@ public class ReadAllBroilerBatchQueryTests(InfrastructureContextFixture fixture)
             Assert.NotEqual(Guid.Empty, b.Id);
             Assert.NotNull(b.BatchName);
             Assert.NotNull(b.Status);
+            Assert.NotNull(b.FinancialTransaction);
+            Assert.NotNull(b.FinancialTransaction.FinancialEntity);
         });
     }
 }

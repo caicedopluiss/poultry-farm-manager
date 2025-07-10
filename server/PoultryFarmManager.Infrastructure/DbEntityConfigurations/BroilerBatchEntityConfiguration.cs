@@ -52,5 +52,15 @@ public class BroilerBatchEntityConfiguration : IEntityTypeConfiguration<BroilerB
 
         builder.Property(b => b.ModifiedAt)
             .IsRequired(false);
+
+        builder.Property(b => b.FinancialTransactionId)
+            .IsRequired()
+            .HasColumnType("uniqueidentifier");
+
+        builder.HasIndex(b => b.FinancialTransactionId);
+        builder.HasOne(b => b.FinancialTransaction)
+            .WithOne()
+            .HasForeignKey<BroilerBatch>(b => b.FinancialTransactionId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
