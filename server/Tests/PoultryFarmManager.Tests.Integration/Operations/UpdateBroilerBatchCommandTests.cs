@@ -5,27 +5,31 @@ using Microsoft.Extensions.DependencyInjection;
 using PoultryFarmManager.Application;
 using PoultryFarmManager.Application.Operations.Commands;
 using PoultryFarmManager.Application.Operations.DTOs;
+using PoultryFarmManager.Core.Finances;
+using PoultryFarmManager.Core.Finances.Models;
 using PoultryFarmManager.Core.Operations.Models;
-using PoultryFarmManager.Infrastructure;
 using SharedLib.CQRS;
 
 namespace PoultryFarmManager.Tests.Integration.Operations;
 
-[Collection(InfrastructureContextCollection.Name)]
-public class UpdateBroilerBatchCommandTests(InfrastructureContextFixture fixture) : IAsyncLifetime
+public class UpdateBroilerBatchCommandTests : IAsyncLifetime
 {
-    private readonly ApplicationDbContext dbContext = fixture.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    private static readonly InfrastructureContextFixture fixture = new InfrastructureContextFixture(nameof(UpdateBroilerBatchCommandTests));
 
-    public async Task DisposeAsync()
+    private readonly IntegrationTestsDbContext dbContext;
+
+    public UpdateBroilerBatchCommandTests()
     {
-        var dbContext = fixture.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        dbContext.BroilerBatches.RemoveRange(dbContext.BroilerBatches);
-        await dbContext.SaveChangesAsync();
+        dbContext = fixture.ServiceProvider.GetRequiredService<IntegrationTestsDbContext>();
     }
 
-    public Task InitializeAsync()
+    public async Task InitializeAsync()
     {
-        dbContext.BroilerBatches.RemoveRange(dbContext.BroilerBatches);
+        await dbContext.ClearDatabaseAsync();
+    }
+
+    public Task DisposeAsync()
+    {
         return Task.CompletedTask;
     }
 
@@ -44,7 +48,23 @@ public class UpdateBroilerBatchCommandTests(InfrastructureContextFixture fixture
             StartDate = DateTime.UtcNow,
             Status = BroilerBatchStatus.ForSale,
             CreatedAt = DateTime.UtcNow,
-            Notes = "Initial batch for testing"
+            Notes = "Initial batch for testing",
+            FinancialTransaction = new FinancialTransaction
+            {
+                Amount = 5000,
+                PaidAmount = 5000,
+                TransactionDate = DateTime.UtcNow,
+                Type = FinancialTransactionType.Expense,
+                Category = FinancialTransactionCategory.LivestockPurchase,
+                Status = PaymentStatus.Paid,
+                Notes = "Initial purchase for batch",
+                FinancialEntity = new FinancialEntity
+                {
+                    Name = "Test Supplier Update",
+                    Type = FinancialEntityType.Supplier,
+                    CreatedAt = DateTime.UtcNow
+                }
+            }
         };
 
         existingBatch = (await dbContext.BroilerBatches.AddAsync(existingBatch)).Entity;
@@ -84,5 +104,6 @@ public class UpdateBroilerBatchCommandTests(InfrastructureContextFixture fixture
         Assert.Equal(existingBatch.Breed, result.Value.BatchDto.Breed);
         Assert.NotEqual(default, result.Value.BatchDto.ModifiedAt);
         Assert.True(result.Value.BatchDto.ModifiedAt > existingBatch.CreatedAt, "ModifiedAt should be greater than CreatedAt");
+        Assert.Equal(existingBatch.FinancialTransactionId, result.Value.BatchDto.FinancialTransaction?.Id);
     }
 }

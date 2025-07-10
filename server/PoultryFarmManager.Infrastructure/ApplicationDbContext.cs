@@ -3,17 +3,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using PoultryFarmManager.Core;
+using PoultryFarmManager.Core.Finances.Models;
 using PoultryFarmManager.Core.Operations.Models;
 
 namespace PoultryFarmManager.Infrastructure;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
 {
     public DbSet<BroilerBatch> BroilerBatches { get; set; }
-
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
-    {
-    }
+    public DbSet<FinancialTransaction> FinancialTransactions { get; set; }
+    public DbSet<FinancialEntity> FinancialEntities { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

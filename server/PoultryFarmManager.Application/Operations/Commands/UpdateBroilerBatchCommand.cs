@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using PoultryFarmManager.Application.Operations.DTOs;
-using PoultryFarmManager.Application.Operations.Repositories;
 using PoultryFarmManager.Core.Operations.Models;
 using SharedLib.CQRS;
 
@@ -17,15 +16,17 @@ public sealed class UpdateBroilerBatchCommand
 
     public class Handler(IUnitOfWork unitOfWork) : AppRequestHandler<Args, Result>
     {
+        BroilerBatch updatingBatch = null!;
+
         protected override async Task<Result> ExecuteAsync(Args args, CancellationToken cancellationToken = default)
         {
-            var batch = args.Payload.ToCoreModel();
-            batch.Id = args.Id;
-            await unitOfWork.BroilerBatches.UpdateAsync(batch, cancellationToken);
+            _ = args.Payload.ToCoreModel(updatingBatch);
+            await unitOfWork.BroilerBatches.UpdateAsync(updatingBatch, cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            var updatedBatch = await unitOfWork.BroilerBatches.GetByIdAsync(args.Id, false, cancellationToken) ?? throw new InvalidOperationException($"Batch with ID {args.Id} not found after update.");
-            var result = BroilerBatchDto.FromCore(updatedBatch);
+            var updatedBatch = await unitOfWork.BroilerBatches.GetByIdAsync(args.Id, includeFinancialTransaction: true, cancellationToken: cancellationToken);
+
+            var result = BroilerBatchDto.FromCore(updatedBatch!);
 
             return new(result);
         }
@@ -40,11 +41,15 @@ public sealed class UpdateBroilerBatchCommand
             }
             else
             {
-                var updatingEntity = await unitOfWork.BroilerBatches.GetByIdAsync(args.Id, false, cancellationToken);
+                var updatingEntity = await unitOfWork.BroilerBatches.GetByIdAsync(args.Id, cancellationToken: cancellationToken);
                 if (updatingEntity is null)
                 {
                     errors.Add(("id", "Batch not found."));
                     return errors;
+                }
+                else
+                {
+                    updatingBatch = updatingEntity;
                 }
             }
 

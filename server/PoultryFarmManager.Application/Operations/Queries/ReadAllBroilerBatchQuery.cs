@@ -17,7 +17,7 @@ public sealed class ReadAllBroilerBatchQuery
     {
         protected override async Task<Result> ExecuteAsync(Args args, CancellationToken cancellationToken = default)
         {
-            var batches = await unitOfWork.BroilerBatches.GetAllAsync(cancellationToken);
+            var batches = await unitOfWork.BroilerBatches.GetAllAsync(true, cancellationToken);
             var batchDtos = batches.Select(x => BroilerBatchDto.FromCore(x));
 
             return new Result(batchDtos);

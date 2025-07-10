@@ -1,3 +1,5 @@
+using PoultryFarmManager.Core.Finances.Models;
+
 namespace PoultryFarmManager.Core.Operations.Models;
 
 public class BroilerBatch : DbEntityBase
@@ -11,5 +13,8 @@ public class BroilerBatch : DbEntityBase
     public DateTime? ProcessingStartDate { get; set; }
     public DateTime? ProcessingEndDate { get; set; }
     public string? Notes { get; set; } = string.Empty;
+    public Guid FinancialTransactionId { get; set; }
+
+    public FinancialTransaction? FinancialTransaction { get; set; } = null!;
 }
 
