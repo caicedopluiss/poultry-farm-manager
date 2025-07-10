@@ -1,0 +1,62 @@
+name: CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+jobs:
+    build:
+        name: Build
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup .NET
+              uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: "8.0.x"
+
+            - name: Restore dependencies
+              run: dotnet restore
+
+            - name: Build
+              run: dotnet build --no-restore --configuration Release
+
+    test:
+        name: Test
+        runs-on: ubuntu-latest
+        needs: build
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup .NET
+              uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: "8.0.x"
+
+            - name: Docker Compose Up
+              working-directory: server/Tests/PoultryFarmManager.Tests.Integration
+              run: docker compose up -d
+
+            - name: Wait for SQL Server healthy status
+              run: |
+                  for i in {1..60}; do
+                  STATUS=$(docker inspect --format='{{.State.Health.Status}}' poultry_farm_manager-sql)
+                  if [ "$STATUS" = "healthy" ]; then
+                      echo "SQL Server is healthy!"
+                      break
+                  fi
+                  echo "Waiting for SQL Server health..."
+                  sleep 2
+                  done
+
+            - name: Run tests
+              run: dotnet test --configuration Release --logger trx
+
+            - name: Docker Compose Down
+              if: always()
+              working-directory: server/Tests/PoultryFarmManager.Tests.Integration
+              run: docker compose down -v
