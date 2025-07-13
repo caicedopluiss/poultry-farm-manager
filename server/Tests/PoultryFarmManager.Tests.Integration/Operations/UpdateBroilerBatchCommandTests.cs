@@ -14,13 +14,15 @@ namespace PoultryFarmManager.Tests.Integration.Operations;
 
 public class UpdateBroilerBatchCommandTests : IAsyncLifetime
 {
-    private static readonly InfrastructureContextFixture fixture = new InfrastructureContextFixture(nameof(UpdateBroilerBatchCommandTests));
+    private static readonly InfrastructureContextFixture fixture = new(nameof(UpdateBroilerBatchCommandTests));
 
+    private readonly IServiceProvider serviceProvider;
     private readonly IntegrationTestsDbContext dbContext;
 
     public UpdateBroilerBatchCommandTests()
     {
-        dbContext = fixture.ServiceProvider.GetRequiredService<IntegrationTestsDbContext>();
+        serviceProvider = fixture.CreateServicesScope();
+        dbContext = serviceProvider.GetRequiredService<IntegrationTestsDbContext>();
     }
 
     public async Task InitializeAsync()
@@ -37,7 +39,6 @@ public class UpdateBroilerBatchCommandTests : IAsyncLifetime
     public async Task UpdateBroilerBatchCommand_ShouldSucceed_WhenValidDataProvided()
     {
         // Arrange
-        var serviceProvider = fixture.ServiceProvider;
         var commandHandler = serviceProvider.GetRequiredService<IAppRequestHandler<UpdateBroilerBatchCommand.Args, UpdateBroilerBatchCommand.Result>>();
 
         var existingBatch = new BroilerBatch
@@ -56,7 +57,6 @@ public class UpdateBroilerBatchCommandTests : IAsyncLifetime
                 TransactionDate = DateTime.UtcNow,
                 Type = FinancialTransactionType.Expense,
                 Category = FinancialTransactionCategory.LivestockPurchase,
-                Status = PaymentStatus.Paid,
                 Notes = "Initial purchase for batch",
                 FinancialEntity = new FinancialEntity
                 {

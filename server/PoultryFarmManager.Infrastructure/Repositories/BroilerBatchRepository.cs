@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -36,14 +35,14 @@ public class BroilerBatchRepository(ApplicationDbContext dbContext) : IBroilerBa
 
     public Task UpdateAsync(BroilerBatch batch, CancellationToken cancellationToken = default)
     {
-        var local = dbContext.BroilerBatches.Local.FirstOrDefault(b => b.Id == batch.Id);
-        if (local is not null)
-        {
-            dbContext.Entry(local).CurrentValues.SetValues(batch);
-        }
-        else
+
+        if (dbContext.Entry(batch).State == EntityState.Detached)
         {
             dbContext.BroilerBatches.Attach(batch);
+        }
+
+        if (dbContext.Entry(batch).State == EntityState.Unchanged)
+        {
             dbContext.Entry(batch).State = EntityState.Modified;
         }
 

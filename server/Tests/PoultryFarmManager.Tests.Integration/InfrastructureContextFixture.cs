@@ -14,11 +14,7 @@ namespace PoultryFarmManager.Tests.Integration;
 /// </summary>
 public class InfrastructureContextFixture : IDisposable
 {
-    private readonly IntegrationTestsDbContext dbContext;
-    private readonly IServiceProvider serviceProvider;
-    private readonly IServiceScope serviceScope;
-
-    public IServiceProvider ServiceProvider => serviceScope.ServiceProvider;
+    private readonly ServiceProvider serviceProvider;
 
     public InfrastructureContextFixture(string? name = null)
     {
@@ -44,16 +40,19 @@ public class InfrastructureContextFixture : IDisposable
         });
 
         serviceProvider = services.BuildServiceProvider();
-        serviceScope = serviceProvider.CreateScope();
-        dbContext = serviceScope.ServiceProvider.GetRequiredService<IntegrationTestsDbContext>();
+        using var serviceScope = serviceProvider.CreateScope();
+        using var dbContext = serviceScope.ServiceProvider.GetRequiredService<IntegrationTestsDbContext>();
         dbContext.Database.EnsureDeleted();
         dbContext.Database.EnsureCreated();
     }
 
     public void Dispose()
     {
-        dbContext.Database.EnsureDeleted();
-        dbContext.Dispose();
-        serviceScope.Dispose();
+    }
+
+    public IServiceProvider CreateServicesScope()
+    {
+        var scope = serviceProvider.CreateScope();
+        return scope.ServiceProvider;
     }
 }

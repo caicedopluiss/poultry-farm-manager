@@ -21,10 +21,11 @@ public record NewFinancialTransactionDto
     {
         TransactionDate = Utils.ParseIso8601DateTimeString(TransactionClientDateDate).UtcDateTime,
         Type = Enum.Parse<FinancialTransactionType>(Type),
-        Status = Enum.Parse<PaymentStatus>(Status),
         Category = Enum.Parse<FinancialTransactionCategory>(Category),
-        Amount = Amount,
-        PaidAmount = PaidAmount,
+        Amount = Utils.TruncateToTwoDecimals(Amount),
+        PaidAmount = PaidAmount is not null
+            ? Utils.TruncateToTwoDecimals((decimal)PaidAmount)
+            : null,
         DueDate = string.IsNullOrEmpty(DueClientDate?.Trim())
             ? null
             : Utils.ParseIso8601DateTimeString(DueClientDate!).UtcDateTime,
@@ -37,13 +38,13 @@ public record NewFinancialTransactionDto
 public record FinancialTransactionDto
 {
     public Guid Id { get; set; } = Guid.Empty;
-    public string TransactionClientDateDate { get; set; } = string.Empty;
+    public string TransactionDate { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
     public string Status { get; set; } = nameof(PaymentStatus.Pending);
     public string Category { get; set; } = string.Empty;
     public decimal Amount { get; set; }
     public decimal? PaidAmount { get; set; }
-    public string? DueClientDate { get; set; }
+    public string? DueDate { get; set; }
     public FinancialEntityDto? FinancialEntity { get; set; }
     public string Notes { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
@@ -52,13 +53,13 @@ public record FinancialTransactionDto
     public static FinancialTransactionDto FromCore(FinancialTransaction transaction) => new()
     {
         Id = transaction.Id,
-        TransactionClientDateDate = transaction.TransactionDate.ToString(Constants.DateTimeFormat),
+        TransactionDate = transaction.TransactionDate.ToString(Constants.DateTimeFormat),
         Type = transaction.Type.ToString(),
         Status = transaction.Status.ToString(),
         Category = transaction.Category.ToString(),
         Amount = transaction.Amount,
         PaidAmount = transaction.PaidAmount,
-        DueClientDate = transaction.DueDate?.ToString(Constants.DateTimeFormat),
+        DueDate = transaction.DueDate?.ToString(Constants.DateTimeFormat),
         FinancialEntity = transaction.FinancialEntity != null
             ? FinancialEntityDto.FromCore(transaction.FinancialEntity)
             : null,

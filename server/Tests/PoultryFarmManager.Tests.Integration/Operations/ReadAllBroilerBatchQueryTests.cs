@@ -14,13 +14,15 @@ namespace PoultryFarmManager.Tests.Integration.Operations;
 public class ReadAllBroilerBatchQueryTests : IAsyncLifetime
 {
 
-    private static readonly InfrastructureContextFixture fixture = new InfrastructureContextFixture(nameof(ReadAllBroilerBatchQueryTests));
+    private static readonly InfrastructureContextFixture fixture = new(nameof(ReadAllBroilerBatchQueryTests));
 
+    private readonly IServiceProvider serviceProvider;
     private readonly IntegrationTestsDbContext dbContext;
 
     public ReadAllBroilerBatchQueryTests()
     {
-        dbContext = fixture.ServiceProvider.GetRequiredService<IntegrationTestsDbContext>();
+        serviceProvider = fixture.CreateServicesScope();
+        dbContext = serviceProvider.GetRequiredService<IntegrationTestsDbContext>();
     }
 
     public async Task InitializeAsync()
@@ -52,7 +54,6 @@ public class ReadAllBroilerBatchQueryTests : IAsyncLifetime
                     TransactionDate = DateTime.UtcNow,
                     Type = FinancialTransactionType.Expense,
                     Category = FinancialTransactionCategory.LivestockPurchase,
-                    Status = PaymentStatus.Paid,
                     Notes = "Initial purchase for batch",
                     FinancialEntity = new FinancialEntity
                     {
@@ -78,7 +79,6 @@ public class ReadAllBroilerBatchQueryTests : IAsyncLifetime
                     TransactionDate = DateTime.UtcNow.AddDays(-10),
                     Type = FinancialTransactionType.Expense,
                     Category = FinancialTransactionCategory.LivestockPurchase,
-                    Status = PaymentStatus.Paid,
                     Notes = "Initial purchase for batch",
                     FinancialEntity = new FinancialEntity
                     {
@@ -96,7 +96,6 @@ public class ReadAllBroilerBatchQueryTests : IAsyncLifetime
         // Arrange
         dbContext.ChangeTracker.Clear();
 
-        var serviceProvider = fixture.ServiceProvider;
         var queryHandler = serviceProvider.GetRequiredService<IAppRequestHandler<ReadAllBroilerBatchQuery.Args, ReadAllBroilerBatchQuery.Result>>();
 
         // Act

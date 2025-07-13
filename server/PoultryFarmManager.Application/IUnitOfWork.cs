@@ -9,5 +9,6 @@ public interface IUnitOfWork
 {
     IBroilerBatchRepository BroilerBatches { get; }
     IFinancesRepository Finances { get; }
+    IActivityRepository Activities { get; }
     Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }
