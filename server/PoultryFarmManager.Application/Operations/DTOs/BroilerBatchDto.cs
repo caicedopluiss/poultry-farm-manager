@@ -73,6 +73,8 @@ public record BroilerBatchDto
     public DateTime CreatedAt { get; set; }
     public DateTime? ModifiedAt { get; set; }
 
+    public ActivityDto? LastWeightActivity { get; private set; }
+
     public static BroilerBatchDto FromCore(BroilerBatch batch) => new()
     {
         Id = batch.Id,
@@ -91,4 +93,9 @@ public record BroilerBatchDto
         CreatedAt = batch.CreatedAt,
         ModifiedAt = batch.ModifiedAt
     };
+
+    public void SetLastWeightActivity(ActivityDto activity)
+    {
+        LastWeightActivity = activity;
+    }
 }

@@ -17,11 +17,13 @@ public class CreateBroilerBatchCommandTests : IAsyncLifetime
 {
     private static readonly InfrastructureContextFixture fixture = new(nameof(CreateBroilerBatchCommandTests));
 
+    private readonly IServiceProvider serviceProvider;
     private readonly IntegrationTestsDbContext dbContext;
 
     public CreateBroilerBatchCommandTests()
     {
-        dbContext = fixture.ServiceProvider.GetRequiredService<IntegrationTestsDbContext>();
+        serviceProvider = fixture.CreateServicesScope();
+        dbContext = serviceProvider.GetRequiredService<IntegrationTestsDbContext>();
     }
 
     public async Task InitializeAsync()
@@ -35,7 +37,6 @@ public class CreateBroilerBatchCommandTests : IAsyncLifetime
     public async Task CreateBroilerBatchCommand_ShouldSucceed_WhenValidDataProvided()
     {
         // Arrange
-        var serviceProvider = fixture.ServiceProvider;
         var commandHandler = serviceProvider.GetRequiredService<IAppRequestHandler<CreateBroilerBatchCommand.Args, CreateBroilerBatchCommand.Result>>();
 
         var newBatchDto = new NewBroilerBatchDto
@@ -80,7 +81,7 @@ public class CreateBroilerBatchCommandTests : IAsyncLifetime
         Assert.NotEqual(default, result.Value.BatchDto.FinancialTransaction?.Id);
         Assert.Equal(financialTransactionDto.Amount, result.Value.BatchDto.FinancialTransaction?.Amount);
         Assert.Equal(financialTransactionDto.PaidAmount, result.Value.BatchDto.FinancialTransaction?.PaidAmount);
-        Assert.Equal(financialTransactionDto.TransactionClientDateDate, result.Value.BatchDto.FinancialTransaction?.TransactionClientDateDate);
+        Assert.Equal(financialTransactionDto.TransactionClientDateDate, result.Value.BatchDto.FinancialTransaction?.TransactionDate);
         Assert.Equal(financialTransactionDto.Type, result.Value.BatchDto.FinancialTransaction?.Type);
         Assert.Equal(financialTransactionDto.Category, result.Value.BatchDto.FinancialTransaction?.Category);
         Assert.Equal(financialTransactionDto.Status, result.Value.BatchDto.FinancialTransaction?.Status);
@@ -109,7 +110,6 @@ public class CreateBroilerBatchCommandTests : IAsyncLifetime
     public async Task CreateBroilerBatchCommand_ShouldFail_WhenInvalidDataProvided()
     {
         // Arrange
-        var serviceProvider = fixture.ServiceProvider;
         var commandHandler = serviceProvider.GetRequiredService<IAppRequestHandler<CreateBroilerBatchCommand.Args, CreateBroilerBatchCommand.Result>>();
 
         var newBatchDto = new NewBroilerBatchDto
@@ -173,7 +173,6 @@ public class CreateBroilerBatchCommandTests : IAsyncLifetime
     public async Task CreateBroilerBatchCommand_ShouldFail_WhenBothNewAndExistingFinancialEntityProvided()
     {
         // Arrange
-        var serviceProvider = fixture.ServiceProvider;
         var commandHandler = serviceProvider.GetRequiredService<IAppRequestHandler<CreateBroilerBatchCommand.Args, CreateBroilerBatchCommand.Result>>();
 
         var newBatchDto = new NewBroilerBatchDto
@@ -230,7 +229,6 @@ public class CreateBroilerBatchCommandTests : IAsyncLifetime
     public async Task CreateBroilerBatchCommand_ShouldFail_WhenFinancialEntityIdIsEmptyGuid()
     {
         // Arrange
-        var serviceProvider = fixture.ServiceProvider;
         var commandHandler = serviceProvider.GetRequiredService<IAppRequestHandler<CreateBroilerBatchCommand.Args, CreateBroilerBatchCommand.Result>>();
 
         var newBatchDto = new NewBroilerBatchDto
@@ -280,7 +278,6 @@ public class CreateBroilerBatchCommandTests : IAsyncLifetime
     public async Task CreateBroilerBatchCommand_ShouldFail_WhenFinancialEntityIdDoesNotExist()
     {
         // Arrange
-        var serviceProvider = fixture.ServiceProvider;
         var commandHandler = serviceProvider.GetRequiredService<IAppRequestHandler<CreateBroilerBatchCommand.Args, CreateBroilerBatchCommand.Result>>();
 
         var newBatchDto = new NewBroilerBatchDto
@@ -329,7 +326,6 @@ public class CreateBroilerBatchCommandTests : IAsyncLifetime
     [Fact]
     public async Task ShouldFail_WhenFinancialEntityInfoIsInvalid()
     {
-        var serviceProvider = fixture.ServiceProvider;
         var commandHandler = serviceProvider.GetRequiredService<IAppRequestHandler<CreateBroilerBatchCommand.Args, CreateBroilerBatchCommand.Result>>();
 
         var newBatchDto = new NewBroilerBatchDto
@@ -383,7 +379,6 @@ public class CreateBroilerBatchCommandTests : IAsyncLifetime
     [Fact]
     public async Task ShouldFail_WhenFinancialEntityInfoNameIsTooLong()
     {
-        var serviceProvider = fixture.ServiceProvider;
         var commandHandler = serviceProvider.GetRequiredService<IAppRequestHandler<CreateBroilerBatchCommand.Args, CreateBroilerBatchCommand.Result>>();
 
         var newBatchDto = new NewBroilerBatchDto
@@ -436,7 +431,6 @@ public class CreateBroilerBatchCommandTests : IAsyncLifetime
     [Fact]
     public async Task ShouldFail_WhenFinancialEntityPhoneNumberIsInvalid()
     {
-        var serviceProvider = fixture.ServiceProvider;
         var commandHandler = serviceProvider.GetRequiredService<IAppRequestHandler<CreateBroilerBatchCommand.Args, CreateBroilerBatchCommand.Result>>();
 
         var newBatchDto = new NewBroilerBatchDto

@@ -27,9 +27,6 @@ public class TransactionEntityConfiguration : IEntityTypeConfiguration<Financial
             .IsRequired(false)
             .HasColumnType("decimal(18,2)");
 
-        builder.Property(t => t.Status)
-            .IsRequired();
-
         builder.Property(t => t.Category)
             .IsRequired();
 

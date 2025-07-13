@@ -24,5 +24,6 @@ public static class InfrastructureServices
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IBroilerBatchRepository, BroilerBatchRepository>();
         services.AddScoped<IFinancesRepository, Finances>();
+        services.AddScoped<IActivityRepository, ActivityRepository>();
     }
 }

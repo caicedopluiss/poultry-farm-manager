@@ -13,6 +13,8 @@ public class BroilerBatchEntityConfiguration : IEntityTypeConfiguration<BroilerB
         builder.HasKey(b => b.Id);
 
         builder.Property(b => b.Id)
+            .IsRequired()
+            .HasColumnType("uniqueidentifier")
             .ValueGeneratedOnAdd();
 
         builder.Property(b => b.BatchName)

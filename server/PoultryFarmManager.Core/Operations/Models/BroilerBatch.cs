@@ -15,6 +15,6 @@ public class BroilerBatch : DbEntityBase
     public string? Notes { get; set; } = string.Empty;
     public Guid FinancialTransactionId { get; set; }
 
-    public FinancialTransaction? FinancialTransaction { get; set; } = null!;
+    public FinancialTransaction? FinancialTransaction { get; set; }
 }
 

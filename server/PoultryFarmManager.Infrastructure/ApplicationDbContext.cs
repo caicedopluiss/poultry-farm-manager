@@ -13,6 +13,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<BroilerBatch> BroilerBatches { get; set; }
     public DbSet<FinancialTransaction> FinancialTransactions { get; set; }
     public DbSet<FinancialEntity> FinancialEntities { get; set; }
+    public DbSet<Activity> Activities { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
