@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"name": "root",
+			"path": "."
+		},
+		{
+			"name": "webapi",
+			"path": "server/PoultryFarmManager.WebAPI"
+		},
+		{
+			"name": "webapp",
+			"path": "client/webapp"
+		},
+	]
+}
