@@ -1,0 +1,27 @@
+name: poultryfarmmanager
+services:
+    webapi:
+        image: poultryfarmmanager/webapi:latest
+        container_name: poultryfarmmanager-webapi
+        pull_policy: build
+        build:
+            context: .
+            dockerfile: server/PoultryFarmManager.WebAPI/Dockerfile
+        ports:
+            - "8080:80"
+        environment:
+            - ASPNETCORE_ENVIRONMENT=Development
+            - ASPNETCORE_HTTP_PORTS=80
+    webapp:
+        image: poultryfarmmanager/webapp:latest
+        container_name: poultryfarmmanager-webapp
+        pull_policy: build
+        build:
+            args:
+                - API_URL=http://localhost:8080/api
+            context: client/webapp
+            dockerfile: Dockerfile
+        ports:
+            - "8081:80"
+        environment:
+            - NODE_ENV=development
