@@ -1,0 +1,6 @@
+obj/
+bin/
+
+.gitignore
+Dockerfile
+**/appsettings*.json
