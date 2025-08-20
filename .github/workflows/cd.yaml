@@ -21,7 +21,7 @@ on:
                 description: "Clean untagged images from the registry"
                 required: false
                 type: boolean
-                default: false
+                default: true
 
 jobs:
     determine-environment:
@@ -35,13 +35,15 @@ jobs:
               id: set-env
               run: |
                   branch_name="${GITHUB_REF#refs/heads/}"
+                  clean_branch_name=$(echo "$branch_name" | sed 's/[^a-zA-Z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+
                   if [[ "$branch_name" == "main" || "$branch_name" == "staging" || "$branch_name" == "dev" || "$branch_name" == "feature/"* ]]; then
                     echo "should_deploy=true" >> $GITHUB_OUTPUT
                   else
                     echo "should_deploy=false" >> $GITHUB_OUTPUT
                   fi
-                  echo "environment=$branch_name" >> $GITHUB_OUTPUT
-                  echo "Environment: $branch_name"
+                  echo "environment=$clean_branch_name" >> $GITHUB_OUTPUT
+                  echo "Environment: $clean_branch_name (from: $branch_name)"
 
     push-images:
         runs-on: ubuntu-latest
@@ -74,7 +76,8 @@ jobs:
 
             - name: Build Docker image
               run: |
-                  TAG="${{ needs.determine-environment.outputs.environment }}-${{ github.sha }}"
+                  SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-8)
+                  TAG="${{ needs.determine-environment.outputs.environment }}-$SHORT_SHA"
                   LATEST_TAG="${{ needs.determine-environment.outputs.environment }}"
 
                   echo "Building image with tag: $TAG"
@@ -85,13 +88,14 @@ jobs:
                     -t ${{ vars.IMAGE_NAME }}:$LATEST_TAG \
                     .
 
-            # ✅ 6. Push de las imágenes
             - name: Push images to registry
               run: |
-                  TAG="${{ needs.determine-environment.outputs.environment }}-${{ github.sha }}"
-                  LATEST_TAG="${{ needs.determine-environment.outputs.environment }}
+                  SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-8)
+                  TAG="${{ needs.determine-environment.outputs.environment }}-$SHORT_SHA"
+                  LATEST_TAG="${{ needs.determine-environment.outputs.environment }}"
 
                   echo "Pushing images..."
+                  doctl registry login
                   docker push ${{ vars.IMAGE_NAME }}:$TAG
                   docker push ${{ vars.IMAGE_NAME }}:$LATEST_TAG
 
@@ -102,4 +106,4 @@ jobs:
                   doctl registry garbage-collection start --include-untagged-manifests || echo "Garbage collection failed or already running"
 
         outputs:
-            image_tag: ${{ needs.determine-environment.outputs.environment }}-${{ github.sha }}
+            image_tag: ${{ needs.determine-environment.outputs.environment }}
