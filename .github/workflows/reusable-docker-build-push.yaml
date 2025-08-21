@@ -1,0 +1,81 @@
+name: Docker Build and Push
+
+on:
+    workflow_call:
+        inputs:
+            environment:
+                description: "Environment name"
+                required: true
+                type: string
+            api_url:
+                description: "API URL for the environment"
+                required: true
+                type: string
+            image_name:
+                description: "Docker image name"
+                required: true
+                type: string
+            clean_registry:
+                description: "Clean untagged images from registry"
+                required: false
+                type: boolean
+                default: false
+        secrets:
+            DIGITALOCEAN_ACCESS_TOKEN:
+                description: "DigitalOcean access token"
+                required: true
+        outputs:
+            image_tag:
+                description: "Generated image tag"
+                value: ${{ jobs.docker-build-push.outputs.image_tag }}
+
+jobs:
+    docker-build-push:
+        runs-on: ubuntu-latest
+        outputs:
+            image_tag: ${{ steps.build.outputs.image_tag }}
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Install doctl
+              uses: digitalocean/action-doctl@v2
+              with:
+                  token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+            - name: Login to DigitalOcean Container Registry
+              run: doctl registry login
+
+            - name: Build and tag Docker image
+              id: build
+              run: |
+                  SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-8)
+                  TAG="${{ inputs.environment }}-$SHORT_SHA"
+                  LATEST_TAG="${{ inputs.environment }}"
+
+                  echo "Building image with tag: $TAG"
+
+                  docker build \
+                    --build-arg API_URL="${{ inputs.api_url }}" \
+                    -t ${{ inputs.image_name }}:$TAG \
+                    -t ${{ inputs.image_name }}:$LATEST_TAG \
+                    .
+
+                  echo "image_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+
+            - name: Push images to registry
+              run: |
+                  SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-8)
+                  TAG="${{ inputs.environment }}-$SHORT_SHA"
+                  LATEST_TAG="${{ inputs.environment }}"
+
+                  echo "Pushing images..."
+                  doctl registry login
+                  docker push ${{ inputs.image_name }}:$TAG
+                  docker push ${{ inputs.image_name }}:$LATEST_TAG
+
+            - name: Clean untagged images from registry
+              if: ${{ inputs.clean_registry }}
+              run: |
+                  echo "Starting garbage collection..."
+                  doctl registry garbage-collection start --include-untagged-manifests || echo "Garbage collection failed or already running"

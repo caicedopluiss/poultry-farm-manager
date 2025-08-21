@@ -1,0 +1,39 @@
+name: Environment Setup
+
+on:
+    workflow_call:
+        outputs:
+            environment:
+                description: "Determined environment name"
+                value: ${{ jobs.determine-environment.outputs.environment }}
+            should_deploy:
+                description: "Whether deployment should proceed"
+                value: ${{ jobs.determine-environment.outputs.should_deploy }}
+            action:
+                description: "Action to perform"
+                value: ${{ jobs.determine-environment.outputs.action }}
+
+jobs:
+    determine-environment:
+        runs-on: ubuntu-latest
+        outputs:
+            environment: ${{ steps.set-env.outputs.environment }}
+            should_deploy: ${{ steps.set-env.outputs.should_deploy }}
+            action: ${{ github.event.inputs.action || 'deploy' }}
+        steps:
+            - name: Set environment variable
+              id: set-env
+              run: |
+                  branch_name="${GITHUB_REF#refs/heads/}"
+                  echo "Triggered by ${{ github.event_name }} on branch: $branch_name"
+
+                  # Clean branch name for use as Docker tag
+                  clean_branch_name=$(echo "$branch_name" | sed 's/[^a-zA-Z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+
+                  if [[ "$branch_name" == "main" || "$branch_name" == "staging" || "$branch_name" == "dev" || "$branch_name" == "feature/"* ]]; then
+                    echo "should_deploy=true" >> $GITHUB_OUTPUT
+                  else
+                    echo "should_deploy=false" >> $GITHUB_OUTPUT
+                  fi
+                  echo "environment=$clean_branch_name" >> $GITHUB_OUTPUT
+                  echo "Environment: $clean_branch_name (from: $branch_name)"

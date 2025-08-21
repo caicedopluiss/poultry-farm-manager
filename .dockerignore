@@ -1,6 +1,17 @@
 obj/
 bin/
+.vite/
+node_modules/
+dist/
+Tests/*
 
 .gitignore
 Dockerfile
 **/appsettings*.json
+.env*
+*prettier*
+*eslint*
+*.md
+*.yaml
+*.editorconfig
+*.code-workspace
