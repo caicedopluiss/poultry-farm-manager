@@ -3,10 +3,10 @@ name: CD
 on:
     push:
         branches:
+            - "main"
+            - "staging"
+            - "dev"
             - "feature/**"
-            - dev
-            - staging
-            - main
     workflow_dispatch:
         inputs:
             action:
@@ -21,89 +21,92 @@ on:
                 description: "Clean untagged images from the registry"
                 required: false
                 type: boolean
-                default: true
+                default: false
 
 jobs:
-    determine-environment:
-        runs-on: ubuntu-latest
-        outputs:
-            environment: ${{ steps.set-env.outputs.environment }}
-            should_deploy: ${{ steps.set-env.outputs.should_deploy }}
-            action: ${{ github.event.inputs.action || 'deploy' }}
-        steps:
-            - name: Set environment variable
-              id: set-env
-              run: |
-                  branch_name="${GITHUB_REF#refs/heads/}"
-                  clean_branch_name=$(echo "$branch_name" | sed 's/[^a-zA-Z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+    # ✅ Configurar entorno
+    environment-setup:
+        uses: ./.github/workflows/reusable-environment-setup.yaml
 
-                  if [[ "$branch_name" == "main" || "$branch_name" == "staging" || "$branch_name" == "dev" || "$branch_name" == "feature/"* ]]; then
-                    echo "should_deploy=true" >> $GITHUB_OUTPUT
-                  else
-                    echo "should_deploy=false" >> $GITHUB_OUTPUT
-                  fi
-                  echo "environment=$clean_branch_name" >> $GITHUB_OUTPUT
-                  echo "Environment: $clean_branch_name (from: $branch_name)"
-
-    push-images:
+    # ✅ Determinar API URL para el entorno
+    determine-api-url:
         runs-on: ubuntu-latest
-        needs: determine-environment
+        needs: environment-setup
         if: |
-            needs.determine-environment.outputs.should_deploy == 'true' &&
-            needs.determine-environment.outputs.action == 'deploy'
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
-
-            - name: Set API URL
-              id: set-urls
-              run: |
-                  if [[ "${{ needs.determine-environment.outputs.environment }}" == "main" ]]; then
-                        echo "api_url=${{ vars.API_URL_PRODUCTION }}" >> $GITHUB_OUTPUT
-                    elif [[ "${{ needs.determine-environment.outputs.environment }}" == "staging" ]]; then
-                        echo "api_url=${{ vars.API_URL_STAGING }}" >> $GITHUB_OUTPUT
-                    else
-                        echo "api_url=${{ vars.API_URL_DEV || 'https://api-dev.poultry-farm.com' }}" >> $GITHUB_OUTPUT
-                    fi
-
-            - name: Install doctl
-              uses: digitalocean/action-doctl@v2
-              with:
-                  token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-
-            - name: Login to DigitalOcean Container Registry
-              run: doctl registry login
-
-            - name: Build Docker image
-              run: |
-                  SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-8)
-                  TAG="${{ needs.determine-environment.outputs.environment }}-$SHORT_SHA"
-                  LATEST_TAG="${{ needs.determine-environment.outputs.environment }}"
-
-                  echo "Building image with tag: $TAG"
-
-                  docker build \
-                    --build-arg API_URL="${{ steps.set-urls.outputs.api_url }}" \
-                    -t ${{ vars.IMAGE_NAME }}:$TAG \
-                    -t ${{ vars.IMAGE_NAME }}:$LATEST_TAG \
-                    .
-
-            - name: Push images to registry
-              run: |
-                  SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-8)
-                  TAG="${{ needs.determine-environment.outputs.environment }}-$SHORT_SHA"
-                  LATEST_TAG="${{ needs.determine-environment.outputs.environment }}"
-
-                  echo "Pushing images..."
-                  doctl registry login
-                  docker push ${{ vars.IMAGE_NAME }}:$TAG
-                  docker push ${{ vars.IMAGE_NAME }}:$LATEST_TAG
-
-            - name: Clean untagged images from registry
-              if: ${{ github.event.inputs.clean_registry }}
-              run: |
-                  echo "Starting garbage collection..."
-                  doctl registry garbage-collection start --include-untagged-manifests || echo "Garbage collection failed or already running"
-
+            needs.environment-setup.outputs.should_deploy == 'true' &&
+            needs.environment-setup.outputs.action == 'deploy'
         outputs:
-            image_tag: ${{ needs.determine-environment.outputs.environment }}
+            api_url: ${{ steps.set-url.outputs.api_url }}
+        steps:
+            - name: Set API URL
+              id: set-url
+              run: |
+                  if [[ "${{ needs.environment-setup.outputs.environment }}" == "main" ]]; then
+                      echo "api_url=${{ vars.API_URL_PRODUCTION }}" >> $GITHUB_OUTPUT
+                  elif [[ "${{ needs.environment-setup.outputs.environment }}" == "staging" ]]; then
+                      echo "api_url=${{ vars.API_URL_STAGING }}" >> $GITHUB_OUTPUT
+                  else
+                      echo "api_url=${{ vars.API_URL_DEV }}" >> $GITHUB_OUTPUT
+                  fi
+
+    # ✅ Build y test frontend
+    frontend-build:
+        uses: ./.github/workflows/reusable-frontend-build.yaml
+        needs: environment-setup
+        if: |
+            needs.environment-setup.outputs.should_deploy == 'true' &&
+            needs.environment-setup.outputs.action == 'deploy'
+        with:
+            node_version: "22"
+            run_tests: false
+
+    # ✅ Build y test backend
+    backend-build-test:
+        uses: ./.github/workflows/reusable-backend-build-test.yaml
+        needs: environment-setup
+        if: |
+            needs.environment-setup.outputs.should_deploy == 'true' &&
+            needs.environment-setup.outputs.action == 'deploy'
+        with:
+            dotnet_version: "8.0.x"
+            run_tests: true
+            configuration: "Release"
+
+    # ✅ Verificar que CI pasó exitosamente
+    verify-ci-success:
+        runs-on: ubuntu-latest
+        needs: [environment-setup, frontend-build, backend-build-test]
+        if: |
+            needs.environment-setup.outputs.should_deploy == 'true' &&
+            needs.environment-setup.outputs.action == 'deploy'
+        outputs:
+            ci_passed: ${{ steps.check.outputs.ci_passed }}
+        steps:
+            - name: Check CI results
+              id: check
+              run: |
+                  if [[ "${{ needs.frontend-build.result }}" == "success" && "${{ needs.backend-build-test.result }}" == "success" ]]; then
+                      echo "ci_passed=true" >> $GITHUB_OUTPUT
+                      echo "✅ CI passed successfully"
+                  else
+                      echo "ci_passed=false" >> $GITHUB_OUTPUT
+                      echo "❌ CI failed"
+                      exit 1
+                  fi
+
+    # ✅ Build y push imagen Docker
+    docker-build-push:
+        uses: ./.github/workflows/reusable-docker-build-push.yaml
+        needs: [environment-setup, determine-api-url, verify-ci-success]
+        if: |
+            needs.environment-setup.outputs.should_deploy == 'true' &&
+            needs.environment-setup.outputs.action == 'deploy' &&
+            needs.determine-api-url.result == 'success' &&
+            needs.verify-ci-success.outputs.ci_passed == 'true'
+        with:
+            environment: ${{ needs.environment-setup.outputs.environment }}
+            api_url: ${{ needs.determine-api-url.outputs.api_url }}
+            image_name: ${{ vars.IMAGE_NAME }}
+            clean_registry: ${{ github.event.inputs.clean_registry }}
+        secrets:
+            DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
