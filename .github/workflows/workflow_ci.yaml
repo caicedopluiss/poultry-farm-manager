@@ -1,5 +1,4 @@
 name: CI Workflow
-
 on:
     push:
         branches: ["*"]
@@ -19,6 +18,7 @@ on:
                 description: "Run tests"
                 required: false
                 default: true
+                type: boolean
             configuration:
                 description: "Build configuration"
                 required: false
@@ -28,21 +28,21 @@ jobs:
     frontend-lint:
         uses: ./.github/workflows/job_frontend_lint.yaml
         with:
-            node_version: "22"
+            node_version: ${{ inputs.node_version || '22' }}
 
     frontend-build-and-test:
         uses: ./.github/workflows/job_frontend_build_and_test.yaml
         needs: frontend-lint
         if: needs.frontend-lint.result == 'success'
         with:
-            node_version: "22"
-            run_tests: true
+            node_version: ${{ inputs.node_version || '22' }}
+            run_tests: false
 
     backend-build-and-test:
         uses: ./.github/workflows/job_backend_build_and_test.yaml
         needs: frontend-lint
         if: needs.frontend-lint.result == 'success'
         with:
-            dotnet_version: "8.0.x"
-            run_tests: true
-            configuration: "Release"
+            dotnet_version: ${{ inputs.dotnet_version || '8.0.x' }}
+            run_tests: ${{ inputs.run_tests != '' && inputs.run_tests || true }}
+            configuration: ${{ inputs.configuration || 'Release' }}

@@ -14,7 +14,7 @@ on:
                 default: false
 
 jobs:
-    frontend-build:
+    frontend-build-and-test:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
