@@ -90,9 +90,13 @@ jobs:
         if: |
             needs.check-branch.outputs.can_deploy == 'true' &&
             needs.docker-build-push.result == 'success'
+        permissions:
+            contents: write
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Create Git tag
               run: |
@@ -103,7 +107,7 @@ jobs:
 
             - name: Create GitHub Release
               env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   # Preparar flags para el comando gh release create
                   RELEASE_FLAGS=""
