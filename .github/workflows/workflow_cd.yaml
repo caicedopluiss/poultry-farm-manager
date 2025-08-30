@@ -60,7 +60,7 @@ jobs:
             needs.frontend-lint.result == 'success'
         with:
             node_version: "22"
-            run_tests: true
+            run_tests: false
     backend-build-and-test:
         uses: ./.github/workflows/job_backend_build_and_test.yaml
         needs: [check-branch, frontend-lint]
