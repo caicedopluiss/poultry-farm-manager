@@ -1,0 +1,36 @@
+name: Frontend Lint
+
+on:
+    workflow_call:
+        inputs:
+            node_version:
+                description: "Node.js version"
+                required: false
+                type: string
+                default: "22"
+
+jobs:
+    frontend-lint:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ inputs.node_version }}
+
+            - name: Cache node_modules
+              uses: actions/cache@v4
+              with:
+                  path: client/webapp/node_modules
+                  key: ${{ runner.os }}-node-${{ hashFiles('client/webapp/package-lock.json') }}
+
+            - name: Install frontend dependencies
+              working-directory: client/webapp
+              run: npm ci
+
+            - name: Run ESLint
+              working-directory: client/webapp
+              run: npm run lint

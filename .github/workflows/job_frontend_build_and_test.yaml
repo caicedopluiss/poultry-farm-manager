@@ -1,0 +1,45 @@
+name: Frontend Build & Test
+on:
+    workflow_call:
+        inputs:
+            node_version:
+                description: "Node.js version"
+                required: false
+                type: string
+                default: "22"
+            run_tests:
+                description: "Run frontend tests"
+                required: false
+                type: boolean
+                default: false
+
+jobs:
+    frontend-build-and-test:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ inputs.node_version }}
+
+            - name: Cache node_modules
+              uses: actions/cache@v4
+              with:
+                  path: client/webapp/node_modules
+                  key: ${{ runner.os }}-node-${{ hashFiles('client/webapp/package-lock.json') }}
+
+            - name: Install frontend dependencies
+              working-directory: client/webapp
+              run: npm ci
+
+            - name: Build frontend
+              working-directory: client/webapp
+              run: npm run build
+
+            - name: Run frontend tests
+              if: ${{ inputs.run_tests }}
+              working-directory: client/webapp
+              run: npm run test

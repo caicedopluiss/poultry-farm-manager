@@ -1,0 +1,51 @@
+name: Backend Build & Test
+on:
+    workflow_call:
+        inputs:
+            dotnet_version:
+                description: ".NET version"
+                required: false
+                type: string
+                default: "8.0.x"
+            run_tests:
+                description: "Run backend tests"
+                required: false
+                type: boolean
+                default: true
+            configuration:
+                description: "Build configuration"
+                required: false
+                type: string
+                default: "Release"
+
+jobs:
+    backend-build-test:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup .NET
+              uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: ${{ inputs.dotnet_version }}
+
+            - name: Cache NuGet packages
+              uses: actions/cache@v4
+              with:
+                  path: ~/.nuget/packages
+                  key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json', '**/*.csproj', '**/*.sln') }}
+                  restore-keys: |
+                      ${{ runner.os }}-nuget-*
+            - name: Restore backend dependencies
+              working-directory: . # root (sln file location)
+              run: dotnet restore
+
+            - name: Build backend
+              working-directory: . # root (sln file location)
+              run: dotnet build --configuration ${{ inputs.configuration }} --no-restore
+
+            - name: Run backend tests
+              if: ${{ inputs.run_tests }}
+              working-directory: . # root (sln file location)
+              run: dotnet test --no-build --no-restore --configuration ${{ inputs.configuration }}
