@@ -81,7 +81,7 @@ jobs:
         with:
             release_tag: ${{ github.event.inputs.release_tag }}
             image_name: ${{ vars.IMAGE_NAME }}
-            clean_registry: ${{ github.event.inputs.clean_registry }}
+            clean_registry: ${{ github.event.inputs.clean_registry == 'true' }}
         secrets:
             DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
     create-release:
