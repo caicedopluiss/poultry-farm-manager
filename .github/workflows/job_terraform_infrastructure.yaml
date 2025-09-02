@@ -107,11 +107,9 @@ jobs:
                   if terraform output >/dev/null 2>&1; then
                       echo "🎯 Found Terraform outputs, processing..."
 
-                      # Capturar TODOS los outputs como JSON para GitHub Actions
-                      OUTPUTS_JSON=$(terraform output -json)
-                      echo "terraform_outputs=$OUTPUTS_JSON" >> $GITHUB_OUTPUT
-
-                      # Mostrar todos los outputs en el summary
+                  # Capturar TODOS los outputs como JSON para GitHub Actions (en una sola línea)
+                  OUTPUTS_JSON=$(terraform output -json | jq -c .)
+                  echo "terraform_outputs=$OUTPUTS_JSON" >> $GITHUB_OUTPUT                      # Mostrar todos los outputs en el summary
                       echo "### 🎯 Terraform Outputs" >> $GITHUB_STEP_SUMMARY
                       echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
                       terraform output >> $GITHUB_STEP_SUMMARY

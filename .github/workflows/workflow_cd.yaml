@@ -13,8 +13,8 @@ on:
                     - deploy # Tag branch: Apply + Create release
                     - destroy # Tag branch: Destroy infrastructure
             release_tag:
-                description: "Release tag (e.g., v1.0.0)"
-                required: true
+                description: "Release tag (e.g., v1.0.0) - Required for main branch actions"
+                required: false
                 type: string
             is_pre_release:
                 description: "Is this a pre-release?"
@@ -60,15 +60,27 @@ jobs:
                   if [[ "$REF_TYPE" == "branch" && "$BRANCH_NAME" == "main" ]]; then
                       echo "is_main_branch=true" >> $GITHUB_OUTPUT
                       echo "is_tag_branch=false" >> $GITHUB_OUTPUT
+                      
+                      # Validar que se proporcione tag para acciones en main
+                      if [[ -z "$INPUT_TAG" ]]; then
+                          echo "❌ Main branch requires 'release_tag' input"
+                          echo "can_proceed=false" >> $GITHUB_OUTPUT
+                          exit 1
+                      fi
+                      
                       echo "current_tag=$INPUT_TAG" >> $GITHUB_OUTPUT
 
-                      if [[ "$ACTION" == "plan" ]]; then
-                          echo "✅ Main branch + Plan action: Valid context"
-                          echo "📝 Will create tag: $INPUT_TAG"
+                      if [[ "$ACTION" == "plan" || "$ACTION" == "deploy" ]]; then
+                          echo "✅ Main branch + $ACTION action: Valid context"
+                          if [[ "$ACTION" == "deploy" ]]; then
+                              echo "📝 Will create tag: $INPUT_TAG"
+                          else
+                              echo "📝 Will only plan, no tag creation"
+                          fi
                           echo "can_proceed=true" >> $GITHUB_OUTPUT
-                          echo "action_type=plan" >> $GITHUB_OUTPUT
+                          echo "action_type=$ACTION" >> $GITHUB_OUTPUT
                       else
-                          echo "❌ Main branch only allows 'plan' action"
+                          echo "❌ Main branch only allows 'plan' or 'deploy' actions"
                           echo "can_proceed=false" >> $GITHUB_OUTPUT
                           exit 1
                       fi
@@ -173,6 +185,7 @@ jobs:
         if: |
             needs.check-context.outputs.can_proceed == 'true' &&
             needs.check-context.outputs.is_main_branch == 'true' &&
+            needs.check-context.outputs.action_type == 'deploy' &&
             needs.terraform-plan.result == 'success'
         permissions:
             contents: write
