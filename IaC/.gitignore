@@ -1,0 +1,107 @@
+# Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# Crash log files
+crash.log
+crash.*.log
+
+# Exclude all .tfvars files, which are likely to contain sensitive data, such as
+# password, private keys, and other secrets. These should not be part of version
+# control as they are data points which are potentially sensitive and subject
+# to change depending on the environment.
+*.tfvars
+*.tfvars.json
+
+# Ignore override files as they are usually used to override resources locally and so
+# are not checked in
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Include override files you do wish to add to version control using negated pattern
+# !example_override.tf
+
+# Include tfplan files to ignore the plan output of command: terraform plan -out=tfplan
+# example: *tfplan*
+*.tfplan
+*.tfplan.*
+
+# Ignore CLI configuration files
+.terraformrc
+terraform.rc
+
+# Lock files (should be ignored to avoid conflicts)
+.terraform.lock.hcl
+
+# Local environment files
+.env
+.env.local
+.env.*.local
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backup files
+*.backup
+*.bak
+*.tmp
+
+# Log files
+*.log
+
+# Archive files
+*.zip
+*.tar.gz
+*.rar
+
+# Terraform provider cache
+.terraform.d/
+
+# Sentinel runtime directory
+.sentinel/
+
+# Terraform workspace files
+terraform.tfstate.d/
+
+# Local backend files
+terraform.tfstate.backup.*
+
+# Terraform module cache
+.terraform.modules/
+
+# Terraform configuration files that might contain sensitive data
+terraform.rc.d/
+
+# Plan output files
+plan.out
+plan.json
+tfplan.json
+
+# Auto-generated files
+.auto.tfvars
+
+# Temporary files
+*.tmp
+*.temp
+terraform.*.tmp
+
+# Terraform debugging files
+TF_LOG*

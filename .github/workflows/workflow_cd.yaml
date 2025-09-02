@@ -6,10 +6,12 @@ on:
             action:
                 description: "Select the action to perform"
                 required: true
-                default: "deploy"
+                default: "plan"
                 type: choice
                 options:
-                    - deploy
+                    - plan # Main branch: Create tag + Terraform plan
+                    - deploy # Tag branch: Apply + Create release
+                    - destroy # Tag branch: Destroy infrastructure
             release_tag:
                 description: "Release tag (e.g., v1.0.0)"
                 required: true
@@ -29,67 +31,149 @@ on:
                 required: false
                 type: boolean
                 default: false
+
 jobs:
-    check-branch:
+    check-context:
         runs-on: ubuntu-latest
         outputs:
-            can_deploy: ${{ steps.check.outputs.can_deploy }}
+            can_proceed: ${{ steps.check.outputs.can_proceed }}
+            is_main_branch: ${{ steps.check.outputs.is_main_branch }}
+            is_tag_branch: ${{ steps.check.outputs.is_tag_branch }}
+            action_type: ${{ steps.check.outputs.action_type }}
+            current_tag: ${{ steps.check.outputs.current_tag }}
         steps:
-            - name: Check if on main branch
+            - name: Check branch and action context
               id: check
               run: |
-                  if [[ "${{ github.ref_name }}" == "main" ]]; then
-                      echo "can_deploy=true" >> $GITHUB_OUTPUT
-                      echo "✅ On main branch, can proceed with deployment"
+                  REF_TYPE="${{ github.ref_type }}"
+                  BRANCH_NAME="${{ github.ref_name }}"
+                  ACTION="${{ github.event.inputs.action }}"
+                  INPUT_TAG="${{ github.event.inputs.release_tag }}"
+
+                  echo "🔍 GitHub Context:"
+                  echo "  Ref Type: $REF_TYPE"
+                  echo "  Ref Name: $BRANCH_NAME"
+                  echo "  Action: $ACTION"
+                  echo "  Input Tag: $INPUT_TAG"
+
+                  # Determinar el contexto basado en ref_type
+                  if [[ "$REF_TYPE" == "branch" && "$BRANCH_NAME" == "main" ]]; then
+                      echo "is_main_branch=true" >> $GITHUB_OUTPUT
+                      echo "is_tag_branch=false" >> $GITHUB_OUTPUT
+                      echo "current_tag=$INPUT_TAG" >> $GITHUB_OUTPUT
+
+                      if [[ "$ACTION" == "plan" ]]; then
+                          echo "✅ Main branch + Plan action: Valid context"
+                          echo "📝 Will create tag: $INPUT_TAG"
+                          echo "can_proceed=true" >> $GITHUB_OUTPUT
+                          echo "action_type=plan" >> $GITHUB_OUTPUT
+                      else
+                          echo "❌ Main branch only allows 'plan' action"
+                          echo "can_proceed=false" >> $GITHUB_OUTPUT
+                          exit 1
+                      fi
+
+                  elif [[ "$REF_TYPE" == "tag" ]]; then
+                      echo "is_main_branch=false" >> $GITHUB_OUTPUT
+                      echo "is_tag_branch=true" >> $GITHUB_OUTPUT
+                      echo "current_tag=$BRANCH_NAME" >> $GITHUB_OUTPUT
+
+                      echo "✅ Tag branch ($BRANCH_NAME) + $ACTION action: Valid context"
+                      echo "🏷️ Using tag from branch: $BRANCH_NAME"
+                      echo "can_proceed=true" >> $GITHUB_OUTPUT
+                      echo "action_type=$ACTION" >> $GITHUB_OUTPUT
+
                   else
-                      echo "can_deploy=false" >> $GITHUB_OUTPUT
-                      echo "❌ Not on main branch (current: ${{ github.ref_name }}). Deployment only allowed from main."
+                      echo "❌ Invalid context:"
+                      echo "  - Ref Type: $REF_TYPE (expected: 'branch' or 'tag')"
+                      echo "  - Ref Name: $BRANCH_NAME (expected: 'main' for branch or tag name for tag)"
+                      echo "can_proceed=false" >> $GITHUB_OUTPUT
+                      echo "is_main_branch=false" >> $GITHUB_OUTPUT
+                      echo "is_tag_branch=false" >> $GITHUB_OUTPUT
+                      echo "current_tag=" >> $GITHUB_OUTPUT
                       exit 1
                   fi
     frontend-lint:
         uses: ./.github/workflows/job_frontend_lint.yaml
-        needs: check-branch
-        if: needs.check-branch.outputs.can_deploy == 'true'
+        needs: check-context
+        if: |
+            needs.check-context.outputs.can_proceed == 'true' &&
+            needs.check-context.outputs.action_type != 'destroy'
         with:
             node_version: "22"
+
     frontend-build-and-test:
         uses: ./.github/workflows/job_frontend_build_and_test.yaml
-        needs: [check-branch, frontend-lint]
+        needs: [check-context, frontend-lint]
         if: |
-            needs.check-branch.outputs.can_deploy == 'true' &&
+            needs.check-context.outputs.can_proceed == 'true' &&
+            needs.check-context.outputs.action_type != 'destroy' &&
             needs.frontend-lint.result == 'success'
         with:
             node_version: "22"
             run_tests: false
+
     backend-build-and-test:
         uses: ./.github/workflows/job_backend_build_and_test.yaml
-        needs: [check-branch, frontend-lint]
+        needs: [check-context, frontend-lint]
         if: |
-            needs.check-branch.outputs.can_deploy == 'true' &&
+            needs.check-context.outputs.can_proceed == 'true' &&
+            needs.check-context.outputs.action_type != 'destroy' &&
             needs.frontend-lint.result == 'success'
         with:
             dotnet_version: "8.0.x"
             run_tests: true
             configuration: "Release"
-    docker-build-push:
-        uses: ./.github/workflows/job_docker_build_push.yaml
-        needs: [check-branch, frontend-build-and-test, backend-build-and-test]
+
+    terraform-format:
+        uses: ./.github/workflows/job_terraform_infrastructure.yaml
+        needs: [check-context, frontend-build-and-test, backend-build-and-test]
         if: |
-            needs.check-branch.outputs.can_deploy == 'true' &&
+            needs.check-context.outputs.can_proceed == 'true' &&
+            needs.check-context.outputs.action_type != 'destroy' &&
             needs.frontend-build-and-test.result == 'success' &&
             needs.backend-build-and-test.result == 'success'
         with:
-            release_tag: ${{ github.event.inputs.release_tag }}
-            image_name: ${{ vars.IMAGE_NAME }}
-            clean_registry: ${{ github.event.inputs.clean_registry == 'true' }}
+            terraform_action: "format"
+            working_directory: "IaC/cloud-services"
+
+    terraform-validate:
+        uses: ./.github/workflows/job_terraform_infrastructure.yaml
+        needs: [check-context, frontend-build-and-test, backend-build-and-test]
+        if: |
+            needs.check-context.outputs.can_proceed == 'true' &&
+            needs.check-context.outputs.action_type != 'destroy' &&
+            needs.frontend-build-and-test.result == 'success' &&
+            needs.backend-build-and-test.result == 'success'
+        with:
+            terraform_action: "validate"
+            working_directory: "IaC/cloud-services"
         secrets:
             DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-    create-release:
-        runs-on: ubuntu-latest
-        needs: [check-branch, docker-build-push]
+            TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+
+    terraform-plan:
+        uses: ./.github/workflows/job_terraform_infrastructure.yaml
+        needs: [check-context, terraform-format, terraform-validate]
         if: |
-            needs.check-branch.outputs.can_deploy == 'true' &&
-            needs.docker-build-push.result == 'success'
+            needs.check-context.outputs.can_proceed == 'true' &&
+            needs.check-context.outputs.action_type != 'destroy' &&
+            needs.terraform-format.result == 'success' &&
+            needs.terraform-validate.result == 'success'
+        with:
+            terraform_action: "plan"
+            working_directory: "IaC/cloud-services"
+        secrets:
+            DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+            TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+
+    create-tag:
+        runs-on: ubuntu-latest
+        needs: [check-context, terraform-plan]
+        if: |
+            needs.check-context.outputs.can_proceed == 'true' &&
+            needs.check-context.outputs.is_main_branch == 'true' &&
+            needs.terraform-plan.result == 'success'
         permissions:
             contents: write
         steps:
@@ -102,13 +186,85 @@ jobs:
               run: |
                   git config --local user.email "${{ github.actor }}@users.noreply.github.com"
                   git config --local user.name "${{ github.actor }}"
-                  git tag -a "${{ github.event.inputs.release_tag }}" -m "Release ${{ github.event.inputs.release_tag }}"
-                  git push origin "${{ github.event.inputs.release_tag }}"
+
+                  TAG_NAME="${{ needs.check-context.outputs.current_tag }}"
+
+                  # Check if the tag already exists
+                  if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+                      echo "⚠️ Tag $TAG_NAME already exists, skipping creation"
+                  else
+                      echo "🏷️ Creating tag $TAG_NAME"
+                      git tag -a "$TAG_NAME" -m "Release $TAG_NAME"
+                      git push origin "$TAG_NAME"
+                      echo "✅ Tag created successfully"
+                  fi
+
+    terraform-apply:
+        uses: ./.github/workflows/job_terraform_infrastructure.yaml
+        needs: [check-context, terraform-plan]
+        if: |
+            needs.check-context.outputs.can_proceed == 'true' &&
+            needs.check-context.outputs.is_tag_branch == 'true' &&
+            needs.check-context.outputs.action_type == 'deploy' &&
+            needs.terraform-plan.result == 'success'
+        with:
+            terraform_action: "apply"
+            working_directory: "IaC/cloud-services"
+        secrets:
+            DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+            TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+
+    terraform-destroy:
+        uses: ./.github/workflows/job_terraform_infrastructure.yaml
+        needs: check-context
+        if: |
+            needs.check-context.outputs.can_proceed == 'true' &&
+            needs.check-context.outputs.is_tag_branch == 'true' &&
+            needs.check-context.outputs.action_type == 'destroy'
+        with:
+            terraform_action: "destroy"
+            working_directory: "IaC/cloud-services"
+        secrets:
+            DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+            TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+
+    docker-build-push:
+        uses: ./.github/workflows/job_docker_build_push.yaml
+        needs: [check-context, terraform-apply]
+        if: |
+            needs.check-context.outputs.can_proceed == 'true' &&
+            needs.check-context.outputs.is_tag_branch == 'true' &&
+            needs.check-context.outputs.action_type == 'deploy' &&
+            needs.terraform-apply.result == 'success'
+        with:
+            release_tag: ${{ needs.check-context.outputs.current_tag }}
+            image_name: ${{ fromJSON(needs.terraform-apply.outputs.terraform_outputs).registry_endpoint.value }}/${{ vars.IMAGE_NAME }}
+            clean_registry: ${{ github.event.inputs.clean_registry == 'true' }}
+        secrets:
+            DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+    create-release:
+        runs-on: ubuntu-latest
+        needs: [check-context, docker-build-push]
+        if: |
+            needs.check-context.outputs.can_proceed == 'true' &&
+            needs.check-context.outputs.is_tag_branch == 'true' &&
+            needs.check-context.outputs.action_type == 'deploy' &&
+            needs.docker-build-push.result == 'success'
+        permissions:
+            contents: write
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Create GitHub Release
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
+                  TAG_NAME="${{ needs.check-context.outputs.current_tag }}"
+
                   # Preparar flags para el comando gh release create
                   RELEASE_FLAGS=""
 
@@ -121,14 +277,14 @@ jobs:
                   fi
 
                   # Crear el release usando gh CLI
-                  gh release create "${{ github.event.inputs.release_tag }}" \
-                      --title "${{ github.event.inputs.release_tag }}" \
-                      --notes "## Release ${{ github.event.inputs.release_tag }}
+                  gh release create "$TAG_NAME" \
+                      --title "Release $TAG_NAME" \
+                      --notes "## Release $TAG_NAME
 
                   ### 🚀 Deployment Information
-                  - **Branch**: main
+                  - **Branch**: ${{ github.ref_name }}
                   - **Commit**: ${{ github.sha }}
-                  - **Docker Image**: ${{ vars.IMAGE_NAME }}:${{ github.event.inputs.release_tag }}
+                  - **Docker Image**: ${{ fromJSON(needs.terraform-apply.outputs.terraform_outputs).registry_endpoint.value }}/${{ vars.IMAGE_NAME }}:$TAG_NAME
 
                   ### 📋 Changes
                   This release includes all changes merged to main branch up to commit ${{ github.sha }}." \
