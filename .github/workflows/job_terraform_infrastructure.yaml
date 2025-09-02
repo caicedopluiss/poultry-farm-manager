@@ -1,0 +1,126 @@
+name: Terraform Infrastructure
+
+on:
+    workflow_call:
+        inputs:
+            terraform_action:
+                description: "Terraform action to perform"
+                required: true
+                type: string
+                # format, validate, plan, apply, destroy
+            working_directory:
+                description: "Terraform working directory"
+                required: false
+                type: string
+                default: "IaC/cloud-services"
+        secrets:
+            DIGITALOCEAN_ACCESS_TOKEN:
+                description: "DigitalOcean access token"
+                required: false # No requerido para format
+            TF_API_TOKEN:
+                description: "HCP Terraform Cloud API token"
+                required: false # No requerido para format
+        outputs:
+            terraform_outputs:
+                description: "All Terraform outputs in JSON format"
+                value: ${{ jobs.terraform.outputs.terraform_outputs }}
+
+jobs:
+    terraform:
+        runs-on: ubuntu-latest
+        outputs:
+            terraform_outputs: ${{ steps.outputs.outputs.terraform_outputs }}
+        env:
+            TF_VAR_digitalocean_token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+        defaults:
+            run:
+                working-directory: ${{ inputs.working_directory }}
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup Terraform
+              uses: hashicorp/setup-terraform@v3
+              with:
+                  terraform_version: "~1.13"
+                  cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+            - name: Terraform Init
+              if: inputs.terraform_action != 'format'
+              run: terraform init
+
+            - name: Terraform Format Check and Apply
+              if: inputs.terraform_action == 'format'
+              run: |
+                  echo "🎨 Checking Terraform format..."
+
+                  # Check format first
+                  if terraform fmt -check -recursive; then
+                      echo "✅ All Terraform files are properly formatted"
+                  else
+                      echo "⚠️ Some Terraform files need formatting, applying format..."
+                      terraform fmt -recursive
+                      echo "✅ Terraform formatting applied successfully"
+
+                      # List formatted files
+                      echo "📝 Files that were formatted:"
+                      git diff --name-only || echo "No changes to show"
+                  fi
+
+            - name: Terraform Validate
+              if: inputs.terraform_action == 'validate'
+              run: |
+                  echo "🔍 Validating Terraform configuration..."
+                  terraform validate
+                  echo "✅ Terraform configuration is valid"
+
+            - name: Terraform Plan
+              if: inputs.terraform_action == 'plan' || inputs.terraform_action == 'apply'
+              run: |
+                  echo "📋 Creating Terraform plan..."
+                  terraform plan -out=out.tfplan
+                  echo "✅ Terraform plan created successfully"
+
+            - name: Terraform Apply
+              if: inputs.terraform_action == 'apply'
+              run: |
+                  echo "🚀 Applying Terraform plan..."
+                  terraform apply -auto-approve out.tfplan
+                  echo "✅ Terraform apply completed successfully"
+
+            - name: Terraform Destroy
+              if: inputs.terraform_action == 'destroy'
+              run: |
+                  echo "🗑️ Destroying Terraform infrastructure..."
+                  terraform destroy -auto-approve
+                  echo "✅ Terraform destroy completed successfully"
+
+            - name: Get Terraform Outputs
+              if: inputs.terraform_action == 'apply'
+              id: outputs
+              run: |
+                  echo "📊 Getting all Terraform outputs..."
+
+                  # Verificar que hay outputs
+                  if terraform output >/dev/null 2>&1; then
+                      echo "🎯 Found Terraform outputs, processing..."
+
+                      # Capturar TODOS los outputs como JSON para GitHub Actions
+                      OUTPUTS_JSON=$(terraform output -json)
+                      echo "terraform_outputs=$OUTPUTS_JSON" >> $GITHUB_OUTPUT
+
+                      # Mostrar todos los outputs en el summary
+                      echo "### 🎯 Terraform Outputs" >> $GITHUB_STEP_SUMMARY
+                      echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+                      terraform output >> $GITHUB_STEP_SUMMARY
+                      echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+                      echo "✅ All outputs captured as JSON successfully"
+                  else
+                      echo "⚠️ No Terraform outputs found"
+                      echo "terraform_outputs={}" >> $GITHUB_OUTPUT
+                      echo "### ⚠️ No Terraform Outputs" >> $GITHUB_STEP_SUMMARY
+                      echo "No outputs were defined in the Terraform configuration." >> $GITHUB_STEP_SUMMARY
+                  fi
