@@ -82,9 +82,9 @@ jobs:
                   echo "📋 Creating Terraform plan..."
                   terraform plan -out=out.tfplan -detailed-exitcode
                   PLAN_EXIT_CODE=$?
-                  
+
                   echo "plan_exit_code=$PLAN_EXIT_CODE" >> $GITHUB_ENV
-                  
+
                   if [ $PLAN_EXIT_CODE -eq 0 ]; then
                       echo "📝 Plan created successfully - No changes detected"
                   elif [ $PLAN_EXIT_CODE -eq 2 ]; then
@@ -93,7 +93,7 @@ jobs:
                       echo "❌ Plan failed with exit code $PLAN_EXIT_CODE"
                       exit 1
                   fi
-                  
+
                   echo "✅ Terraform plan completed"
 
             - name: Terraform Apply
@@ -135,7 +135,7 @@ jobs:
                       # Capturar TODOS los outputs como JSON para GitHub Actions (en una sola línea)
                       OUTPUTS_JSON=$(terraform output -json | jq -c .)
                       echo "terraform_outputs=$OUTPUTS_JSON" >> $GITHUB_OUTPUT
-                      
+
                       # Mostrar todos los outputs en el summary
                       echo "### 🎯 Terraform Outputs" >> $GITHUB_STEP_SUMMARY
                       echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
