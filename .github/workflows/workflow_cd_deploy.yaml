@@ -1,0 +1,145 @@
+name: Deploy Workflow
+
+on:
+    workflow_dispatch:
+        inputs:
+            action:
+                description: "Select the deployment action"
+                required: true
+                default: "deploy"
+                type: choice
+                options:
+                    - deploy # Deploy infrastructure and application
+                    - destroy # Destroy infrastructure
+            clean_registry:
+                description: "Clean untagged images from the registry"
+                required: false
+                type: boolean
+                default: false
+
+jobs:
+    check-context:
+        runs-on: ubuntu-latest
+        outputs:
+            can_proceed: ${{ steps.check.outputs.can_proceed }}
+            current_tag: ${{ steps.check.outputs.current_tag }}
+            action_type: ${{ steps.check.outputs.action_type }}
+        steps:
+            - name: Check tag branch context
+              id: check
+              run: |
+                  REF_TYPE="${{ github.ref_type }}"
+                  BRANCH_NAME="${{ github.ref_name }}"
+                  ACTION="${{ github.event.inputs.action }}"
+
+                  echo "🔍 GitHub Context:"
+                  echo "  Ref Type: $REF_TYPE"
+                  echo "  Ref Name: $BRANCH_NAME"
+                  echo "  Action: $ACTION"
+
+                  # Verify we're on a tag branch
+                  if [[ "$REF_TYPE" != "tag" ]]; then
+                      echo "❌ This workflow can only run on tag branches"
+                      echo "Current ref type: $REF_TYPE (expected: 'tag')"
+                      echo "can_proceed=false" >> $GITHUB_OUTPUT
+                      exit 1
+                  fi
+
+                  echo "✅ Running on tag branch: $BRANCH_NAME"
+                  echo "can_proceed=true" >> $GITHUB_OUTPUT
+                  echo "current_tag=$BRANCH_NAME" >> $GITHUB_OUTPUT
+                  echo "action_type=$ACTION" >> $GITHUB_OUTPUT
+
+    terraform-destroy:
+        uses: ./.github/workflows/job_terraform_infrastructure.yaml
+        needs: check-context
+        if: |
+            needs.check-context.outputs.can_proceed == 'true' &&
+            needs.check-context.outputs.action_type == 'deploy'
+        with:
+            terraform_action: "destroy"
+            working_directory: "IaC/cloud-services"
+        secrets:
+            DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+            TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+
+    terraform-apply:
+        uses: ./.github/workflows/job_terraform_infrastructure.yaml
+        needs: [check-context, terraform-destroy]
+        if: |
+            needs.check-context.outputs.can_proceed == 'true' &&
+            needs.check-context.outputs.action_type == 'deploy' &&
+            needs.terraform-destroy.result == 'success'
+        with:
+            terraform_action: "apply"
+            working_directory: "IaC/cloud-services"
+        secrets:
+            DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+            TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+
+    get-terraform-outputs:
+        runs-on: ubuntu-latest
+        needs: [check-context, terraform-apply]
+        if: |
+            needs.check-context.outputs.can_proceed == 'true' &&
+            needs.check-context.outputs.action_type == 'deploy' &&
+            needs.terraform-apply.result == 'success'
+        outputs:
+            registry_endpoint: ${{ steps.outputs.outputs.registry_endpoint }}
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup Terraform
+              uses: hashicorp/setup-terraform@v3
+              with:
+                  terraform_version: "~1.13"
+                  cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+            - name: Get Terraform Outputs
+              id: outputs
+              working-directory: IaC/cloud-services
+              env:
+                  TF_VAR_digitalocean_token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+              run: |
+                  echo "🔧 Initializing Terraform..."
+                  terraform init
+
+                  echo "📊 Getting Terraform outputs..."
+
+                  # Get registry endpoint
+                  if terraform output registry_endpoint >/dev/null 2>&1; then
+                      REGISTRY_ENDPOINT=$(terraform output -raw registry_endpoint)
+                      echo "registry_endpoint=$REGISTRY_ENDPOINT" >> $GITHUB_OUTPUT
+                      echo "✅ Registry endpoint: $REGISTRY_ENDPOINT"
+                  else
+                      echo "registry_endpoint=N/A" >> $GITHUB_OUTPUT
+                      echo "⚠️ Registry endpoint not found"
+                  fi
+
+    docker-build-push:
+        uses: ./.github/workflows/job_docker_build_push.yaml
+        needs: [check-context, get-terraform-outputs]
+        if: |
+            needs.check-context.outputs.can_proceed == 'true' &&
+            needs.check-context.outputs.action_type == 'deploy' &&
+            needs.get-terraform-outputs.result == 'success'
+        with:
+            release_tag: ${{ needs.check-context.outputs.current_tag }}
+            image_name: ${{ needs.get-terraform-outputs.outputs.registry_endpoint }}/${{ vars.IMAGE_NAME }}
+            clean_registry: ${{ github.event.inputs.clean_registry == 'true' }}
+        secrets:
+            DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+    destroy-only:
+        uses: ./.github/workflows/job_terraform_infrastructure.yaml
+        needs: check-context
+        if: |
+            needs.check-context.outputs.can_proceed == 'true' &&
+            needs.check-context.outputs.action_type == 'destroy'
+        with:
+            terraform_action: "destroy"
+            working_directory: "IaC/cloud-services"
+        secrets:
+            DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+            TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
