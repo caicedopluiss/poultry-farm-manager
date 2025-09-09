@@ -55,7 +55,7 @@ jobs:
         needs: check-context
         if: |
             needs.check-context.outputs.can_proceed == 'true' &&
-            needs.check-context.outputs.action_type == 'deploy'
+            needs.check-context.outputs.action_type == 'destroy'
         with:
             terraform_action: "destroy"
             working_directory: "IaC/cloud-services"
@@ -65,11 +65,10 @@ jobs:
 
     terraform-apply:
         uses: ./.github/workflows/job_terraform_infrastructure.yaml
-        needs: [check-context, terraform-destroy]
+        needs: [check-context]
         if: |
             needs.check-context.outputs.can_proceed == 'true' &&
-            needs.check-context.outputs.action_type == 'deploy' &&
-            needs.terraform-destroy.result == 'success'
+            needs.check-context.outputs.action_type == 'deploy'
         with:
             terraform_action: "apply"
             working_directory: "IaC/cloud-services"
@@ -130,16 +129,3 @@ jobs:
             clean_registry: ${{ github.event.inputs.clean_registry == 'true' }}
         secrets:
             DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-
-    destroy-only:
-        uses: ./.github/workflows/job_terraform_infrastructure.yaml
-        needs: check-context
-        if: |
-            needs.check-context.outputs.can_proceed == 'true' &&
-            needs.check-context.outputs.action_type == 'destroy'
-        with:
-            terraform_action: "destroy"
-            working_directory: "IaC/cloud-services"
-        secrets:
-            DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-            TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
