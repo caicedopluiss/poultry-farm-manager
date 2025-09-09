@@ -35,6 +35,13 @@ Poultry Farm Manager is a comprehensive solution for managing broiler chicken fa
     -   [Manual Workflow Execution](#manual-workflow-execution)
     -   [Terraform Outputs (JSON Format)](#terraform-outputs-json-format)
     -   [Local Development & Testing](#local-development--testing)
+-   [🚀 Deployment Guide](#-deployment-guide)
+    -   [📋 Deployment Architecture](#-deployment-architecture)
+    -   [🔄 Step-by-Step Deployment Process](#-step-by-step-deployment-process)
+        -   [Phase 1: Release Setup (Main Branch)](#phase-1-release-setup-main-branch)
+        -   [Phase 2: Infrastructure Deployment (Tag Branch)](#phase-2-infrastructure-deployment-tag-branch)
+    -   [🛡️ Safety Features](#️-safety-features)
+    -   [🌟 Best Practices](#-best-practices)
 
 ## Documentation
 
@@ -357,3 +364,112 @@ digitalocean_token = "your-digitalocean-api-token-here"
 terraform init
 terraform apply
 ```
+
+---
+
+## 🚀 Deployment Guide
+
+This project uses a **two-phase deployment system** for maximum safety and control. The deployment process is split into **Release Setup** and **Infrastructure Deployment** phases.
+
+### 📋 Deployment Architecture
+
+The CD workflow has been divided into two separate workflows:
+
+#### 1️⃣ **Release Workflow** (`workflow_release.yaml`)
+
+-   **Runs on**: `main` branch only
+-   **Purpose**: Code validation and release preparation
+-   **Output**: Creates Git tag and draft GitHub release
+
+#### 2️⃣ **Deploy Workflow** (`workflow_deploy.yaml`)
+
+-   **Runs on**: Tag branches only
+-   **Purpose**: Infrastructure and application deployment
+-   **Output**: Live infrastructure and published release
+
+### 🔄 Step-by-Step Deployment Process
+
+#### **Phase 1: Release Setup (Main Branch)**
+
+1. **Navigate to GitHub Actions**
+
+    - Go to your repository on GitHub
+    - Click on **"Actions"** tab
+    - Select **"Release Workflow"**
+
+2. **Run Release Workflow**
+
+    - Click **"Run workflow"**
+    - Fill in the parameters:
+        ```
+        Release tag: v1.0.0 (or your desired version)
+        Is pre-release: false
+        Release notes: (optional custom notes)
+        ```
+    - Click **"Run workflow"**
+
+3. **Wait for completion**
+   The workflow will:
+    - ✅ Run CI Workflow jobs
+    - ✅ Validate Terraform configuration
+    - ✅ Display infrastructure plan
+    - ✅ Create Git tag
+    - ✅ Create draft GitHub release
+
+#### **Phase 2: Infrastructure Deployment (Tag Branch)**
+
+4. **Navigate to GitHub Actions**
+
+    - Go to **"Actions"** tab
+    - Select **"Deploy Workflow"**
+    - Ensure you're now on the tag branch or select it from the branch dropdown
+
+5. **Run Deploy Workflow**
+
+    - Click **"Run workflow"**
+    - Verify you're on the tag branch
+    - Fill in the parameters:
+        ```
+        Action: deploy
+        Clean registry: true (recommended)
+        ```
+    - Click **"Run workflow"**
+
+### 🛡️ Safety Features
+
+#### **Branch Protection**
+
+-   **Release Workflow**: Only runs on `main` branch
+-   **Deploy Workflow**: Only runs on `tag` branches
+-   **No accidental deploys**: Must explicitly switch branches
+
+#### **Infrastructure Safety**
+
+-   **Clean slate deployment**: Always destroy before apply
+-   **Draft releases**: Releases start as drafts until deployment succeeds
+-   **Validation first**: All tests pass before any deployment actions
+
+#### **Rollback Capability**
+
+To rollback to a previous version run Deploy Workflow with action `deploy` on a previous tag branch
+
+#### **Required Secrets**
+
+Ensure these are configured in GitHub repository settings:
+
+-   `DIGITALOCEAN_ACCESS_TOKEN`
+-   `TF_API_TOKEN`
+
+#### **Required Variables**
+
+-   `IMAGE_NAME`
+
+### 🌟 Best Practices
+
+1. **Always test on main first**: Run Release Workflow to validate before deployment
+2. **Use semantic versioning**: `v1.0.0`, `v1.1.0`, `v2.0.0`
+3. **Clean deployments**: Always use destroy + apply for consistent state
+4. **Monitor logs**: Check GitHub Actions logs for any issues
+5. **Tag protection**: Don't manually delete deployment tags
+
+This deployment system provides maximum safety and control over your infrastructure and application releases! 🚀
