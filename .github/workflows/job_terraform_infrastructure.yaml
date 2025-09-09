@@ -78,43 +78,19 @@ jobs:
 
             - name: Terraform Plan
               if: inputs.terraform_action == 'plan' || inputs.terraform_action == 'apply'
-              id: plan
               run: |
-                  echo "📋 Creating Terraform plan..."
-                  terraform plan -out=out.tfplan -detailed-exitcode
-                  PLAN_EXIT_CODE=$?
-
-                  echo "plan_exit_code=$PLAN_EXIT_CODE" >> $GITHUB_OUTPUT
-
-                  if [ $PLAN_EXIT_CODE -eq 0 ]; then
-                      echo "📝 Plan created successfully - No changes detected"
-                  elif [ $PLAN_EXIT_CODE -eq 2 ]; then
-                      echo "📝 Plan created successfully - Changes detected"
-                  else
-                      echo "❌ Plan failed with exit code $PLAN_EXIT_CODE"
-                      exit 1
-                  fi
-
-                  echo "✅ Terraform plan completed"
+                  echo "📋 Showing Terraform plan..."
+                  terraform plan
+                  echo "✅ Terraform plan displayed"
 
             - name: Terraform Apply
               if: inputs.terraform_action == 'apply'
               run: |
-                  if [ "${{ steps.plan.outputs.plan_exit_code }}" = "0" ]; then
-                      echo "📋 No changes detected in plan - Skipping apply"
-                      echo "✅ Infrastructure is already up to date"
-                      echo "### ✅ Terraform Apply - No Changes" >> $GITHUB_STEP_SUMMARY
-                      echo "No changes were detected in the Terraform plan. Infrastructure is already up to date." >> $GITHUB_STEP_SUMMARY
-                  elif [ "${{ steps.plan.outputs.plan_exit_code }}" = "2" ]; then
-                      echo "🚀 Applying Terraform plan with changes..."
-                      terraform apply -auto-approve out.tfplan
-                      echo "✅ Terraform apply completed successfully"
-                      echo "### ✅ Terraform Apply - Changes Applied" >> $GITHUB_STEP_SUMMARY
-                      echo "Terraform plan contained changes and was applied successfully." >> $GITHUB_STEP_SUMMARY
-                  else
-                      echo "❌ Invalid plan state - Cannot proceed with apply"
-                      exit 1
-                  fi
+                  echo "� Applying Terraform configuration..."
+                  terraform apply -auto-approve
+                  echo "✅ Terraform apply completed successfully"
+                  echo "### ✅ Terraform Apply - Completed" >> $GITHUB_STEP_SUMMARY
+                  echo "Terraform configuration has been applied successfully." >> $GITHUB_STEP_SUMMARY
 
             - name: Terraform Destroy
               if: inputs.terraform_action == 'destroy'
