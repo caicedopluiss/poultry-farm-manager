@@ -147,7 +147,7 @@ jobs:
 
                   # Create the published release
                   gh release create "$TAG_NAME" \
-                      --title "Release $TAG_NAME" \
+                      --title "$TAG_NAME" \
                       --notes "## Release $TAG_NAME
 
                   ### 🚀 Deployment Information
