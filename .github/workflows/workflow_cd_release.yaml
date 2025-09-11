@@ -60,7 +60,7 @@ jobs:
             run_tests: true
             configuration: "Release"
 
-    terraform-format:
+    tf-format:
         uses: ./.github/workflows/job_terraform_infrastructure.yaml
         needs: [check-branch, frontend-build-and-test, backend-build-and-test]
         if: |
@@ -69,9 +69,9 @@ jobs:
             needs.backend-build-and-test.result == 'success'
         with:
             terraform_action: "format"
-            working_directory: "IaC/cloud-services"
+            working_directory: "IaC/cloud"
 
-    terraform-validate:
+    tf-validate:
         uses: ./.github/workflows/job_terraform_infrastructure.yaml
         needs: [check-branch, frontend-build-and-test, backend-build-and-test]
         if: |
@@ -80,31 +80,50 @@ jobs:
             needs.backend-build-and-test.result == 'success'
         with:
             terraform_action: "validate"
-            working_directory: "IaC/cloud-services"
+            working_directory: "IaC/cloud"
         secrets:
             DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
             TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
 
-    terraform-plan:
+    tf-plan-cloud:
         uses: ./.github/workflows/job_terraform_infrastructure.yaml
-        needs: [check-branch, terraform-format, terraform-validate]
+        needs: [check-branch, tf-format, tf-validate]
         if: |
             needs.check-branch.outputs.can_proceed == 'true' &&
-            needs.terraform-format.result == 'success' &&
-            needs.terraform-validate.result == 'success'
+            needs.tf-format.result == 'success' &&
+            needs.tf-validate.result == 'success'
         with:
             terraform_action: "plan"
-            working_directory: "IaC/cloud-services"
+            working_directory: "IaC/cloud"
+        secrets:
+            DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+            TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+
+    tf-plan-application:
+        uses: ./.github/workflows/job_terraform_infrastructure.yaml
+        needs: [check-branch, tf-format, tf-validate]
+        if: |
+            needs.check-branch.outputs.can_proceed == 'true' &&
+            needs.tf-format.result == 'success' &&
+            needs.tf-validate.result == 'success'
+        with:
+            terraform_action: "plan"
+            working_directory: "IaC/application"
+            env_vars: |
+                TF_VAR_image_name=${{ vars.IMAGE_NAME }}
+                TF_VAR_api_base_path=${{ vars.API_URL_PROD }}
+                TF_VAR_env=Production
         secrets:
             DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
             TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
 
     create-tag-and-release:
         runs-on: ubuntu-latest
-        needs: [check-branch, terraform-plan]
+        needs: [check-branch, tf-plan-cloud, tf-plan-application]
         if: |
             needs.check-branch.outputs.can_proceed == 'true' &&
-            needs.terraform-plan.result == 'success'
+            needs.tf-plan-cloud.result == 'success' &&
+            needs.tf-plan-application.result == 'success'
         permissions:
             contents: write
         steps:

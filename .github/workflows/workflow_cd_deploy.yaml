@@ -50,7 +50,7 @@ jobs:
                   echo "current_tag=$BRANCH_NAME" >> $GITHUB_OUTPUT
                   echo "action_type=$ACTION" >> $GITHUB_OUTPUT
 
-    terraform-destroy:
+    tf-destroy-application:
         uses: ./.github/workflows/job_terraform_infrastructure.yaml
         needs: check-context
         if: |
@@ -58,12 +58,26 @@ jobs:
             needs.check-context.outputs.action_type == 'destroy'
         with:
             terraform_action: "destroy"
-            working_directory: "IaC/cloud-services"
+            working_directory: "IaC/application"
         secrets:
             DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
             TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
 
-    terraform-apply:
+    tf-destroy-cloud:
+        uses: ./.github/workflows/job_terraform_infrastructure.yaml
+        needs: [check-context, tf-destroy-application]
+        if: |
+            needs.check-context.outputs.can_proceed == 'true' &&
+            needs.check-context.outputs.action_type == 'destroy' &&
+            needs.tf-destroy-application.result == 'success'
+        with:
+            terraform_action: "destroy"
+            working_directory: "IaC/cloud"
+        secrets:
+            DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+            TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+
+    tf-apply-cloud:
         uses: ./.github/workflows/job_terraform_infrastructure.yaml
         needs: [check-context]
         if: |
@@ -71,18 +85,18 @@ jobs:
             needs.check-context.outputs.action_type == 'deploy'
         with:
             terraform_action: "apply"
-            working_directory: "IaC/cloud-services"
+            working_directory: "IaC/cloud"
         secrets:
             DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
             TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
 
-    get-terraform-outputs:
+    get-tf-cloud-outputs:
         runs-on: ubuntu-latest
-        needs: [check-context, terraform-apply]
+        needs: [check-context, tf-apply-cloud]
         if: |
             needs.check-context.outputs.can_proceed == 'true' &&
             needs.check-context.outputs.action_type == 'deploy' &&
-            needs.terraform-apply.result == 'success'
+            needs.tf-apply-cloud.result == 'success'
         outputs:
             registry_endpoint: ${{ steps.outputs.outputs.registry_endpoint }}
         steps:
@@ -97,7 +111,7 @@ jobs:
 
             - name: Get Terraform Outputs
               id: outputs
-              working-directory: IaC/cloud-services
+              working-directory: IaC/cloud
               env:
                   TF_VAR_digitalocean_token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
               run: |
@@ -118,14 +132,34 @@ jobs:
 
     docker-build-push:
         uses: ./.github/workflows/job_docker_build_push.yaml
-        needs: [check-context, get-terraform-outputs]
+        needs: [check-context, get-tf-cloud-outputs]
         if: |
             needs.check-context.outputs.can_proceed == 'true' &&
             needs.check-context.outputs.action_type == 'deploy' &&
-            needs.get-terraform-outputs.result == 'success'
+            needs.get-tf-cloud-outputs.result == 'success'
         with:
             release_tag: ${{ needs.check-context.outputs.current_tag }}
-            image_name: ${{ needs.get-terraform-outputs.outputs.registry_endpoint }}/${{ vars.IMAGE_NAME }}
+            image_name: ${{ needs.get-tf-cloud-outputs.outputs.registry_endpoint }}/${{ vars.IMAGE_NAME }}
             clean_registry: ${{ github.event.inputs.clean_registry == 'true' }}
         secrets:
             DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+    tf-apply-application:
+        uses: ./.github/workflows/job_terraform_infrastructure.yaml
+        needs: [check-context, tf-apply-cloud, docker-build-push]
+        if: |
+            needs.check-context.outputs.can_proceed == 'true' &&
+            needs.check-context.outputs.action_type == 'deploy' &&
+            needs.tf-apply-cloud.result == 'success' &&
+            needs.docker-build-push.result == 'success'
+        with:
+            terraform_action: "apply"
+            working_directory: "IaC/application"
+            env_vars: |
+                TF_VAR_image_name=${{ vars.IMAGE_NAME }}
+                TF_VAR_image_tag=${{ needs.check-context.outputs.current_tag }}
+                TF_VAR_api_base_path=${{ vars.API_URL_PROD }}
+                TF_VAR_env=Production
+        secrets:
+            DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+            TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}

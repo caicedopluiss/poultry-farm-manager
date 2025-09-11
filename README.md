@@ -215,7 +215,7 @@ Configure these secrets in your GitHub repository (`Settings > Secrets and varia
 ```bash
 # Organization: your-org-name
 # Workspace: poultry-farm-infrastructure
-# Working Directory: IaC/cloud-services
+# Working Directory: IaC/cloud
 ```
 
 #### 2. Configure Workspace Settings:
@@ -339,7 +339,7 @@ For deployment locally, you need to configure the backend and variables properly
 ##### 1. Create `backend_override.tf` file:
 
 ```hcl
-# IaC/cloud-services/backend_override.tf
+# IaC/cloud/backend_override.tf
 terraform {
   backend "local" {
     path = "terraform.tfstate"
@@ -352,7 +352,7 @@ terraform {
 ##### 2. Create `terraform.tfvars` file:
 
 ```hcl
-# IaC/cloud-services/terraform.tfvars
+# IaC/cloud/terraform.tfvars
 digitalocean_token = "your-digitalocean-api-token-here"
 ```
 
