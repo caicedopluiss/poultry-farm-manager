@@ -42,6 +42,15 @@ jobs:
                 working-directory: ${{ inputs.working_directory }}
 
         steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup Terraform
+              uses: hashicorp/setup-terraform@v3
+              with:
+                  terraform_version: "~1.13"
+                  cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
             - name: Set additional environment variables
               if: inputs.env_vars != ''
               run: |
@@ -52,15 +61,6 @@ jobs:
                       fi
                   done <<< "${{ inputs.env_vars }}"
                   echo "✅ Additional environment variables set successfully"
-
-            - name: Checkout code
-              uses: actions/checkout@v4
-
-            - name: Setup Terraform
-              uses: hashicorp/setup-terraform@v3
-              with:
-                  terraform_version: "~1.13"
-                  cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
             - name: Terraform Init
               if: inputs.terraform_action != 'format'

@@ -60,7 +60,7 @@ jobs:
             run_tests: true
             configuration: "Release"
 
-    tf-format:
+    tf-format-cloud:
         uses: ./.github/workflows/job_terraform_infrastructure.yaml
         needs: [check-branch, frontend-build-and-test, backend-build-and-test]
         if: |
@@ -71,7 +71,18 @@ jobs:
             terraform_action: "format"
             working_directory: "IaC/cloud"
 
-    tf-validate:
+    tf-format-application:
+        uses: ./.github/workflows/job_terraform_infrastructure.yaml
+        needs: [check-branch, frontend-build-and-test, backend-build-and-test]
+        if: |
+            needs.check-branch.outputs.can_proceed == 'true' &&
+            needs.frontend-build-and-test.result == 'success' &&
+            needs.backend-build-and-test.result == 'success'
+        with:
+            terraform_action: "format"
+            working_directory: "IaC/application"
+
+    tf-validate-cloud:
         uses: ./.github/workflows/job_terraform_infrastructure.yaml
         needs: [check-branch, frontend-build-and-test, backend-build-and-test]
         if: |
@@ -85,13 +96,36 @@ jobs:
             DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
             TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
 
-    tf-plan-cloud:
+    tf-validate-application:
         uses: ./.github/workflows/job_terraform_infrastructure.yaml
-        needs: [check-branch, tf-format, tf-validate]
+        needs: [check-branch, frontend-build-and-test, backend-build-and-test]
         if: |
             needs.check-branch.outputs.can_proceed == 'true' &&
-            needs.tf-format.result == 'success' &&
-            needs.tf-validate.result == 'success'
+            needs.frontend-build-and-test.result == 'success' &&
+            needs.backend-build-and-test.result == 'success'
+        with:
+            terraform_action: "validate"
+            working_directory: "IaC/application"
+        secrets:
+            DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+            TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+
+    tf-plan-cloud:
+        uses: ./.github/workflows/job_terraform_infrastructure.yaml
+        needs:
+            [
+                check-branch,
+                tf-format-cloud,
+                tf-format-application,
+                tf-validate-cloud,
+                tf-validate-application,
+            ]
+        if: |
+            needs.check-branch.outputs.can_proceed == 'true' &&
+            needs.tf-format-cloud.result == 'success' &&
+            needs.tf-format-application.result == 'success' &&
+            needs.tf-validate-cloud.result == 'success' &&
+            needs.tf-validate-application.result == 'success'
         with:
             terraform_action: "plan"
             working_directory: "IaC/cloud"
@@ -101,11 +135,20 @@ jobs:
 
     tf-plan-application:
         uses: ./.github/workflows/job_terraform_infrastructure.yaml
-        needs: [check-branch, tf-format, tf-validate]
+        needs:
+            [
+                check-branch,
+                tf-format-cloud,
+                tf-format-application,
+                tf-validate-cloud,
+                tf-validate-application,
+            ]
         if: |
             needs.check-branch.outputs.can_proceed == 'true' &&
-            needs.tf-format.result == 'success' &&
-            needs.tf-validate.result == 'success'
+            needs.tf-format-cloud.result == 'success' &&
+            needs.tf-format-application.result == 'success' &&
+            needs.tf-validate-cloud.result == 'success' &&
+            needs.tf-validate-application.result == 'success'
         with:
             terraform_action: "plan"
             working_directory: "IaC/application"
