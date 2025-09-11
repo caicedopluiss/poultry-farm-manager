@@ -30,18 +30,70 @@ jobs:
         with:
             node_version: ${{ inputs.node_version || '22' }}
 
+    tf-format-cloud:
+        uses: ./.github/workflows/job_terraform_infrastructure.yaml
+        with:
+            terraform_action: "format"
+            working_directory: "IaC/cloud"
+
+    tf-format-application:
+        uses: ./.github/workflows/job_terraform_infrastructure.yaml
+        with:
+            terraform_action: "format"
+            working_directory: "IaC/application"
+
+    tf-validate-cloud:
+        uses: ./.github/workflows/job_terraform_infrastructure.yaml
+        with:
+            terraform_action: "validate"
+            working_directory: "IaC/cloud"
+        secrets:
+            DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+            TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+
+    tf-validate-application:
+        uses: ./.github/workflows/job_terraform_infrastructure.yaml
+        with:
+            terraform_action: "validate"
+            working_directory: "IaC/application"
+        secrets:
+            DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+            TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+
     frontend-build-and-test:
         uses: ./.github/workflows/job_frontend_build_and_test.yaml
-        needs: frontend-lint
-        if: needs.frontend-lint.result == 'success'
+        needs:
+            [
+                frontend-lint,
+                tf-format-application,
+                tf-format-cloud,
+                tf-validate-application,
+                tf-validate-cloud,
+            ]
+        if: needs.frontend-lint.result == 'success' &&
+            needs.tf-format-cloud.result == 'success' &&
+            needs.tf-format-application.result == 'success' &&
+            needs.tf-validate-cloud.result == 'success' &&
+            needs.tf-validate-application.result == 'success'
         with:
             node_version: ${{ inputs.node_version || '22' }}
             run_tests: false
 
     backend-build-and-test:
         uses: ./.github/workflows/job_backend_build_and_test.yaml
-        needs: frontend-lint
-        if: needs.frontend-lint.result == 'success'
+        needs:
+            [
+                frontend-lint,
+                tf-format-application,
+                tf-format-cloud,
+                tf-validate-application,
+                tf-validate-cloud,
+            ]
+        if: needs.frontend-lint.result == 'success' &&
+            needs.tf-format-cloud.result == 'success' &&
+            needs.tf-format-application.result == 'success' &&
+            needs.tf-validate-cloud.result == 'success' &&
+            needs.tf-validate-application.result == 'success'
         with:
             dotnet_version: ${{ inputs.dotnet_version || '8.0.x' }}
             run_tests: ${{ inputs.run_tests != '' && inputs.run_tests || true }}
