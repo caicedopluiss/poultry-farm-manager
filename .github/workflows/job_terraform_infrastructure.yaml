@@ -10,9 +10,13 @@ on:
                 # format, validate, plan, apply, destroy
             working_directory:
                 description: "Terraform working directory"
+                required: true
+                type: string
+            env_vars:
+                description: "Additional environment variables (key=value format, new line separated)"
                 required: false
                 type: string
-                default: "IaC/cloud-services"
+                default: ""
         secrets:
             DIGITALOCEAN_ACCESS_TOKEN:
                 description: "DigitalOcean access token"
@@ -38,6 +42,17 @@ jobs:
                 working-directory: ${{ inputs.working_directory }}
 
         steps:
+            - name: Set additional environment variables
+              if: inputs.env_vars != ''
+              run: |
+                  echo "Setting additional environment variables..."
+                  while IFS= read -r line; do
+                      if [[ -n "$line" && "$line" != \#* ]]; then
+                          echo "$line" >> $GITHUB_ENV
+                      fi
+                  done <<< "${{ inputs.env_vars }}"
+                  echo "✅ Additional environment variables set successfully"
+
             - name: Checkout code
               uses: actions/checkout@v4
 

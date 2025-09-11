@@ -6,7 +6,7 @@ terraform {
     organization = "caicedopluiss"
 
     workspaces {
-      name = "pfm-cloud-services"
+      name = "pfm-cloud"
     }
   }
 }
