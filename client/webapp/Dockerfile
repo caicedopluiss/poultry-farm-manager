@@ -1,11 +1,11 @@
 FROM node:22.16-alpine3.22 AS build-stage
-ARG API_URL
+ARG API_HOST_URL
 
 COPY . /app
 WORKDIR /app
 
 # env variables are setted during build
-ENV VITE_WEBAPI_URL=$API_URL
+ENV VITE_API_HOST_URL=$API_HOST_URL
 
 RUN npm ci
 RUN npm run build

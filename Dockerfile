@@ -3,11 +3,11 @@
 # Build webapp
 FROM node:22.16-alpine3.22 AS webapp-build
 # API URL is required in advance
-ARG API_URL
+ARG API_HOST_URL
 
 WORKDIR /app
 COPY client/webapp ./
-ENV VITE_WEBAPI_URL=$API_URL
+ENV VITE_API_HOST_URL=$API_HOST_URL
 RUN npm ci
 RUN npm run build
 

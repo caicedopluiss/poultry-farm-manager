@@ -9,8 +9,8 @@ function App() {
 
     useEffect(() => {
         const checkApi = async () => {
-            const apiUrl = import.meta.env.VITE_WEBAPI_URL;
-            const response = await fetch(`${apiUrl}/`, {
+            const apiHost = import.meta.env.VITE_API_HOST_URL;
+            const response = await fetch(`${apiHost}/api`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",

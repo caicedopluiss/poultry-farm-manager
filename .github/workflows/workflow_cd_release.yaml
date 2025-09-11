@@ -147,7 +147,7 @@ jobs:
             env_vars: |
                 TF_VAR_image_name=${{ vars.IMAGE_NAME }}
                 TF_VAR_image_tag=${{ github.event.inputs.release_tag }}
-                TF_VAR_api_base_path=${{ vars.API_URL_PROD }}
+                TF_VAR_api_base_path=${{ vars.API_HOST_URL_PROD }}
                 TF_VAR_ignore_project=true
                 TF_VAR_env=Production
         secrets:
