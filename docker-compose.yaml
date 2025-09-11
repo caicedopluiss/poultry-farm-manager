@@ -18,7 +18,7 @@ services:
         pull_policy: build
         build:
             args:
-                - API_URL=http://localhost:8080/api
+                - API_HOST_URL=http://localhost:8080
             context: client/webapp
             dockerfile: Dockerfile
         ports:

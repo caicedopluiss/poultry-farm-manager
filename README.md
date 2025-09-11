@@ -78,7 +78,7 @@ docker run -d --name <container_name> -e ASPNETCORE_ENVIRONMENT=<env> -e ASPNETC
 2. Build the image:
 
 ```console
-docker build -t <image_name>:<tag> --build-arg API_URL=<http://your.api.url/api> .
+docker build -t <image_name>:<tag> --build-arg API_HOST_URL=<http://your.api_host.url> .
 ```
 
 3. Run the container:
@@ -97,7 +97,7 @@ docker run -d --name <container_name> <image_name>:<tag>
 2. Build the image (same build command as for [WebApp](#build-and-run-webapp-image)):
 
 ```console
-docker build -t <image_name>:<tag> --build-arg API_URL=<http://your.api.url/api> .
+docker build -t <image_name>:<tag> --build-arg API_HOST_URL=<http://your.api_host.url> .
 ```
 
 > **Note:** This image also uses nginx default CMD.

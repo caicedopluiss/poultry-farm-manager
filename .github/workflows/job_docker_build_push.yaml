@@ -51,7 +51,7 @@ jobs:
                   echo "Building image with tags: $RELEASE_TAG, $SHORT_SHA, latest"
 
                   docker build \
-                    --build-arg API_URL="${{ vars.API_URL_PROD }}" \
+                    --build-arg API_HOST_URL="${{ vars.API_HOST_URL_PROD }}" \
                     -t ${{ inputs.image_name }}:$RELEASE_TAG \
                     -t ${{ inputs.image_name }}:$SHORT_SHA \
                     -t ${{ inputs.image_name }}:latest \
