@@ -62,3 +62,9 @@ variable "instance_size_slug" {
   # Options: basic-xxs, basic-xs, basic-s, professional-xxs, professional-xs, professional-s
   # https://www.digitalocean.com/community/questions/app-platform-instance_size_slug-options
 }
+
+variable "ignore_project" {
+  description = "Set to true to ignore project resource assignment and avoid circular dependency with cloud module"
+  type        = bool
+  default     = false
+}
