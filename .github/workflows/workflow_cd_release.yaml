@@ -14,7 +14,7 @@ on:
                 default: false
 
 jobs:
-    check-branch:
+    check-context:
         runs-on: ubuntu-latest
         outputs:
             can_proceed: ${{ steps.check.outputs.can_proceed }}
@@ -34,61 +34,34 @@ jobs:
 
     frontend-lint:
         uses: ./.github/workflows/job_frontend_lint.yaml
-        needs: check-branch
-        if: needs.check-branch.outputs.can_proceed == 'true'
+        needs: check-context
+        if: needs.check-context.outputs.can_proceed == 'true'
         with:
             node_version: "22"
-
-    frontend-build-and-test:
-        uses: ./.github/workflows/job_frontend_build_and_test.yaml
-        needs: [check-branch, frontend-lint]
-        if: |
-            needs.check-branch.outputs.can_proceed == 'true' &&
-            needs.frontend-lint.result == 'success'
-        with:
-            node_version: "22"
-            run_tests: false
-
-    backend-build-and-test:
-        uses: ./.github/workflows/job_backend_build_and_test.yaml
-        needs: [check-branch, frontend-lint]
-        if: |
-            needs.check-branch.outputs.can_proceed == 'true' &&
-            needs.frontend-lint.result == 'success'
-        with:
-            dotnet_version: "8.0.x"
-            run_tests: true
-            configuration: "Release"
 
     tf-format-cloud:
         uses: ./.github/workflows/job_terraform_infrastructure.yaml
-        needs: [check-branch, frontend-build-and-test, backend-build-and-test]
+        needs: check-context
         if: |
-            needs.check-branch.outputs.can_proceed == 'true' &&
-            needs.frontend-build-and-test.result == 'success' &&
-            needs.backend-build-and-test.result == 'success'
+            needs.check-context.outputs.can_proceed == 'true'
         with:
             terraform_action: "format"
             working_directory: "IaC/cloud"
 
     tf-format-application:
         uses: ./.github/workflows/job_terraform_infrastructure.yaml
-        needs: [check-branch, frontend-build-and-test, backend-build-and-test]
+        needs: check-context
         if: |
-            needs.check-branch.outputs.can_proceed == 'true' &&
-            needs.frontend-build-and-test.result == 'success' &&
-            needs.backend-build-and-test.result == 'success'
+            needs.check-context.outputs.can_proceed == 'true'
         with:
             terraform_action: "format"
             working_directory: "IaC/application"
 
     tf-validate-cloud:
         uses: ./.github/workflows/job_terraform_infrastructure.yaml
-        needs: [check-branch, frontend-build-and-test, backend-build-and-test]
+        needs: check-context
         if: |
-            needs.check-branch.outputs.can_proceed == 'true' &&
-            needs.frontend-build-and-test.result == 'success' &&
-            needs.backend-build-and-test.result == 'success'
+            needs.check-context.outputs.can_proceed == 'true'
         with:
             terraform_action: "validate"
             working_directory: "IaC/cloud"
@@ -98,11 +71,9 @@ jobs:
 
     tf-validate-application:
         uses: ./.github/workflows/job_terraform_infrastructure.yaml
-        needs: [check-branch, frontend-build-and-test, backend-build-and-test]
+        needs: check-context
         if: |
-            needs.check-branch.outputs.can_proceed == 'true' &&
-            needs.frontend-build-and-test.result == 'success' &&
-            needs.backend-build-and-test.result == 'success'
+            needs.check-context.outputs.can_proceed == 'true'
         with:
             terraform_action: "validate"
             working_directory: "IaC/application"
@@ -110,22 +81,53 @@ jobs:
             DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
             TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
 
-    tf-plan-cloud:
-        uses: ./.github/workflows/job_terraform_infrastructure.yaml
+    frontend-build-and-test:
+        uses: ./.github/workflows/job_frontend_build_and_test.yaml
         needs:
             [
-                check-branch,
-                tf-format-cloud,
+                frontend-lint,
                 tf-format-application,
-                tf-validate-cloud,
+                tf-format-cloud,
                 tf-validate-application,
+                tf-validate-cloud,
             ]
         if: |
-            needs.check-branch.outputs.can_proceed == 'true' &&
+            needs.frontend-lint.result == 'success' &&
             needs.tf-format-cloud.result == 'success' &&
             needs.tf-format-application.result == 'success' &&
             needs.tf-validate-cloud.result == 'success' &&
             needs.tf-validate-application.result == 'success'
+        with:
+            node_version: "22"
+            run_tests: false
+
+    backend-build-and-test:
+        uses: ./.github/workflows/job_backend_build_and_test.yaml
+        needs:
+            [
+                frontend-lint,
+                tf-format-application,
+                tf-format-cloud,
+                tf-validate-application,
+                tf-validate-cloud,
+            ]
+        if: |
+            needs.frontend-lint.result == 'success' &&
+            needs.tf-format-cloud.result == 'success' &&
+            needs.tf-format-application.result == 'success' &&
+            needs.tf-validate-cloud.result == 'success' &&
+            needs.tf-validate-application.result == 'success'
+        with:
+            dotnet_version: "8.0.x"
+            run_tests: true
+            configuration: "Release"
+
+    tf-plan-cloud:
+        uses: ./.github/workflows/job_terraform_infrastructure.yaml
+        needs: [frontend-build-and-test, backend-build-and-test]
+        if: |
+            needs.frontend-build-and-test.result == 'success' &&
+            needs.backend-build-and-test.result == 'success'
         with:
             terraform_action: "plan"
             working_directory: "IaC/cloud"
@@ -135,25 +137,16 @@ jobs:
 
     tf-plan-application:
         uses: ./.github/workflows/job_terraform_infrastructure.yaml
-        needs:
-            [
-                check-branch,
-                tf-format-cloud,
-                tf-format-application,
-                tf-validate-cloud,
-                tf-validate-application,
-            ]
+        needs: [frontend-build-and-test, backend-build-and-test]
         if: |
-            needs.check-branch.outputs.can_proceed == 'true' &&
-            needs.tf-format-cloud.result == 'success' &&
-            needs.tf-format-application.result == 'success' &&
-            needs.tf-validate-cloud.result == 'success' &&
-            needs.tf-validate-application.result == 'success'
+            needs.frontend-build-and-test.result == 'success' &&
+            needs.backend-build-and-test.result == 'success'
         with:
             terraform_action: "plan"
             working_directory: "IaC/application"
             env_vars: |
                 TF_VAR_image_name=${{ vars.IMAGE_NAME }}
+                TF_VAR_image_tag=${{ github.event.inputs.release_tag }}
                 TF_VAR_api_base_path=${{ vars.API_URL_PROD }}
                 TF_VAR_ignore_project=true
                 TF_VAR_env=Production
@@ -163,9 +156,8 @@ jobs:
 
     create-tag-and-release:
         runs-on: ubuntu-latest
-        needs: [check-branch, tf-plan-cloud, tf-plan-application]
+        needs: [tf-plan-cloud, tf-plan-application]
         if: |
-            needs.check-branch.outputs.can_proceed == 'true' &&
             needs.tf-plan-cloud.result == 'success' &&
             needs.tf-plan-application.result == 'success'
         permissions:
