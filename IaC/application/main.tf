@@ -1,7 +1,9 @@
 
 
-resource "digitalocean_project_resources" "webapi" {
-  project = data.digitalocean_project.pfm.id
+resource "digitalocean_project_resources" "pfm" {
+  count = var.ignore_project ? 0 : 1
+
+  project = data.digitalocean_project.pfm[0].id
   resources = [
     digitalocean_app.platform.urn
   ]

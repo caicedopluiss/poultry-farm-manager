@@ -3,5 +3,7 @@ data "digitalocean_container_registry" "personal" {
 }
 
 data "digitalocean_project" "pfm" {
-  name = "Poultry Farm Manager"
+  count = var.ignore_project ? 0 : 1
+
+  name = var.project_name
 }
