@@ -73,4 +73,4 @@ jobs:
               if: ${{ inputs.clean_registry }}
               run: |
                   echo "Starting garbage collection..."
-                  doctl registry garbage-collection start --include-untagged-manifests || echo "Garbage collection failed or already running"
+                  doctl registry garbage-collection start --include-untagged-manifests --force || echo "Garbage collection failed or already running"
