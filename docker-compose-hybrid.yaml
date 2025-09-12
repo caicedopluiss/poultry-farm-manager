@@ -1,0 +1,27 @@
+name: poultryfarmmanager-hybrid
+services:
+    webapi:
+        container_name: poultryfarmmanager-hybrid-webapi
+        pull_policy: build
+        image: poultryfarmmanager/hybrid:latest
+        build:
+            context: .
+            dockerfile: Dockerfile
+            args:
+                - API_HOST_URL=http://localhost:8080
+        ports:
+            - "8080:80"
+        environment:
+            - ASPNETCORE_ENVIRONMENT=Development
+            - ASPNETCORE_HTTP_PORTS=80
+        command: ["dotnet", "/webapi/PoultryFarmManager.WebAPI.dll"]
+    webapp:
+        depends_on:
+            - webapi
+        container_name: poultryfarmmanager-hybrid-webapp
+        image: poultryfarmmanager/hybrid:latest
+        pull_policy: never # Built once as both services use the same image
+        ports:
+            - "8081:80"
+        environment:
+            - NODE_ENV=development
