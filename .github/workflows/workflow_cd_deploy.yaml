@@ -180,11 +180,11 @@ jobs:
                   WEBAPP_URL="${{ needs.get-tf-application-outputs.outputs.webapp_url }}"
                   echo "Updating GitHub Release for tag: $TAG_NAME"
 
-                  if ! gh release view "$TAG_NAME" >/dev/null 2>&1; then
+                  if ! gh release view "$TAG_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
                       echo "❌ Release for tag $TAG_NAME not found!"
                   else
                       echo "✅ Found release for tag: $TAG_NAME"
-                      gh release view "$TAG_NAME" > release_info.txt
+                      gh release view "$TAG_NAME" --repo "$GITHUB_REPOSITORY" > release_info.txt
                       cat release_info.txt
                       echo "Updating release notes..."
                       PREVIOUS_NOTES=$(sed '1,9d' release_info.txt)
@@ -197,7 +197,7 @@ jobs:
                     $PREVIOUS_NOTES
                     "
                       echo "$NEW_NOTES"
-                      gh release edit "$TAG_NAME" \
+                      gh release edit "$TAG_NAME" --repo "$GITHUB_REPOSITORY" \
                         --notes "$NEW_NOTES"
                     echo "✅ GitHub Release updated with webapp URL: $WEBAPP_URL"
                     echo "**Release Published**: $TAG_NAME is now live at $WEBAPP_URL" >> $GITHUB_STEP_SUMMARY
