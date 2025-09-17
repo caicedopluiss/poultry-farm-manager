@@ -206,7 +206,6 @@ jobs:
                       --notes "## Release $TAG_NAME
 
                   ### 🚀 Deployment Information
-                  - **Branch**: ${{ github.ref_name }}
                   - **Commit**: ${{ github.sha }}
 
                   ### 📋 Changes
@@ -219,5 +218,4 @@ jobs:
                   # Add to step summary
                   echo "### ✅ Release Setup Completed" >> $GITHUB_STEP_SUMMARY
                   echo "**Tag Created**: $TAG_NAME" >> $GITHUB_STEP_SUMMARY
-                  echo "**Release Published**: $TAG_NAME is now live" >> $GITHUB_STEP_SUMMARY
                   echo "**Next Steps**: Run Deploy workflow on tag branch $TAG_NAME" >> $GITHUB_STEP_SUMMARY
