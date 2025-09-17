@@ -17,6 +17,11 @@ on:
                 required: false
                 type: string
                 default: ""
+            output_names:
+                description: "Terraform output names to extract (new line separated, only for apply action)"
+                required: false
+                type: string
+                default: ""
         secrets:
             DIGITALOCEAN_ACCESS_TOKEN:
                 description: "DigitalOcean access token"
@@ -25,15 +30,15 @@ on:
                 description: "HCP Terraform Cloud API token"
                 required: false # No requerido para format
         outputs:
-            terraform_outputs:
-                description: "All Terraform outputs in JSON format"
-                value: ${{ jobs.terraform.outputs.terraform_outputs }}
+            extracted_outputs:
+                description: "Extracted specific outputs as name=value pairs"
+                value: ${{ jobs.terraform.outputs.extracted_outputs }}
 
 jobs:
     terraform:
         runs-on: ubuntu-latest
         outputs:
-            terraform_outputs: ${{ steps.outputs.outputs.terraform_outputs }}
+            extracted_outputs: ${{ steps.get-terraform-outputs.outputs.extracted_outputs }}
         env:
             TF_VAR_digitalocean_token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
@@ -115,29 +120,66 @@ jobs:
                   echo "✅ Terraform destroy completed successfully"
 
             - name: Get Terraform Outputs
-              if: inputs.terraform_action == 'apply'
-              id: outputs
+              if: (inputs.terraform_action == 'apply' && inputs.output_names != '')
+              id: get-terraform-outputs
               run: |
-                  echo "📊 Getting all Terraform outputs..."
+                  echo "🎯 Getting Terraform outputs..."
 
-                  # Verificar que hay outputs
-                  if terraform output >/dev/null 2>&1; then
-                      echo "🎯 Found Terraform outputs, processing..."
+                  OUTPUT_NAMES="${{ inputs.output_names }}"
+                  EXTRACTED_OUTPUTS=""
 
-                      # Capturar TODOS los outputs como JSON para GitHub Actions (en una sola línea)
-                      OUTPUTS_JSON=$(terraform output -json | jq -c .)
-                      echo "terraform_outputs=$OUTPUTS_JSON" >> $GITHUB_OUTPUT
+                  if [[ -n "$OUTPUT_NAMES" ]]; then
+                      echo "📋 Processing requested outputs..."
 
-                      # Mostrar todos los outputs en el summary
-                      echo "### 🎯 Terraform Outputs" >> $GITHUB_STEP_SUMMARY
+                      # Process each output name
+                      while IFS= read -r output_name; do
+                          # Skip empty lines and comments
+                          if [[ -n "$output_name" && "$output_name" != \#* ]]; then
+                              # Trim whitespace
+                              output_name=$(echo "$output_name" | xargs)
+
+                              echo "🔍 Checking output: $output_name"
+
+                              # Check if output exists and get its value
+                              if terraform output "$output_name" >/dev/null 2>&1; then
+                                  OUTPUT_VALUE=$(terraform output -raw "$output_name")
+
+                                  # Add to extracted outputs
+                                  if [[ -z "$EXTRACTED_OUTPUTS" ]]; then
+                                      EXTRACTED_OUTPUTS="${output_name}=${OUTPUT_VALUE}"
+                                  else
+                                      EXTRACTED_OUTPUTS="${EXTRACTED_OUTPUTS}
+                                      ${output_name}=${OUTPUT_VALUE}"
+                                  fi
+
+                                  echo "✅ $output_name: $OUTPUT_VALUE"
+                              else
+                                  echo "⚠️ Output '$output_name' not found"
+
+                                  # Add as N/A
+                                  if [[ -z "$EXTRACTED_OUTPUTS" ]]; then
+                                      EXTRACTED_OUTPUTS="${output_name}=N/A"
+                                  else
+                                      EXTRACTED_OUTPUTS="${EXTRACTED_OUTPUTS}
+                                      ${output_name}=N/A"
+                                  fi
+                              fi
+                          fi
+                      done <<< "$OUTPUT_NAMES"
+
+                      # Set the output for GitHub Actions
+                      echo "extracted_outputs<<EOF" >> $GITHUB_OUTPUT
+                      echo "$EXTRACTED_OUTPUTS" >> $GITHUB_OUTPUT
+                      echo "EOF" >> $GITHUB_OUTPUT
+
+                      # Add to step summary
+                      echo "### 🎯 Extracted Terraform Outputs" >> $GITHUB_STEP_SUMMARY
                       echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-                      terraform output >> $GITHUB_STEP_SUMMARY
+                      echo "$EXTRACTED_OUTPUTS" >> $GITHUB_STEP_SUMMARY
                       echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
-                      echo "✅ All outputs captured as JSON successfully"
+                      echo "✅ Successfully extracted outputs"
                   else
-                      echo "⚠️ No Terraform outputs found"
-                      echo "terraform_outputs={}" >> $GITHUB_OUTPUT
-                      echo "### ⚠️ No Terraform Outputs" >> $GITHUB_STEP_SUMMARY
-                      echo "No outputs were defined in the Terraform configuration." >> $GITHUB_STEP_SUMMARY
+                      echo "⚠️ No output names specified"
+                      echo "extracted_outputs=" >> $GITHUB_OUTPUT
                   fi

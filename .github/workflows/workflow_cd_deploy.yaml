@@ -89,6 +89,8 @@ jobs:
         with:
             terraform_action: "apply"
             working_directory: "IaC/cloud"
+            output_names: |
+                registry_endpoint
         secrets:
             DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
             TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
@@ -99,37 +101,18 @@ jobs:
         if: |
             needs.tf-apply-cloud.result == 'success'
         outputs:
-            registry_endpoint: ${{ steps.outputs.outputs.registry_endpoint }}
+            registry_endpoint: ${{ steps.extract.outputs.registry_endpoint }}
         steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
-
-            - name: Setup Terraform
-              uses: hashicorp/setup-terraform@v3
-              with:
-                  terraform_version: "~1.13"
-                  cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-
-            - name: Get Terraform Outputs
-              id: outputs
-              working-directory: IaC/cloud
-              env:
-                  TF_VAR_digitalocean_token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+            - name: Extract registry endpoint
+              id: extract
               run: |
-                  echo "🔧 Initializing Terraform..."
-                  terraform init
+                  EXTRACTED_OUTPUTS="${{ needs.tf-apply-cloud.outputs.extracted_outputs }}"
 
-                  echo "📊 Getting Terraform outputs..."
+                  # Extract registry_endpoint value from the name=value format
+                  REGISTRY_ENDPOINT=$(echo "$EXTRACTED_OUTPUTS" | grep "^registry_endpoint=" | cut -d'=' -f2-)
 
-                  # Get registry endpoint
-                  if terraform output registry_endpoint >/dev/null 2>&1; then
-                      REGISTRY_ENDPOINT=$(terraform output -raw registry_endpoint)
-                      echo "registry_endpoint=$REGISTRY_ENDPOINT" >> $GITHUB_OUTPUT
-                      echo "✅ Registry endpoint: $REGISTRY_ENDPOINT"
-                  else
-                      echo "registry_endpoint=N/A" >> $GITHUB_OUTPUT
-                      echo "⚠️ Registry endpoint not found"
-                  fi
+                  echo "registry_endpoint=$REGISTRY_ENDPOINT" >> $GITHUB_OUTPUT
+                  echo "✅ Extracted registry endpoint: $REGISTRY_ENDPOINT"
 
     docker-build-push:
         uses: ./.github/workflows/job_docker_build_push.yaml
@@ -151,6 +134,8 @@ jobs:
         with:
             terraform_action: "apply"
             working_directory: "IaC/application"
+            output_names: |
+                webapp_url
             env_vars: |
                 TF_VAR_image_name=${{ vars.IMAGE_NAME }}
                 TF_VAR_image_tag=${{ github.ref_name }}
@@ -159,3 +144,57 @@ jobs:
         secrets:
             DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
             TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+
+    get-tf-application-outputs:
+        runs-on: ubuntu-latest
+        needs: tf-apply-application
+        if: |
+            needs.tf-apply-application.result == 'success'
+        outputs:
+            webapp_url: ${{ steps.extract.outputs.webapp_url }}
+        steps:
+            - name: Extract webapp_url
+              id: extract
+              run: |
+                  EXTRACTED_OUTPUTS="${{ needs.tf-apply-application.outputs.extracted_outputs }}"
+
+                  # Extract webapp_url value from the name=value format
+                  WEBAPP_URL=$(echo "$EXTRACTED_OUTPUTS" | grep "^webapp_url=" | cut -d'=' -f2-)
+
+                  echo "webapp_url=$WEBAPP_URL" >> $GITHUB_OUTPUT
+                  echo "✅ Extracted webapp URL: $WEBAPP_URL"
+
+    update-release:
+        runs-on: ubuntu-latest
+        needs: get-tf-application-outputs
+        if: |
+            needs.get-tf-application-outputs.result == 'success'
+        steps:
+            - name: Update GitHub Release
+              run: |
+                  TAG_NAME="${{ github.ref_name }}"
+                  WEBAPP_URL="${{ needs.get-tf-application-outputs.outputs.webapp_url }}"
+                  echo "Updating GitHub Release for tag: $TAG_NAME"
+
+                  if ! gh release view "$TAG_NAME" >/dev/null 2>&1; then
+                      echo "❌ Release for tag $TAG_NAME not found!"
+                  else
+                      echo "✅ Found release for tag: $TAG_NAME"
+                      gh release view "$TAG_NAME" > release_info.txt
+                      cat release_info.txt
+                      echo "Updating release notes..."
+                      PREVIOUS_NOTES=$(sed '1,9d' release_info.txt)
+                      echo "Previous notes:"
+                      echo "$PREVIOUS_NOTES"
+                      NEW_NOTES="
+                    #### Deployment Date & Time (UTC): $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+                    #### Live URL: ${WEBAPP_URL}
+
+                    $PREVIOUS_NOTES
+                    "
+                      echo "$NEW_NOTES"
+                      gh release edit "$TAG_NAME" \
+                        --notes "$NEW_NOTES"
+                    echo "✅ GitHub Release updated with webapp URL: $WEBAPP_URL"
+                    echo "**Release Published**: $TAG_NAME is now live at $WEBAPP_URL" >> $GITHUB_STEP_SUMMARY
+                  fi
