@@ -169,8 +169,12 @@ jobs:
         needs: get-tf-application-outputs
         if: |
             needs.get-tf-application-outputs.result == 'success'
+        permissions:
+            contents: write
         steps:
             - name: Update GitHub Release
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   TAG_NAME="${{ github.ref_name }}"
                   WEBAPP_URL="${{ needs.get-tf-application-outputs.outputs.webapp_url }}"
