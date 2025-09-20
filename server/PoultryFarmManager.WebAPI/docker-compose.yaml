@@ -1,8 +1,8 @@
-name: poultryfarmmanager-debug
+name: pfm-debug
 services:
     postgresql:
         image: postgres:17.6-alpine3.22
-        container_name: poultryfarmmanager-debug-postgresql
+        container_name: pfm-debug-postgresql
         environment:
             - POSTGRES_DB=${DB_NAME}
             - POSTGRES_USER=${DB_USER}
@@ -17,6 +17,21 @@ services:
             timeout: 5s
             retries: 5
             start_period: 10s
+    migrations_job:
+        depends_on:
+            postgresql:
+                condition: service_healthy
+        container_name: pfm-debug-migrations_job
+        image: pfm/webapi:debug
+        pull_policy: build
+        build:
+            context: ../../
+            dockerfile: ./server/PoultryFarmManager.WebAPI/Dockerfile
+        environment:
+            - ASPNETCORE_ENVIRONMENT=Development
+            - ASPNETCORE_HTTP_PORTS=80
+            - ConnectionStrings__pfm=Host=pfm-debug-postgresql;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
+        command: [PoultryFarmManager.WebAPI.dll, migrate]
 volumes:
     postgresql_data:
         driver: local

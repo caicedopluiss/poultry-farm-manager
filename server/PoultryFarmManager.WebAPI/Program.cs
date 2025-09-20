@@ -1,6 +1,9 @@
+using System;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using PoultryFarmManager.Infrastructure;
+using PoultryFarmManager.WebAPI;
 
 internal class Program
 {
@@ -24,9 +27,11 @@ internal class Program
 
         app.UseCors("AllowAllOrigins");
 
-        using var scope = app.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        dbContext.Database.EnsureCreated();
+        if (args.Length > 0 && args[0].Equals("migrate", StringComparison.InvariantCultureIgnoreCase))
+        {
+            ApplyDbMigrations.Run(app);
+            return;
+        }
 
         app.Run();
     }
