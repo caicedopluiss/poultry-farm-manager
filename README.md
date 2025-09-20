@@ -22,12 +22,14 @@ Poultry Farm Manager is a comprehensive solution for managing broiler chicken fa
 ## Table of Contents
 
 -   [Overview](#overview)
+-   [Technologies](#technologies)
 -   [How To guides](#how-to-guides)
     -   [Run solution locally with Docker Compose](#run-solution-locally-with-docker-compose)
     -   [Build and Run Docker images locally](#build-and-run-docker-images-locally)
     -   [Debug WebAPI project using VS Code and Docker Compose](#debug-webapi-project-using-vs-code-and-docker-compose)
--   [Deploy solution to DigitalOcean locally](#deploy-solution-to-digitalocean-locally)
--   [Create a Release and Deploy it](#create-a-release-and-deploy-it)
+    -   [Deploy solution to DigitalOcean locally](#deploy-solution-to-digitalocean-locally)
+    -   [Create a Release and Deploy it using GitHub Actions](#create-a-release-and-deploy-it-using-github-actions)
+    -   [Create a new database migration](#create-a-new-database-migration)
 
 ## How To Guides
 
@@ -49,13 +51,13 @@ see [.example.env](.example.env) for reference.
 
 -   Run the following command to start the services:
 
-```console
+```bash
 docker-compose up --build
 ```
 
 or, to use the hybrid image with a single image for both services:
 
-```console
+```bash
 docker-compose -f docker-compose-hybrid.yaml up --build
 ```
 
@@ -76,13 +78,13 @@ The solution handles three different images:
 1. Open a terminal and navigate to `./server/PoultryFarmManager.WebAPI/`
 2. Build the image:
 
-```console
+```bash
 docker build -t <image_name>:<tag> ./../../ -f ./Dockerfile
 ```
 
 3. Run the container:
 
-```console
+```bash
 docker run -d --name <container_name> -e ASPNETCORE_ENVIRONMENT=<env> -e ASPNETCORE_HTTP_PORTS=<port> <image_name>:<tag>
 ```
 
@@ -93,13 +95,13 @@ docker run -d --name <container_name> -e ASPNETCORE_ENVIRONMENT=<env> -e ASPNETC
 1. Open a terminal and navigate to `./client/webapp/` directory
 2. Build the image:
 
-```console
+```bash
 docker build -t <image_name>:<tag> --build-arg API_HOST_URL=<http://your.api_host.url> .
 ```
 
 3. Run the container:
 
-```console
+```bash
 docker run -d --name <container_name> <image_name>:<tag>
 ```
 
@@ -112,7 +114,7 @@ docker run -d --name <container_name> <image_name>:<tag>
 1. Open a terminal in the root directory of the solution
 2. Build the image (same build command as for [WebApp](#build-and-run-webapp-image)):
 
-```console
+```bash
 docker build -t <image_name>:<tag> --build-arg API_HOST_URL=<http://your.api_host.url> .
 ```
 
@@ -122,7 +124,7 @@ docker build -t <image_name>:<tag> --build-arg API_HOST_URL=<http://your.api_hos
 
 **Run a container for WebAPI:**
 
-```console
+```bash
 docker run -d --name <container_name> -p <host_port>:80 -e ASPNETCORE_ENVIRONMENT=<env> -e ASPNETCORE_HTTP_PORTS=80 <image_name>:<tag> dotnet /webapi/PoultryFarmManager.WebAPI.dll
 ```
 
@@ -130,7 +132,7 @@ docker run -d --name <container_name> -p <host_port>:80 -e ASPNETCORE_ENVIRONMEN
 
 **Run a container for WebApp:**
 
-```console
+```bash
 docker run -d --name <container_name> -p <host_port>:80 <image_name>:<tag>
 ```
 
@@ -155,7 +157,7 @@ see [.example.env](.example.env) for reference.
 
 -   run the following command to start the database service:
 
-```console
+```bash
 docker-compose up --build
 ```
 
@@ -179,7 +181,7 @@ docker-compose up --build
 
 > **Note**: Avoid running multiple docker compose instances that might conflict with each other. If you have previously run a docker-compose instance, make sure to stop it and remove any existing containers that might interfere with the debugging session.
 
-## Deploy solution to DigitalOcean locally
+### Deploy solution to DigitalOcean locally
 
 -   Ensure you have [Terraform ~1.3](https://learn.hashicorp.com/tutorials/terraform/install-cli) installed.
 -   Ensure you have [doctl](https://github.com/digitalocean/doctl/releases) installed.
@@ -203,13 +205,13 @@ terraform {
 
 -   Initialize Terraform:
 
-```console
+```bash
 terraform init
 ```
 
 -   Apply the Terraform configuration:
 
-```console
+```bash
 terraform apply --auto-approve
 ```
 
@@ -221,13 +223,13 @@ terraform apply --auto-approve
 
     -   Ensure you have created a DigitalOcean container registry. See [Creating a registry](https://www.digitalocean.com/docs/container-registry/how-to/create-registry/).
 
-    ```console
+    ```bash
     doctl auth init
     ```
 
     For using context DO contexts, you can set up a context for your Digital Ocean account. This allows you to manage multiple accounts or configurations easily.
 
-    ```console
+    ```bash
     doctl auth init --context <my-context>
     doctl auth list
     doctl auth switch --context <NAME>
@@ -235,19 +237,19 @@ terraform apply --auto-approve
 
     Use the registry login command to authenticate Docker with your registry:
 
-    ```console
+    ```bash
     doctl registry login
     ```
 
     Use the docker tag command to tag your image with the fully qualified destination path:
 
-    ```console
+    ```bash
     docker tag <my-image> registry.digitalocean.com/<my-registry>/<my-image>
     ```
 
     Use the docker push command to upload your image:
 
-    ```console
+    ```bash
     docker push registry.digitalocean.com/<my-registry>/<my-image>
     ```
 
@@ -274,13 +276,13 @@ terraform {
 
 -   Initialize Terraform:
 
-```console
+```bash
 terraform init
 ```
 
 -   Apply the Terraform configuration:
 
-```console
+```bash
 terraform apply --auto-approve
 ```
 
@@ -301,3 +303,49 @@ See the [Workflows Documentation](docs/WORKFLOWS.md#deploy-workflow) for detaile
 -   Run the [Deploy Workflow](docs/WORKFLOWS.md#deploy-workflow) from the created tag branch to deploy the release.
 
 > Note: Make sure to use semantic versioning for your release tags (e.g., v1.0.0, v1.1.0, v2.0.0).
+
+### Create a new database migration
+
+To create a new database migration for the WebAPI project, follow these steps:
+
+-   Make sure you have EF Core CLI tools installed. You can install them globally using the command:
+
+```bash
+dotnet tool install --global dotnet-ef
+```
+
+To update the EF Core CLI tools to the latest version, use:
+
+```bash
+dotnet tool update --global dotnet-ef
+```
+
+> For more information, see the [official EF Core tools documentation](https://learn.microsoft.com/en-us/ef/core/cli/dotnet).
+
+-   Ensure that the startup project (`PoultryFarmManager.WebAPI`) references the `Microsoft.EntityFrameworkCore.Design` package. This is required for design-time operations such as migrations.
+
+To create a new migration (for example, the initial migration), run the following command from the `./server/PoultryFarmManager.WebAPI/` directory:
+
+```bash
+dotnet ef migrations add Initial --project ..\PoultryFarmManager.Infrastructure\PoultryFarmManager.Infrastructure.csproj --context AppDbContext
+```
+
+`Initial` is the name of the migration. You can change it as needed.
+
+The `--project` option points to the Infrastructure project where the DbContext is defined.
+
+The `--context` option specifies the DbContext to use. It is optinal since there is only one DbContext in the Infrastructure project, in case you have multiple DbContexts this flag is required.
+
+The `--startup-project` option is not required since the command is run from the WebAPI project directory.
+
+**Applying migrations:**
+
+Migrations are automatically applied when you run the migrations job (`PoultryFarmManager.WebAPI` project with `migrate` argument). **It's mandatory to run this job before starting the WebAPI service** to ensure the database schema is up to date.
+
+You can also apply migrations manually by running the following command from the `./server/PoultryFarmManager.WebAPI/` directory:
+
+```bash
+dotnet run migrate
+```
+
+This ensures your database is always up to date with the latest schema changes.

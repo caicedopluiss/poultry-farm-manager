@@ -13,14 +13,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
         modelBuilder.Entity<Batch>(entity =>
         {
+            entity.ToTable(nameof(Batches));
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).IsRequired().ValueGeneratedOnAdd();
             entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
             entity.Property(e => e.StartDate).IsRequired();
             entity.Property(e => e.Breed).HasMaxLength(100);
-            entity.Property(e => e.MaleCount);
-            entity.Property(e => e.FemaleCount);
-            entity.Property(e => e.UnsexedCount);
+            entity.Property(e => e.MaleCount).IsRequired();
+            entity.Property(e => e.FemaleCount).IsRequired();
+            entity.Property(e => e.UnsexedCount).IsRequired();
             entity.Property(e => e.InitialPopulation).IsRequired();
             entity.Property(e => e.Status).IsRequired();
         });
