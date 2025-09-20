@@ -1,35 +1,69 @@
 # Poultry Farm Manager
 
 ![Build Status](https://github.com/caicedopluiss/poultry-farm-manager/workflows/CI%20Workflow/badge.svg)
-![Infrastructure](https://img.shields.io/badge/Infrastructure-HCP%20Terraform-623CE4)
-![Cloud](https://img.shields.io/badge/Cloud-DigitalOcean-0080FF)
-
-## Tech Stack
-
-![.NET](https://img.shields.io/badge/.NET-512BD4?style=flat&logo=dotnet&logoColor=white)
-![C#](https://img.shields.io/badge/C%23-239120?style=flat&logo=csharp&logoColor=white)
-![React](https://img.shields.io/badge/React-61DAFB?style=flat&logo=react&logoColor=black)
-![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
-![Terraform](https://img.shields.io/badge/Terraform-623CE4?style=flat&logo=terraform&logoColor=white)
 
 ## Overview
 
 Poultry Farm Manager is a comprehensive solution for managing broiler chicken farms. It enables efficient control of daily tasks, financial management, inventory tracking, and monitoring of production and batch health. This system is directly related to my entrepreneurial project and poultry farm, aiming to optimize processes, support decision-making, and improve profitability through intuitive tools and detailed reports.
 
+## Technologies
+
+![.NET](https://img.shields.io/badge/.NET-512BD4?style=flat&logo=dotnet&logoColor=white)
+![C#](https://img.shields.io/badge/C%23-239120?style=flat&logo=csharp&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=flat&logo=postgresql&logoColor=white)
+![React](https://img.shields.io/badge/React-61DAFB?style=flat&logo=react&logoColor=black)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
+![Terraform](https://img.shields.io/badge/Terraform-623CE4?style=flat&logo=terraform&logoColor=white)
+![Cloud](https://img.shields.io/badge/Cloud-DigitalOcean-0080FF)
+![Infrastructure](https://img.shields.io/badge/Infrastructure-HCP%20Terraform-623CE4)
+
 ## Table of Contents
 
 -   [Overview](#overview)
 -   [How To guides](#how-to-guides)
+    -   [Run solution locally with Docker Compose](#run-solution-locally-with-docker-compose)
     -   [Build and Run Docker images locally](#build-and-run-docker-images-locally)
-    -   [Publish images to DigitalOcean Container Registry](#publish-images-to-digitalocean-container-registry)
+    -   [Debug WebAPI project using VS Code and Docker Compose](#debug-webapi-project-using-vs-code-and-docker-compose)
 -   [Deploy solution to DigitalOcean locally](#deploy-solution-to-digitalocean-locally)
 -   [Create a Release and Deploy it](#create-a-release-and-deploy-it)
 
 ## How To Guides
 
+### Run solution locally with Docker Compose
+
+-   Ensure you have [Docker](https://docs.docker.com/get-docker/) installed.
+-   Navigate to the root directory of the solution.
+-   Create a `.env` file with the following content:
+
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=<your_database_name>
+DB_USER=<your_database_user>
+DB_PASSWORD=<your_database_password>
+```
+
+see [.example.env](.example.env) for reference.
+
+-   Run the following command to start the services:
+
+```console
+docker-compose up --build
+```
+
+or, to use the hybrid image with a single image for both services:
+
+```console
+docker-compose -f docker-compose-hybrid.yaml up --build
+```
+
+-   Access the WebApp at `http://localhost:8081` and the WebAPI at `http://localhost:8080`.
+
 ### Build and Run Docker Images Locally
+
+-   Ensure you have [Docker](https://docs.docker.com/get-docker/) installed.
 
 The solution handles three different images:
 
@@ -100,45 +134,50 @@ docker run -d --name <container_name> -p <host_port>:80 -e ASPNETCORE_ENVIRONMEN
 docker run -d --name <container_name> -p <host_port>:80 <image_name>:<tag>
 ```
 
-### Publish images to DigitalOcean Container Registry
+### Debug WebAPI project using VS Code and Docker Compose
 
--   Ensure you have [doctl](https://github.com/digitalocean/doctl/releases) installed.
+To debug the WebAPI service, do the following:
 
--   Ensure you have the DigitalOcean API token. See [Creating DigitalOcean API Token](docs/WORKFLOWS.md#how-to-create-digitalocean-api-token).
+-   Ensure you have [Docker](https://docs.docker.com/get-docker/) installed.
+-   Open the project in VS Code.
+-   Open a terminal and navigate to `./server/PoultryFarmManager.WebAPI/`
+-   Create a .env file with the following content:
 
--   Ensure you have created a DigitalOcean container registry. See [Creating a registry](https://www.digitalocean.com/docs/container-registry/how-to/create-registry/).
-
-```console
-doctl auth init
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=<your_database_name>
+DB_USER=<your_database_user>
+DB_PASSWORD=<your_database_password>
 ```
 
-For using context DO contexts, you can set up a context for your Digital Ocean account. This allows you to manage multiple accounts or configurations easily.
+see [.example.env](.example.env) for reference.
+
+-   run the following command to start the database service:
 
 ```console
-doctl auth init --context <my-context>
-doctl auth list
-doctl auth switch --context <NAME>
+docker-compose up --build
 ```
 
-Use the registry login command to authenticate Docker with your registry:
+-   Set up the `pfm` connection string in `appsettings.json` file to point to the local database:
 
-```console
-doctl registry login
+```json
+{
+    "ConnectionStrings": {
+        "pfm": "Host=localhost;Port=5432;Database=<your_database_name>;Username=<your_database_user>;Password=<your_database_password>"
+    }
+}
 ```
 
-Use the docker tag command to tag your image with the fully qualified destination path:
+> **IMPORTANT**: Do not track changes to this file, as it can contain sensitive information. Make sure to run `git update-index --assume-unchanged ./server/PoultryFarmManager.WebAPI/appsettings.json` to untrack changes, use `appsettings.example.json` instead to leave any configuration reference.
 
-```console
-docker tag <my-image> registry.digitalocean.com/<my-registry>/<my-image>
-```
+-   Now you can run the WebAPI project, either by using the VS Code debugger. Open the VS Code debugger panel, select the `.NET Core Launch (web) (webapi)` configuration, and start debugging.
 
-Use the docker push command to upload your image:
+-   Set a breakpoint in the code where you want to start debugging.
 
-```console
-docker push registry.digitalocean.com/<my-registry>/<my-image>
-```
+<br/>
 
-_If you push a new image using an existing tag, the tag gets updated but the old image is still accessible by its digest and takes up space in your registry. To reduce your storage usage, you can delete the untagged images and then run garbage collection_
+> **Note**: Avoid running multiple docker compose instances that might conflict with each other. If you have previously run a docker-compose instance, make sure to stop it and remove any existing containers that might interfere with the debugging session.
 
 ## Deploy solution to DigitalOcean locally
 
@@ -174,8 +213,48 @@ terraform init
 terraform apply --auto-approve
 ```
 
--   Build and push the Docker image to DigitalOcean registry. See [Publish images to DigitalOcean registry](#publish-images-to-digitalocean-container-registry).
+-   Build Docker images. [See here](#build-and-run-docker-images-locally) and push them to DigitalOcean registry by following these steps:
+
+    -   Ensure you have [doctl](https://github.com/digitalocean/doctl/releases) installed.
+
+    -   Ensure you have the DigitalOcean API token. See [Creating DigitalOcean API Token](docs/WORKFLOWS.md#how-to-create-digitalocean-api-token).
+
+    -   Ensure you have created a DigitalOcean container registry. See [Creating a registry](https://www.digitalocean.com/docs/container-registry/how-to/create-registry/).
+
+    ```console
+    doctl auth init
+    ```
+
+    For using context DO contexts, you can set up a context for your Digital Ocean account. This allows you to manage multiple accounts or configurations easily.
+
+    ```console
+    doctl auth init --context <my-context>
+    doctl auth list
+    doctl auth switch --context <NAME>
+    ```
+
+    Use the registry login command to authenticate Docker with your registry:
+
+    ```console
+    doctl registry login
+    ```
+
+    Use the docker tag command to tag your image with the fully qualified destination path:
+
+    ```console
+    docker tag <my-image> registry.digitalocean.com/<my-registry>/<my-image>
+    ```
+
+    Use the docker push command to upload your image:
+
+    ```console
+    docker push registry.digitalocean.com/<my-registry>/<my-image>
+    ```
+
+    _If you push a new image using an existing tag, the tag gets updated but the old image is still accessible by its digest and takes up space in your registry. To reduce your storage usage, you can delete the untagged images and then run garbage collection_
+
 -   Navigate to `./IaC/application/` directory.
+
 -   Create a `terraform.tfvars` file with the following content:
 
 ```hcl
@@ -209,7 +288,7 @@ terraform apply --auto-approve
 
 <br/>
 
-### Create a Release and Deploy it
+### Create a Release and Deploy it using GitHub Actions
 
 > **Important**: Make sure to set the properly backend configuration for HCP Terraform in the `./IaC/cloud/backend.tf` and `./IaC/application/backend.tf` directories when deploying through GitHub Actions.
 
@@ -222,7 +301,3 @@ See the [Workflows Documentation](docs/WORKFLOWS.md#deploy-workflow) for detaile
 -   Run the [Deploy Workflow](docs/WORKFLOWS.md#deploy-workflow) from the created tag branch to deploy the release.
 
 > Note: Make sure to use semantic versioning for your release tags (e.g., v1.0.0, v1.1.0, v2.0.0).
-
-```
-
-```

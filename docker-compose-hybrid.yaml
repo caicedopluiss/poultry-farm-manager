@@ -1,6 +1,26 @@
 name: poultryfarmmanager-hybrid
 services:
+    postgresql:
+        image: postgres:17.6-alpine3.22
+        container_name: poultryfarmmanager-hybrid-postgresql
+        environment:
+            - POSTGRES_DB=${DB_NAME}
+            - POSTGRES_USER=${DB_USER}
+            - POSTGRES_PASSWORD=${DB_PASSWORD}
+        ports:
+            - "${DB_PORT}:5432"
+        volumes:
+            - postgresql_data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "sh -c 'pg_isready -U ${DB_USER} -d ${DB_NAME}'"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 10s
     webapi:
+        depends_on:
+            postgresql:
+                condition: service_healthy
         container_name: poultryfarmmanager-hybrid-webapi
         pull_policy: build
         image: poultryfarmmanager/hybrid:latest
@@ -14,7 +34,7 @@ services:
         environment:
             - ASPNETCORE_ENVIRONMENT=Development
             - ASPNETCORE_HTTP_PORTS=80
-            - ConnectionStrings__pfm=Host=${DB_HOST};Port=${DB_PORT};Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
+            - ConnectionStrings__pfm=Host=poultryfarmmanager-hybrid-postgresql;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
         command: ["dotnet", "/webapi/PoultryFarmManager.WebAPI.dll"]
     webapp:
         depends_on:
@@ -26,3 +46,6 @@ services:
             - "8081:80"
         environment:
             - NODE_ENV=development
+volumes:
+    postgresql_data:
+        driver: local
