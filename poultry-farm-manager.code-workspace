@@ -8,7 +8,7 @@
             "name": "core",
             "path": "server/PoultryFarmManager.Core"
         },
-                {
+        {
             "name": "infrastructure",
             "path": "server/PoultryFarmManager.Infrastructure"
         },
