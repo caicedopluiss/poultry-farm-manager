@@ -1,6 +1,9 @@
 obj/
 bin/
+[Ll]ocal/
 
 .gitignore
 Dockerfile
 **/appsettings*.json
+*.env*
+*.local*
