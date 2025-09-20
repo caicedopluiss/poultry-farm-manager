@@ -1,0 +1,37 @@
+name: pfm-debug
+services:
+    postgresql:
+        image: postgres:17.6-alpine3.22
+        container_name: pfm-debug-postgresql
+        environment:
+            - POSTGRES_DB=${DB_NAME}
+            - POSTGRES_USER=${DB_USER}
+            - POSTGRES_PASSWORD=${DB_PASSWORD}
+        ports:
+            - "${DB_PORT}:5432"
+        volumes:
+            - postgresql_data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "sh -c 'pg_isready -U ${DB_USER} -d ${DB_NAME}'"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 10s
+    migrations_job:
+        depends_on:
+            postgresql:
+                condition: service_healthy
+        container_name: pfm-debug-migrations_job
+        image: pfm/webapi:debug
+        pull_policy: build
+        build:
+            context: ../../
+            dockerfile: ./server/PoultryFarmManager.WebAPI/Dockerfile
+        environment:
+            - ASPNETCORE_ENVIRONMENT=Development
+            - ASPNETCORE_HTTP_PORTS=80
+            - ConnectionStrings__pfm=Host=pfm-debug-postgresql;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
+        command: [PoultryFarmManager.WebAPI.dll, migrate]
+volumes:
+    postgresql_data:
+        driver: local

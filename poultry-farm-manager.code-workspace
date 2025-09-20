@@ -4,6 +4,14 @@
 			"name": "root",
 			"path": "."
 		},
+        {
+            "name": "core",
+            "path": "server/PoultryFarmManager.Core"
+        },
+        {
+            "name": "infrastructure",
+            "path": "server/PoultryFarmManager.Infrastructure"
+        },
 		{
 			"name": "webapi",
 			"path": "server/PoultryFarmManager.WebAPI"
