@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace PoultryFarmManager.Infrastructure;
 
-public static class ServiceCollectionExtensions
+public static class InfrastructureServices
 {
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {

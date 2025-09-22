@@ -1,6 +1,6 @@
 resource "digitalocean_container_registry" "personal" {
   name                   = var.registry_name
-  subscription_tier_slug = var.registry_subscription_tier
+  subscription_tier_slug = "starter"
   region                 = var.region
 }
 
