@@ -1,6 +1,5 @@
 using System;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using PoultryFarmManager.Infrastructure;
 using PoultryFarmManager.WebAPI;

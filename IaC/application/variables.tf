@@ -30,7 +30,7 @@ variable "project_name" {
 variable "image_name" {
   description = "Name of the Docker image"
   type        = string
-  default     = "poultryfarmmanager/hybrid"
+  default     = "pfm/hybrid"
 }
 
 variable "image_tag" {
@@ -55,16 +55,19 @@ variable "app_code" {
   default     = "pfm"
 }
 
-variable "instance_size_slug" {
-  description = "Size of the application instance"
-  type        = string
-  default     = "basic-xxs"
-  # Options: basic-xxs, basic-xs, basic-s, professional-xxs, professional-xs, professional-s
-  # https://www.digitalocean.com/community/questions/app-platform-instance_size_slug-options
-}
-
 variable "ignore_project" {
   description = "Set to true to ignore project resource assignment and avoid circular dependency with cloud module"
   type        = bool
   default     = false
+}
+variable "database_name" {
+  description = "Name of the PostgreSQL database"
+  type        = string
+  default     = "PoultryFarmManager"
+}
+
+variable "database_version" {
+  description = "PostgreSQL version"
+  type        = string
+  default     = "17"
 }

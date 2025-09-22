@@ -26,6 +26,9 @@ Poultry Farm Manager is a comprehensive solution for managing broiler chicken fa
 -   [How To guides](#how-to-guides)
     -   [Run solution locally with Docker Compose](#run-solution-locally-with-docker-compose)
     -   [Build and Run Docker images locally](#build-and-run-docker-images-locally)
+        -   [Build and Run WebAPI Image](#build-and-run-webapi-image)
+        -   [Build and Run WebApp Image](#build-and-run-webapp-image)
+        -   [Build and Run Hybrid Image](#build-and-run-hybrid-image)
     -   [Debug WebAPI project using VS Code and Docker Compose](#debug-webapi-project-using-vs-code-and-docker-compose)
     -   [Deploy solution to DigitalOcean locally](#deploy-solution-to-digitalocean-locally)
     -   [Create a Release and Deploy it using GitHub Actions](#create-a-release-and-deploy-it-using-github-actions)
@@ -71,7 +74,7 @@ The solution handles three different images:
 
 -   **WebAPI image** - Backend API service
 -   **WebApp image** - Frontend application
--   **Hybrid image** - Combined WebAPI and WebApp for testing purposes and cost savings on cloud registry services
+-   **Hybrid image** - Combined WebAPI and WebApp for testing purposes and cost savings on cloud registry services. Both services can be run from the same image in separate containers.
 
 #### Build and Run WebAPI Image
 

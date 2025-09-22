@@ -103,14 +103,15 @@ jobs:
         outputs:
             registry_endpoint: ${{ steps.extract.outputs.registry_endpoint }}
         steps:
-            - name: Extract registry endpoint
+            - name: Extract cloud infrastructure outputs
               id: extract
               run: |
                   EXTRACTED_OUTPUTS="${{ needs.tf-apply-cloud.outputs.extracted_outputs }}"
 
-                  # Extract registry_endpoint value from the name=value format
+                  # Extract registry_endpoint output value from the name=value format
                   REGISTRY_ENDPOINT=$(echo "$EXTRACTED_OUTPUTS" | grep "^registry_endpoint=" | cut -d'=' -f2-)
 
+                  # Set outputs
                   echo "registry_endpoint=$REGISTRY_ENDPOINT" >> $GITHUB_OUTPUT
                   echo "✅ Extracted registry endpoint: $REGISTRY_ENDPOINT"
 
