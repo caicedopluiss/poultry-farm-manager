@@ -23,7 +23,7 @@ services:
                 condition: service_healthy
         container_name: pfm-hybrid-migrations_job
         pull_policy: build
-        image: pfm/hybrid:local
+        image: pfm/hybrid:latest
         build:
             context: .
             dockerfile: Dockerfile
@@ -42,7 +42,7 @@ services:
                 condition: service_completed_successfully # Waits until container is finished
         container_name: pfm-hybrid-webapi
         pull_policy: never # Built once as both services (migrations_job) use the same image
-        image: pfm/hybrid:local
+        image: pfm/hybrid:latest
         ports:
             - "8080:80"
         environment:
@@ -55,7 +55,7 @@ services:
             migrations_job:
                 condition: service_started # Waits until container is finished. So Image is ready
         container_name: pfm-hybrid-webapp
-        image: pfm/hybrid:local
+        image: pfm/hybrid:latest
         pull_policy: never # Built once as both services use the same image
         ports:
             - "8081:80"

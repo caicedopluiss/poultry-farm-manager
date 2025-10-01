@@ -22,7 +22,7 @@ services:
             postgresql:
                 condition: service_healthy
         container_name: pfm-migrations_job
-        image: pfm/webapi:local
+        image: pfm/webapi:latest
         pull_policy: build
         build:
             context: .
@@ -38,7 +38,7 @@ services:
                 condition: service_healthy
             migrations_job:
                 condition: service_completed_successfully # Waits until container is finished
-        image: pfm/webapi:local
+        image: pfm/webapi:latest
         container_name: pfm-webapi
         pull_policy: never # Built once as both services (migrations_job) use the same image
         ports:
@@ -48,7 +48,7 @@ services:
             - ASPNETCORE_HTTP_PORTS=80
             - ConnectionStrings__pfm=Host=pfm-postgresql;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
     webapp:
-        image: pfm/webapp:local
+        image: pfm/webapp:latest
         container_name: pfm-webapp
         pull_policy: build
         build:

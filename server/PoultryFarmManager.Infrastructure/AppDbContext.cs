@@ -17,6 +17,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).IsRequired().ValueGeneratedOnAdd();
             entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.HasIndex(e => e.Name).IsUnique();
             entity.Property(e => e.StartDate);
             entity.Property(e => e.Breed).HasMaxLength(100);
             entity.Property(e => e.MaleCount);

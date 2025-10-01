@@ -12,7 +12,7 @@ using PoultryFarmManager.Infrastructure;
 namespace PoultryFarmManager.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250920175413_Initial")]
+    [Migration("20250925022347_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -59,6 +59,9 @@ namespace PoultryFarmManager.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
 
                     b.ToTable("Batches", (string)null);
                 });

@@ -45,7 +45,35 @@ jobs:
               working-directory: . # root (sln file location)
               run: dotnet build --configuration ${{ inputs.configuration }} --no-restore
 
+            - name: Docker Compose Up
+              working-directory: server/Tests/PoultryFarmManager.Tests.Integration
+              run: docker compose up -d
+
+            - name: Wait for database healthy status
+              run: |
+                  for i in {1..60}; do
+                  STATUS=$(docker inspect --format='{{.State.Health.Status}}' pfm-test-postgresql)
+                  if [ "$STATUS" = "healthy" ]; then
+                      echo "PostgreSQL database is healthy!"
+                      break
+                  fi
+                  echo "Waiting for PostgreSQL health... (attempt $i/60)"
+                  sleep 2
+                  done
+
+                  # Check if we exited the loop due to timeout
+                  if [ "$STATUS" != "healthy" ]; then
+                    echo "Timeout: PostgreSQL database failed to become healthy within 120 seconds"
+                    docker logs pfm-test-postgresql
+                    exit 1
+                  fi
+
             - name: Run backend tests
               if: ${{ inputs.run_tests }}
               working-directory: . # root (sln file location)
               run: dotnet test --no-build --no-restore --configuration ${{ inputs.configuration }}
+
+            - name: Docker Compose Down
+              if: always()
+              working-directory: server/Tests/PoultryFarmManager.Tests.Integration
+              run: docker compose down -v

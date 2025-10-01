@@ -1,0 +1,17 @@
+name: pfm-test
+services:
+    postgresql:
+        image: postgres:17.6-alpine3.22
+        container_name: pfm-test-postgresql
+        environment:
+            - POSTGRES_DB=postgres
+            - POSTGRES_USER=test-user
+            - POSTGRES_PASSWORD=1234
+        ports:
+            - "5432:5432"
+        healthcheck:
+            test: ["CMD-SHELL", "sh -c 'pg_isready -U test-user -d postgres'"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 10s

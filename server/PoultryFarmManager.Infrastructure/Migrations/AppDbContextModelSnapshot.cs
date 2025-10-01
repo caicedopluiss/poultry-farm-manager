@@ -57,6 +57,9 @@ namespace PoultryFarmManager.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Name")
+                        .IsUnique();
+
                     b.ToTable("Batches", (string)null);
                 });
 #pragma warning restore 612, 618

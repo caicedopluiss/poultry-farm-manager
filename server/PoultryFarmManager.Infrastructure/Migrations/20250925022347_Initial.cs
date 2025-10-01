@@ -29,6 +29,12 @@ namespace PoultryFarmManager.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_Batches", x => x.Id);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Batches_Name",
+                table: "Batches",
+                column: "Name",
+                unique: true);
         }
 
         /// <inheritdoc />

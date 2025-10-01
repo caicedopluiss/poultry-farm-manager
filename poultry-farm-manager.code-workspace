@@ -4,13 +4,21 @@
 			"name": "root",
 			"path": "."
 		},
+		{
+			"name": "core",
+			"path": "server/PoultryFarmManager.Core"
+		},
+		{
+			"name": "application",
+			"path": "server/PoultryFarmManager.Application"
+		},
+		{
+			"name": "infrastructure",
+			"path": "server/PoultryFarmManager.Infrastructure"
+		},
         {
-            "name": "core",
-            "path": "server/PoultryFarmManager.Core"
-        },
-        {
-            "name": "infrastructure",
-            "path": "server/PoultryFarmManager.Infrastructure"
+            "name": "tests.Integration",
+            "path": "server/Tests/PoultryFarmManager.Tests.Integration"
         },
 		{
 			"name": "webapi",
@@ -19,6 +27,6 @@
 		{
 			"name": "webapp",
 			"path": "client/webapp"
-		},
+		}
 	]
 }
