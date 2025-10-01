@@ -10,6 +10,8 @@ Poultry Farm Manager is a comprehensive solution for managing broiler chicken fa
 
 ![.NET](https://img.shields.io/badge/.NET-512BD4?style=flat&logo=dotnet&logoColor=white)
 ![C#](https://img.shields.io/badge/C%23-239120?style=flat&logo=csharp&logoColor=white)
+![xUnit](https://img.shields.io/badge/xUnit-512BD4?style=flat&logo=xunit&logoColor=white)
+![EF Core](https://img.shields.io/badge/ORM-EF%20Core-512BD4?style=flat&logo=entityframework&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=flat&logo=postgresql&logoColor=white)
 ![React](https://img.shields.io/badge/React-61DAFB?style=flat&logo=react&logoColor=black)
 ![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white)
@@ -18,6 +20,14 @@ Poultry Farm Manager is a comprehensive solution for managing broiler chicken fa
 ![Terraform](https://img.shields.io/badge/Terraform-623CE4?style=flat&logo=terraform&logoColor=white)
 ![Cloud](https://img.shields.io/badge/Cloud-DigitalOcean-0080FF)
 ![Infrastructure](https://img.shields.io/badge/Infrastructure-HCP%20Terraform-623CE4)
+
+### Tools
+
+![VS Code](https://img.shields.io/badge/IDE-VS%20Code-007ACC?style=flat&logo=visualstudiocode&logoColor=white)
+![Git](https://img.shields.io/badge/Version%20Control-Git-F05032?style=flat&logo=git&logoColor=white)
+![GitHub Desktop](https://img.shields.io/badge/GitHub%20Desktop-24292F?style=flat&logo=github&logoColor=white)
+![Docker Desktop](https://img.shields.io/badge/Containerization-Docker%20Desktop-2496ED?style=flat&logo=docker&logoColor=white)
+![Postman](https://img.shields.io/badge/API%20Testing-Postman-FF6C37?style=flat&logo=postman&logoColor=white)
 
 ## Table of Contents
 
@@ -33,6 +43,8 @@ Poultry Farm Manager is a comprehensive solution for managing broiler chicken fa
     -   [Deploy solution to DigitalOcean locally](#deploy-solution-to-digitalocean-locally)
     -   [Create a Release and Deploy it using GitHub Actions](#create-a-release-and-deploy-it-using-github-actions)
     -   [Create a new database migration](#create-a-new-database-migration)
+-   [API Testing with Postman](#api-testing-with-postman)
+-   [CI/CD and Automation Workflows](#cicd-and-automation-workflows)
 
 ## How To Guides
 
@@ -352,3 +364,11 @@ dotnet run migrate
 ```
 
 This ensures your database is always up to date with the latest schema changes.
+
+## API Testing with Postman
+
+See the [Postman Documentation](docs/POSTMAN.md) for detailed instructions on how to test the Poultry Farm Manager API using Postman collections and environment files.
+
+## CI/CD and Automation Workflows
+
+See the [Workflows Documentation](docs/WORKFLOWS.md) for detailed instructions on the CI/CD and automation workflows set up for this project using GitHub Actions.

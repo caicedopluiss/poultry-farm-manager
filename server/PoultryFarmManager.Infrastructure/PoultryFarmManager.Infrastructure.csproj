@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PoultryFarmManager.Core\PoultryFarmManager.Core.csproj" />
+    <ProjectReference Include="..\PoultryFarmManager.Application\PoultryFarmManager.Application.csproj" />
   </ItemGroup>
 
 </Project>

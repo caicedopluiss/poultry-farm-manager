@@ -22,7 +22,7 @@ services:
             postgresql:
                 condition: service_healthy
         container_name: pfm-debug-migrations_job
-        image: pfm/webapi:debug
+        image: pfm/webapi:latest
         pull_policy: build
         build:
             context: ../../
