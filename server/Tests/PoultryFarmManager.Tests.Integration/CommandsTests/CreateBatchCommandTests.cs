@@ -13,6 +13,7 @@ namespace PoultryFarmManager.Tests.Integration.CommandsTests;
 public class CreateBatchCommandTests(TestsFixture fixture) : IClassFixture<TestsFixture>, IAsyncLifetime
 {
     private readonly TestsDbContext dbContext = fixture.ServiceProvider.GetRequiredService<TestsDbContext>();
+    private readonly IAppRequestHandler<CreateBatchCommand.Args, CreateBatchCommand.Result> handler = fixture.ServiceProvider.GetRequiredService<IAppRequestHandler<CreateBatchCommand.Args, CreateBatchCommand.Result>>();
 
     public async Task DisposeAsync() => await dbContext.ClearDbAsync();
 
@@ -32,7 +33,6 @@ public class CreateBatchCommandTests(TestsFixture fixture) : IClassFixture<Tests
             UnsexedCount: 0
         );
         var request = new AppRequest<CreateBatchCommand.Args>(new(newBatch));
-        var handler = fixture.ServiceProvider.GetRequiredService<IAppRequestHandler<CreateBatchCommand.Args, CreateBatchCommand.Result>>();
 
         // Act
         var result = await handler.HandleAsync(request, CancellationToken.None);
@@ -66,7 +66,6 @@ public class CreateBatchCommandTests(TestsFixture fixture) : IClassFixture<Tests
             UnsexedCount: 0
         );
         var request = new AppRequest<CreateBatchCommand.Args>(new(newBatch));
-        var handler = fixture.ServiceProvider.GetRequiredService<IAppRequestHandler<CreateBatchCommand.Args, CreateBatchCommand.Result>>();
 
         // Act
         var result = await handler.HandleAsync(request, CancellationToken.None);
@@ -96,7 +95,6 @@ public class CreateBatchCommandTests(TestsFixture fixture) : IClassFixture<Tests
             UnsexedCount: counts[2]
         );
         var request = new AppRequest<CreateBatchCommand.Args>(new(newBatch));
-        var handler = fixture.ServiceProvider.GetRequiredService<IAppRequestHandler<CreateBatchCommand.Args, CreateBatchCommand.Result>>();
 
         // Act
         var result = await handler.HandleAsync(request, CancellationToken.None);
@@ -127,7 +125,6 @@ public class CreateBatchCommandTests(TestsFixture fixture) : IClassFixture<Tests
             UnsexedCount: 0
         );
         var request = new AppRequest<CreateBatchCommand.Args>(new(newBatch));
-        var handler = fixture.ServiceProvider.GetRequiredService<IAppRequestHandler<CreateBatchCommand.Args, CreateBatchCommand.Result>>();
 
         // Act
         var result = await handler.HandleAsync(request, CancellationToken.None);

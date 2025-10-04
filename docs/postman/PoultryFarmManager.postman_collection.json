@@ -1,43 +1,62 @@
 {
-    "info": {
-        "_postman_id": "4cdcef9d-96ea-437b-9c2a-759b28527c9b",
-        "name": "PoultryFarmManager",
-        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-        "_exporter_id": "2924423"
-    },
-    "item": [
-        {
-            "name": "Batch",
-            "item": [
-                {
-                    "name": "CreateBatch",
-                    "request": {
-                        "method": "POST",
-                        "header": [],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\r\n    \"newBatch\": {\r\n        \"name\": \"2025001\",\r\n        \"startClientDateIsoString\": \"2025-09-24T21:18:42-05:00\", // format: yyyy-MM-ddTHH:mm:ssK\r\n        \"maleCount\": 0,\r\n        \"femaleCount\": 0,\r\n        \"unsexedCount\": 10,\r\n        \"breed\": null // nullable string\r\n    }\r\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
-                        },
-                        "url": {
-                            "raw": "{{host_url}}/api/{{api_version}}/batches",
-                            "host": [
-                                "{{host_url}}"
-                            ],
-                            "path": [
-                                "api",
-                                "{{api_version}}",
-                                "batches"
-                            ]
-                        }
-                    },
-                    "response": []
-                }
-            ]
-        }
-    ]
+	"info": {
+		"_postman_id": "4cdcef9d-96ea-437b-9c2a-759b28527c9b",
+		"name": "PoultryFarmManager",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "2924423"
+	},
+	"item": [
+		{
+			"name": "Batch",
+			"item": [
+				{
+					"name": "CreateBatch",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"newBatch\": {\r\n        \"name\": \"2025001\",\r\n        \"startClientDateIsoString\": \"2025-09-24T21:18:42-05:00\", // format: yyyy-MM-ddTHH:mm:ssK\r\n        \"maleCount\": 0,\r\n        \"femaleCount\": 0,\r\n        \"unsexedCount\": 10,\r\n        \"breed\": null // nullable string\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host_url}}/api/{{api_version}}/batches",
+							"host": [
+								"{{host_url}}"
+							],
+							"path": [
+								"api",
+								"{{api_version}}",
+								"batches"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetBatchesList",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host_url}}/api/{{api_version}}/batches",
+							"host": [
+								"{{host_url}}"
+							],
+							"path": [
+								"api",
+								"{{api_version}}",
+								"batches"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
 }

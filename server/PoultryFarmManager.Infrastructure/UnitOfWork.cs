@@ -5,9 +5,9 @@ using PoultryFarmManager.Application.Repositories;
 
 namespace PoultryFarmManager.Infrastructure;
 
-public class UnitOfWork(AppDbContext context, IBatchRepository batchRepository) : IUnitOfWork
+public class UnitOfWork(AppDbContext context, IBatchesRepository batchRepository) : IUnitOfWork
 {
-    public IBatchRepository Batches => batchRepository;
+    public IBatchesRepository Batches => batchRepository;
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
