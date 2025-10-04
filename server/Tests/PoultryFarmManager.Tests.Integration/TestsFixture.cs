@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using PoultryFarmManager.WebAPI;
 using System.Linq;
 using System.Net.Http;
+using PoultryFarmManager.Core;
 
 namespace PoultryFarmManager.Tests.Integration;
 
@@ -71,4 +72,8 @@ public class TestsFixture : IDisposable
     /// </summary>
     /// <returns></returns>
     public IServiceScope CreateServicesScope() => webApplicationFactory.Services.CreateScope();
+
+#pragma warning disable CA1822 // Mark members as static
+    public T CreateRandomEntity<T>() where T : IDbEntity => TestEntityFactory.GetFactory<T>().CreateRandom();
+#pragma warning restore CA1822 // Mark members as static
 }

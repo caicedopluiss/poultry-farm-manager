@@ -13,23 +13,23 @@ namespace PoultryFarmManager.WebAPI.Endpoints.v1.Batches;
 
 public class CreateBatchEndpoint : IEndpoint
 {
-    public record RequestBody(NewBatchDto NewBatch);
-    public record ResponseBody(BatchDto Batch);
+    public record CreateBatchEndpointRequestBody(NewBatchDto NewBatch);
+    public record CreateBatchEndpointResponseBody(BatchDto Batch);
 
     public static void Map(IEndpointRouteBuilder app, string? prefix = null)
     {
-        var route = Utils.BuildEndpointRoute(prefix, "api", "v1", "batches");
+        var route = Utils.BuildEndpointRoute(prefix, "v1", "batches");
         app.MapPost(route, CreateAsync)
             .WithName(nameof(CreateBatchEndpoint))
             .WithTags(nameof(Batches))
-            .Accepts<RequestBody>(MediaTypeNames.Application.Json)
-            .Produces<ResponseBody>(StatusCodes.Status201Created, MediaTypeNames.Application.Json)
+            .Accepts<CreateBatchEndpointRequestBody>(MediaTypeNames.Application.Json)
+            .Produces<CreateBatchEndpointResponseBody>(StatusCodes.Status201Created, MediaTypeNames.Application.Json)
             .Produces<ErrorResponse>(StatusCodes.Status400BadRequest, MediaTypeNames.Application.Json);
     }
 
     private static async Task<IResult> CreateAsync(
         [FromServices] IAppRequestsMediator mediator,
-        [FromBody] RequestBody body,
+        [FromBody] CreateBatchEndpointRequestBody body,
         CancellationToken cancellationToken = default)
     {
         var request = new AppRequest<CreateBatchCommand.Args>(new(body.NewBatch));
@@ -37,6 +37,6 @@ public class CreateBatchEndpoint : IEndpoint
 
         return !result.IsSuccess ?
             Results.BadRequest(new ErrorResponse(result.Message, result.ValidationErrors)) :
-            Results.Created($"/api/v1/batches/{result.Value?.CreatedBatch.Id}", new ResponseBody(result.Value?.CreatedBatch!));
+            Results.Created($"/api/v1/batches/{result.Value!.CreatedBatch.Id}", new CreateBatchEndpointResponseBody(result.Value!.CreatedBatch));
     }
 }

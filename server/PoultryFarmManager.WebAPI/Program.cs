@@ -69,13 +69,12 @@ public class Program
             config.RoutePrefix = string.Empty;
         });
 
-        string apiPrefix = "api/v1";
+        string apiPrefix = "api";
 
         app.MapEndpoint<CreateBatchEndpoint>(apiPrefix);
+        app.MapEndpoint<GetBatchesListEndpoint>(apiPrefix);
 
         app.UseCors("AllowAllOrigins");
-
-
 
         app.Run();
     }
