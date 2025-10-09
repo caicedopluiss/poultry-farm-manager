@@ -23,7 +23,8 @@ namespace PoultryFarmManager.Infrastructure.Migrations
                     InitialPopulation = table.Column<int>(type: "integer", nullable: false),
                     MaleCount = table.Column<int>(type: "integer", nullable: false),
                     FemaleCount = table.Column<int>(type: "integer", nullable: false),
-                    UnsexedCount = table.Column<int>(type: "integer", nullable: false)
+                    UnsexedCount = table.Column<int>(type: "integer", nullable: false),
+                    Shed = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true)
                 },
                 constraints: table =>
                 {

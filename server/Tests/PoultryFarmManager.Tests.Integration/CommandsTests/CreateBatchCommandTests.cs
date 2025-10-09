@@ -30,7 +30,8 @@ public class CreateBatchCommandTests(TestsFixture fixture) : IClassFixture<Tests
             StartClientDateIsoString: DateTime.UtcNow.ToString(Constants.DateTimeFormat),
             MaleCount: 50,
             FemaleCount: 50,
-            UnsexedCount: 0
+            UnsexedCount: 0,
+            Shed: "Shed A-1"
         );
         var request = new AppRequest<CreateBatchCommand.Args>(new(newBatch));
 
@@ -63,7 +64,8 @@ public class CreateBatchCommandTests(TestsFixture fixture) : IClassFixture<Tests
             StartClientDateIsoString: futureDate,
             MaleCount: 20,
             FemaleCount: 30,
-            UnsexedCount: 0
+            UnsexedCount: 0,
+            Shed: "Shed B-2"
         );
         var request = new AppRequest<CreateBatchCommand.Args>(new(newBatch));
 
@@ -92,7 +94,8 @@ public class CreateBatchCommandTests(TestsFixture fixture) : IClassFixture<Tests
             StartClientDateIsoString: "invalid-date", // Invalid date format
             MaleCount: counts[0],
             FemaleCount: counts[1],
-            UnsexedCount: counts[2]
+            UnsexedCount: counts[2],
+            Shed: null
         );
         var request = new AppRequest<CreateBatchCommand.Args>(new(newBatch));
 
@@ -122,7 +125,8 @@ public class CreateBatchCommandTests(TestsFixture fixture) : IClassFixture<Tests
             StartClientDateIsoString: DateTime.UtcNow.ToString(Constants.DateTimeFormat),
             MaleCount: 10,
             FemaleCount: 10,
-            UnsexedCount: 0
+            UnsexedCount: 0,
+            Shed: "Test Shed"
         );
         var request = new AppRequest<CreateBatchCommand.Args>(new(newBatch));
 
@@ -136,6 +140,35 @@ public class CreateBatchCommandTests(TestsFixture fixture) : IClassFixture<Tests
         Assert.Null(result.Value);
         Assert.NotNull(result.ValidationErrors);
         Assert.Contains(result.ValidationErrors, e => e.field == "name");
+        Assert.Single(result.ValidationErrors);
+    }
+
+    [Fact]
+    public async Task CreateBatchCommand_ShouldReturnValidationError_ForShedExceedingMaxLength()
+    {
+        // Arrange
+        var newBatch = new NewBatchDto
+        (
+            Name: "Valid Batch Name",
+            Breed: "Test Breed",
+            StartClientDateIsoString: DateTime.UtcNow.ToString(Constants.DateTimeFormat),
+            MaleCount: 10,
+            FemaleCount: 10,
+            UnsexedCount: 0,
+            Shed: new string('S', 101) // Invalid: Shed exceeds max length
+        );
+        var request = new AppRequest<CreateBatchCommand.Args>(new(newBatch));
+
+        // Act
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.False(result.IsSuccess);
+        Assert.False(string.IsNullOrWhiteSpace(result.Message));
+        Assert.Null(result.Value);
+        Assert.NotNull(result.ValidationErrors);
+        Assert.Contains(result.ValidationErrors, e => e.field == "shed");
         Assert.Single(result.ValidationErrors);
     }
 }

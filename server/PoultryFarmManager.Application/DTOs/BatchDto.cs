@@ -9,7 +9,8 @@ public record NewBatchDto(
     int MaleCount,
     int FemaleCount,
     int UnsexedCount,
-    string? Breed) : IDtoEntityMapper<NewBatchDto, Batch>
+    string? Breed,
+    string? Shed) : IDtoEntityMapper<NewBatchDto, Batch>
 {
     public Batch Map(NewBatchDto from, Batch? to = null)
     {
@@ -21,6 +22,7 @@ public record NewBatchDto(
         result.FemaleCount = from.FemaleCount;
         result.UnsexedCount = from.UnsexedCount;
         result.Breed = from.Breed;
+        result.Shed = from.Shed;
 
         return result;
     }
@@ -36,13 +38,14 @@ public record BatchDto(
     int MaleCount,
     int FemaleCount,
     int UnsexedCount,
-    int Population
+    int Population,
+    string? Shed
 ) : IDtoEntityMapper<Batch, BatchDto>
 {
     /// <summary>
     /// Parameterless constructor for mapping dto instance from core model/entity.
     /// </summary>
-    public BatchDto() : this(Guid.Empty, string.Empty, null, string.Empty, string.Empty, 0, 0, 0, 0, 0)
+    public BatchDto() : this(Guid.Empty, string.Empty, null, string.Empty, string.Empty, 0, 0, 0, 0, 0, null)
     {
 
     }
@@ -60,7 +63,8 @@ public record BatchDto(
             MaleCount = from.MaleCount,
             FemaleCount = from.FemaleCount,
             UnsexedCount = from.UnsexedCount,
-            Population = from.Population
+            Population = from.Population,
+            Shed = from.Shed
         } : new BatchDto(
             from.Id,
             from.Name,
@@ -71,7 +75,8 @@ public record BatchDto(
             from.MaleCount,
             from.FemaleCount,
             from.UnsexedCount,
-            from.Population
+            from.Population,
+            from.Shed
         );
     }
 }
