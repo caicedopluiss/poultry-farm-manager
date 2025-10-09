@@ -1,62 +1,32 @@
-import { useEffect, useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import "./App.css";
+import { ThemeProvider, createTheme, CssBaseline } from "@mui/material";
+import type { Batch } from "./types/batch";
+import BatchList from "./components/BatchList";
+
+// Create a basic MUI theme
+const theme = createTheme({
+    palette: {
+        mode: "light",
+        primary: {
+            main: "#1976d2",
+        },
+        secondary: {
+            main: "#dc004e",
+        },
+    },
+});
 
 function App() {
-    const [count, setCount] = useState(0);
-    const [data, setData] = useState(null);
-
-    useEffect(() => {
-        const checkApi = async () => {
-            const apiHost = import.meta.env.VITE_API_HOST_URL;
-            const response = await fetch(`${apiHost}/api`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            });
-            const data = await response.json();
-            setData(data);
-        };
-        checkApi();
-        return () => {};
-    }, []);
+    const handleBatchClick = (batch: Batch) => {
+        console.log("Batch selected:", batch);
+        // TODO: Navigate to batch details page
+        alert(`Opening details for batch: ${batch.name}`);
+    };
 
     return (
-        <>
-            <div>
-                <a href="https://vite.dev" target="_blank">
-                    <img src={viteLogo} className="logo" alt="Vite logo" />
-                </a>
-                <a href="https://react.dev" target="_blank">
-                    <img
-                        src={reactLogo}
-                        className="logo react"
-                        alt="React logo"
-                    />
-                </a>
-            </div>
-            <h1>Vite + React</h1>
-            <p>
-                {data ? (
-                    <span>API Response: {JSON.stringify(data)}</span>
-                ) : (
-                    <span>Loading API response...</span>
-                )}
-            </p>
-            <div className="card">
-                <button onClick={() => setCount((count) => count + 1)}>
-                    count is {count}
-                </button>
-                <p>
-                    Edit <code>src/App.tsx</code> and save to test HMR
-                </p>
-            </div>
-            <p className="read-the-docs">
-                Click on the Vite and React logos to learn more
-            </p>
-        </>
+        <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <BatchList onBatchClick={handleBatchClick} />
+        </ThemeProvider>
     );
 }
 

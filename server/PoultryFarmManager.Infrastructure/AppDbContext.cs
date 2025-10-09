@@ -20,6 +20,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.HasIndex(e => e.Name).IsUnique();
             entity.Property(e => e.StartDate);
             entity.Property(e => e.Breed).HasMaxLength(100);
+            entity.Property(e => e.Shed).HasMaxLength(100);
             entity.Property(e => e.MaleCount);
             entity.Property(e => e.FemaleCount);
             entity.Property(e => e.UnsexedCount);

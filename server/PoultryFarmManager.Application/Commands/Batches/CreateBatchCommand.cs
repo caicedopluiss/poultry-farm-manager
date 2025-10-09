@@ -48,6 +48,11 @@ public sealed class CreateBatchCommand
                 errors.Add(("breed", "Breed cannot exceed 100 characters."));
             }
 
+            if (!string.IsNullOrWhiteSpace(args.NewBatch.Shed) && args.NewBatch.Shed.Length > 100)
+            {
+                errors.Add(("shed", "Shed cannot exceed 100 characters."));
+            }
+
             if (!Utils.IsIso8601DateStringValid(args.NewBatch.StartClientDateIsoString))
             {
                 errors.Add(("startClientDateIsoString", "Start date is not a valid ISO 8601 date string."));

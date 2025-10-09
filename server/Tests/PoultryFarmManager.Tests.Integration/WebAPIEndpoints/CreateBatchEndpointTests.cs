@@ -30,7 +30,8 @@ public class CreateBatchEndpointTests(TestsFixture fixture) : IClassFixture<Test
             StartClientDateIsoString: DateTime.UtcNow.ToString(Constants.DateTimeFormat),
             MaleCount: 100,
             FemaleCount: 150,
-            UnsexedCount: 50
+            UnsexedCount: 50,
+            Shed: "Shed API-1"
         );
         var body = new { newBatch };
 
