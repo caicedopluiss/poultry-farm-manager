@@ -1,6 +1,6 @@
 import { ThemeProvider, createTheme, CssBaseline } from "@mui/material";
-import type { Batch } from "./types/batch";
-import BatchList from "./components/BatchList";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BatchListPage, BatchDetailPage, NotFoundPage } from "./pages";
 
 // Create a basic MUI theme
 const theme = createTheme({
@@ -16,16 +16,17 @@ const theme = createTheme({
 });
 
 function App() {
-    const handleBatchClick = (batch: Batch) => {
-        console.log("Batch selected:", batch);
-        // TODO: Navigate to batch details page
-        alert(`Opening details for batch: ${batch.name}`);
-    };
-
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
-            <BatchList onBatchClick={handleBatchClick} />
+            <Router>
+                <Routes>
+                    <Route path="/" element={<BatchListPage />} />
+                    <Route path="/batches" element={<BatchListPage />} />
+                    <Route path="/batches/:id" element={<BatchDetailPage />} />
+                    <Route path="*" element={<NotFoundPage />} />
+                </Routes>
+            </Router>
         </ThemeProvider>
     );
 }
