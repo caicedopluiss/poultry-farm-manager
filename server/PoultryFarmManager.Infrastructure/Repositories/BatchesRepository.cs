@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -20,5 +21,11 @@ public sealed class BatchesRepository(AppDbContext context) : IBatchesRepository
     {
         var batches = await context.Batches.AsNoTracking().OrderByDescending(b => b.StartDate).ToListAsync(cancellationToken);
         return batches;
+    }
+
+    public async Task<Batch?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var batch = await context.Batches.AsNoTracking().FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
+        return batch;
     }
 }

@@ -13,8 +13,8 @@ namespace PoultryFarmManager.WebAPI.Endpoints.v1.Batches;
 
 public class CreateBatchEndpoint : IEndpoint
 {
-    public record CreateBatchEndpointRequestBody(NewBatchDto NewBatch);
-    public record CreateBatchEndpointResponseBody(BatchDto Batch);
+    public record CreateBatchRequestBody(NewBatchDto NewBatch);
+    public record CreateBatchResponseBody(BatchDto Batch);
 
     public static void Map(IEndpointRouteBuilder app, string? prefix = null)
     {
@@ -22,14 +22,14 @@ public class CreateBatchEndpoint : IEndpoint
         app.MapPost(route, CreateAsync)
             .WithName(nameof(CreateBatchEndpoint))
             .WithTags(nameof(Batches))
-            .Accepts<CreateBatchEndpointRequestBody>(MediaTypeNames.Application.Json)
-            .Produces<CreateBatchEndpointResponseBody>(StatusCodes.Status201Created, MediaTypeNames.Application.Json)
+            .Accepts<CreateBatchRequestBody>(MediaTypeNames.Application.Json)
+            .Produces<CreateBatchResponseBody>(StatusCodes.Status201Created, MediaTypeNames.Application.Json)
             .Produces<ErrorResponse>(StatusCodes.Status400BadRequest, MediaTypeNames.Application.Json);
     }
 
     private static async Task<IResult> CreateAsync(
         [FromServices] IAppRequestsMediator mediator,
-        [FromBody] CreateBatchEndpointRequestBody body,
+        [FromBody] CreateBatchRequestBody body,
         CancellationToken cancellationToken = default)
     {
         var request = new AppRequest<CreateBatchCommand.Args>(new(body.NewBatch));
@@ -37,6 +37,6 @@ public class CreateBatchEndpoint : IEndpoint
 
         return !result.IsSuccess ?
             Results.BadRequest(new ErrorResponse(result.Message, result.ValidationErrors)) :
-            Results.Created($"/api/v1/batches/{result.Value!.CreatedBatch.Id}", new CreateBatchEndpointResponseBody(result.Value!.CreatedBatch));
+            Results.Created($"/api/v1/batches/{result.Value!.CreatedBatch.Id}", new CreateBatchResponseBody(result.Value!.CreatedBatch));
     }
 }

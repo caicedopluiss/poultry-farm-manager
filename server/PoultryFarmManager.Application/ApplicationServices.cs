@@ -25,5 +25,6 @@ public static class ApplicationServices
     private static void AddQueryHandlers(IServiceCollection services)
     {
         services.AddScoped<IAppRequestHandler<GetBatchesListQuery.Args, GetBatchesListQuery.Result>, GetBatchesListQuery.Handler>();
+        services.AddScoped<IAppRequestHandler<GetBatchByIdQuery.Args, GetBatchByIdQuery.Result>, GetBatchByIdQuery.Handler>();
     }
 }
