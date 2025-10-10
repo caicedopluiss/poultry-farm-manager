@@ -13,7 +13,7 @@ namespace PoultryFarmManager.WebAPI.Endpoints.v1.Batches;
 
 public class GetBatchesListEndpoint : IEndpoint
 {
-    public record GetBatchesListEndpointResponseBody(IEnumerable<BatchDto> Batches);
+    public record GetBatchesListResponseBody(IEnumerable<BatchDto> Batches);
 
     public static void Map(IEndpointRouteBuilder app, string? prefix = null)
     {
@@ -21,7 +21,7 @@ public class GetBatchesListEndpoint : IEndpoint
         app.MapGet(route, GetAsync)
             .WithName(nameof(GetBatchesListEndpoint))
             .WithTags(nameof(Batches))
-            .Produces<GetBatchesListEndpointResponseBody>(StatusCodes.Status200OK, MediaTypeNames.Application.Json)
+            .Produces<GetBatchesListResponseBody>(StatusCodes.Status200OK, MediaTypeNames.Application.Json)
             .Produces<ErrorResponse>(StatusCodes.Status400BadRequest, MediaTypeNames.Application.Json);
     }
 
@@ -34,6 +34,6 @@ public class GetBatchesListEndpoint : IEndpoint
 
         return !result.IsSuccess
             ? Results.BadRequest(new ErrorResponse(result.Message, result.ValidationErrors))
-            : Results.Ok(new GetBatchesListEndpointResponseBody(result.Value!.Batches));
+            : Results.Ok(new GetBatchesListResponseBody(result.Value!.Batches));
     }
 }

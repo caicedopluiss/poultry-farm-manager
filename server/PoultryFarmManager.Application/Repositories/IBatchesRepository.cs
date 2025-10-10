@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,5 +9,6 @@ namespace PoultryFarmManager.Application.Repositories;
 public interface IBatchesRepository
 {
     Task<IReadOnlyCollection<Batch>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<Batch?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<Batch> CreateAsync(Batch batch, CancellationToken cancellationToken = default);
 }

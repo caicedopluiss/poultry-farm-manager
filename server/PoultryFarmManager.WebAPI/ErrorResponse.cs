@@ -7,9 +7,13 @@ public record FieldValidationError(string FieldName, IEnumerable<string> Errors)
 
 public record ErrorResponse
 {
-    public int StatusCode { get; }
-    public string Message { get; } = string.Empty;
-    public IEnumerable<FieldValidationError> ValidationErrors { get; } = [];
+    public int StatusCode { get; init; }
+    public string Message { get; init; } = string.Empty;
+    public IEnumerable<FieldValidationError> ValidationErrors { get; init; } = [];
+
+    public ErrorResponse()
+    {
+    }
 
     public ErrorResponse(int statusCode, string message)
     {

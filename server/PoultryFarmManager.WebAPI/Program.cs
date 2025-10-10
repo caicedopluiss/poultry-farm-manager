@@ -73,6 +73,7 @@ public class Program
 
         app.MapEndpoint<CreateBatchEndpoint>(apiPrefix);
         app.MapEndpoint<GetBatchesListEndpoint>(apiPrefix);
+        app.MapEndpoint<GetBatchByIdEndpoint>(apiPrefix);
 
         app.UseCors("AllowAllOrigins");
 

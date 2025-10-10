@@ -37,7 +37,7 @@ public class CreateBatchEndpointTests(TestsFixture fixture) : IClassFixture<Test
 
         // Act - Real HTTP POST request to your API
         var response = await fixture.Client.PostAsJsonAsync("/api/v1/batches", body);
-        var responseBody = await response.Content.ReadFromJsonAsync<CreateBatchEndpoint.CreateBatchEndpointResponseBody>();
+        var responseBody = await response.Content.ReadFromJsonAsync<CreateBatchEndpoint.CreateBatchResponseBody>();
 
         // Assert
         Assert.True(response.IsSuccessStatusCode);

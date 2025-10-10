@@ -21,7 +21,7 @@ public class GetBatchesListEndpointTests(TestsFixture fixture) : IClassFixture<T
     {
         // Act - Real HTTP GET request to your API
         var response = await fixture.Client.GetAsync("/api/v1/batches");
-        var responseBody = await response.Content.ReadFromJsonAsync<GetBatchesListEndpoint.GetBatchesListEndpointResponseBody>();
+        var responseBody = await response.Content.ReadFromJsonAsync<GetBatchesListEndpoint.GetBatchesListResponseBody>();
 
         // Assert
         Assert.True(response.IsSuccessStatusCode);
@@ -46,7 +46,7 @@ public class GetBatchesListEndpointTests(TestsFixture fixture) : IClassFixture<T
 
         // Act - Real HTTP GET request to your API
         var response = await fixture.Client.GetAsync("/api/v1/batches");
-        var responseBody = await response.Content.ReadFromJsonAsync<GetBatchesListEndpoint.GetBatchesListEndpointResponseBody>();
+        var responseBody = await response.Content.ReadFromJsonAsync<GetBatchesListEndpoint.GetBatchesListResponseBody>();
 
         // Assert
         Assert.True(response.IsSuccessStatusCode);

@@ -16,7 +16,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"newBatch\": {\r\n        \"name\": \"2025001\",\r\n        \"startClientDateIsoString\": \"2025-09-24T21:18:42-05:00\", // format: yyyy-MM-ddTHH:mm:ssK\r\n        \"maleCount\": 0,\r\n        \"femaleCount\": 0,\r\n        \"unsexedCount\": 10,\r\n        \"breed\": null // nullable string\r\n    }\r\n}",
+							"raw": "{\r\n    \"newBatch\": {\r\n        \"name\": \"2025001\",\r\n        \"startClientDateIsoString\": \"2025-09-24T21:18:42-05:00\", // format: yyyy-MM-ddTHH:mm:ssK\r\n        \"maleCount\": 0,\r\n        \"femaleCount\": 0,\r\n        \"unsexedCount\": 10,\r\n        \"breed\": null, // nullable string\r\n        \"shed\": null // nullable string\r\n    }\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -51,6 +51,26 @@
 								"api",
 								"{{api_version}}",
 								"batches"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetBatchById",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host_url}}/api/{{api_version}}/batches/9255550c-3fdf-4689-ab90-9f0b1e338ada",
+							"host": [
+								"{{host_url}}"
+							],
+							"path": [
+								"api",
+								"{{api_version}}",
+								"batches",
+								"9255550c-3fdf-4689-ab90-9f0b1e338ada"
 							]
 						}
 					},
