@@ -1,7 +1,6 @@
 export interface Batch {
     id: string;
     name: string;
-    breed: string | null;
     status: string;
     startDate: string;
     initialPopulation: number;
@@ -9,5 +8,16 @@ export interface Batch {
     femaleCount: number;
     unsexedCount: number;
     population: number;
+    breed?: string | null;
     shed?: string | null; // Optional shed/location field
+}
+
+export interface NewBatch {
+    name: string;
+    startClientDateIsoString: string;
+    maleCount: number;
+    femaleCount: number;
+    unsexedCount: number;
+    breed?: string | null;
+    shed?: string | null;
 }

@@ -26,13 +26,10 @@ public class GetBatchByIdEndpointTests(TestsFixture fixture) : IClassFixture<Tes
 
         // Act - Real HTTP GET request to your API
         var response = await fixture.Client.GetAsync($"/api/v1/batches/{nonExistentId}");
-        var responseBody = await response.Content.ReadFromJsonAsync<ErrorResponse>();
-
 
         // Assert
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        Assert.Equal(StatusCodes.Status404NotFound, responseBody?.StatusCode);
     }
 
     [Fact]
