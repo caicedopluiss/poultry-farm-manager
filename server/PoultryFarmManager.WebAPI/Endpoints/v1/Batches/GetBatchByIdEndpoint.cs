@@ -23,7 +23,7 @@ public class GetBatchByIdEndpoint : IEndpoint
             .WithTags(nameof(Batches))
             .Produces<GetBatchByIdResponseBody>(StatusCodes.Status200OK, MediaTypeNames.Application.Json)
             .Produces<ErrorResponse>(StatusCodes.Status400BadRequest, MediaTypeNames.Application.Json)
-            .Produces<ErrorResponse>(StatusCodes.Status404NotFound, MediaTypeNames.Application.Json);
+            .Produces(StatusCodes.Status404NotFound);
     }
 
     private static async Task<IResult> GetAsync(
@@ -35,7 +35,7 @@ public class GetBatchByIdEndpoint : IEndpoint
         var result = await mediator.SendAsync<GetBatchByIdQuery.Args, GetBatchByIdQuery.Result>(request);
 
         if (!result.IsSuccess) return Results.BadRequest(new ErrorResponse(result.Message, result.ValidationErrors));
-        if (result.Value?.Batch == null) return Results.NotFound(new ErrorResponse(StatusCodes.Status404NotFound, "Batch not found"));
+        if (result.Value?.Batch is null) return Results.NotFound();
 
         return Results.Ok(new GetBatchByIdResponseBody(result.Value.Batch));
     }

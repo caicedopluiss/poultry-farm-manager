@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
     Container,
     Typography,
@@ -24,29 +24,16 @@ import {
     Pets as BreedIcon,
 } from "@mui/icons-material";
 import moment from "moment";
-import { mockBatches } from "../../data/mockBatches";
+import type { Batch } from "../../types/batch";
 
-export default function BatchDetail() {
-    const { id } = useParams<{ id: string }>();
+interface BatchDetailProps {
+    batch: Batch;
+}
+
+export default function BatchDetail({ batch }: BatchDetailProps) {
     const navigate = useNavigate();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-
-    // Find the batch by ID - in a real app, this would be an API call
-    const batch = mockBatches.find((b) => b.id === id);
-
-    if (!batch) {
-        return (
-            <Container maxWidth="lg" sx={{ py: 3 }}>
-                <Typography variant="h4" color="error" gutterBottom>
-                    Batch not found
-                </Typography>
-                <Button variant="contained" startIcon={<BackIcon />} onClick={() => navigate("/")}>
-                    Back to Batches
-                </Button>
-            </Container>
-        );
-    }
 
     const calculateDays = (startDate: string): number => {
         const start = moment(startDate);
