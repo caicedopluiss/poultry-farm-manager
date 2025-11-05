@@ -121,6 +121,7 @@ jobs:
         if: |
             needs.get-tf-cloud-outputs.result == 'success'
         with:
+            dockerfile: "Dockerfile.standalone"
             release_tag: ${{ github.ref_name }}
             full_image_name: ${{ needs.get-tf-cloud-outputs.outputs.registry_endpoint }}/${{ vars.IMAGE_NAME }}
             clean_registry: ${{ github.event.inputs.clean_registry == 'true' }}
