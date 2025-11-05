@@ -3,6 +3,16 @@ name: Docker Build and Push
 on:
     workflow_call:
         inputs:
+            dockerfile:
+                description: "Dockerfile to use for building the image"
+                required: false
+                type: string
+                default: "Dockerfile.standalone"
+            build_args:
+                description: "Build arguments for Docker build i.e --build-arg KEY=VALUE"
+                required: false
+                type: string
+                default: ""
             release_tag:
                 description: "Release tag (e.g., v1.0.0)"
                 required: true
@@ -47,15 +57,28 @@ jobs:
               run: |
                   SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-8)
                   RELEASE_TAG="${{ inputs.release_tag }}"
+                  DOCKERFILE="${{ inputs.dockerfile }}"
+                  BUILD_ARGS="${{ inputs.build_args }}"
 
                   echo "Building image with tags: $RELEASE_TAG, $SHORT_SHA, latest"
+                  echo "Using Dockerfile: $DOCKERFILE"
 
-                  docker build \
-                    --build-arg API_HOST_URL="${{ vars.API_HOST_URL_PROD }}" \
+                  BUILD_CMD="docker build -f $DOCKERFILE"
+
+                  # Add build args if provided
+                  if [ -n "$BUILD_ARGS" ]; then
+                      BUILD_CMD="$BUILD_CMD $BUILD_ARGS"
+                  fi
+
+                  # Add tags
+                  BUILD_CMD="$BUILD_CMD \
                     -t ${{ inputs.full_image_name }}:$RELEASE_TAG \
                     -t ${{ inputs.full_image_name }}:$SHORT_SHA \
                     -t ${{ inputs.full_image_name }}:latest \
-                    .
+                    ."
+
+                  echo "Running: $BUILD_CMD"
+                  eval $BUILD_CMD
 
                   echo "image_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
 

@@ -39,6 +39,7 @@ Poultry Farm Manager is a comprehensive solution for managing broiler chicken fa
         -   [Build and Run WebAPI Image](#build-and-run-webapi-image)
         -   [Build and Run WebApp Image](#build-and-run-webapp-image)
         -   [Build and Run Hybrid Image](#build-and-run-hybrid-image)
+        -   [Build and Run Standalone Image](#build-and-run-standalone-image)
     -   [Debug WebAPI project using VS Code and Docker Compose](#debug-webapi-project-using-vs-code-and-docker-compose)
     -   [Deploy solution to DigitalOcean locally](#deploy-solution-to-digitalocean-locally)
     -   [Create a Release and Deploy it using GitHub Actions](#create-a-release-and-deploy-it-using-github-actions)
@@ -55,7 +56,6 @@ Poultry Farm Manager is a comprehensive solution for managing broiler chicken fa
 -   Create a `.env` file with the following content:
 
 ```env
-DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=<your_database_name>
 DB_USER=<your_database_user>
@@ -78,15 +78,24 @@ docker-compose -f docker-compose-hybrid.yaml up --build
 
 -   Access the WebApp at `http://localhost:8081` and the WebAPI at `http://localhost:8080`.
 
+or, to use the standalone image with both services in a single container:
+
+```bash
+docker-compose -f docker-compose-standalone.yaml up --build
+```
+
+-   Access the WebApp and WebAPI at `http://localhost:80` or just `http://localhost`.
+
 ### Build and Run Docker Images Locally
 
 -   Ensure you have [Docker](https://docs.docker.com/get-docker/) installed.
 
-The solution handles three different images:
+The solution handles four different images:
 
 -   **WebAPI image** - Backend API service
 -   **WebApp image** - Frontend application
--   **Hybrid image** - Combined WebAPI and WebApp for testing purposes and cost savings on cloud registry services. Both services can be run from the same image in separate containers.
+-   **Hybrid image** - Combined WebAPI and WebApp for testing and cost savings purposes. Both services can be run from the same image in separate containers.
+-   **Standalone image** - Combined WebAPI and WebApp with Nginx for testing and cost savings purposes. Both services run in a single container.
 
 #### Build and Run WebAPI Image
 
@@ -130,7 +139,7 @@ docker run -d --name <container_name> <image_name>:<tag>
 2. Build the image (same build command as for [WebApp](#build-and-run-webapp-image)):
 
 ```bash
-docker build -t <image_name>:<tag> --build-arg API_HOST_URL=<http://your.api_host.url> .
+docker build -f Dockerfile.hybrid -t <image_name>:<tag> --build-arg API_HOST_URL=<http://your.api_host.url> .
 ```
 
 > **Note:** This image also uses nginx default CMD.
@@ -151,6 +160,25 @@ docker run -d --name <container_name> -p <host_port>:80 -e ASPNETCORE_ENVIRONMEN
 docker run -d --name <container_name> -p <host_port>:80 <image_name>:<tag>
 ```
 
+#### Build and Run Standalone Image
+
+1. Open a terminal in the root directory of the solution
+2. Build the image:
+
+```bash
+docker build -f Dockerfile.standalone -t <image_name>:<tag> .
+```
+
+> **Note:** This image CMD uses the custom `start-standalone.sh` script to start both Nginx and WebAPI services.
+
+3. Run the container:
+
+```bash
+docker run -d --name <container_name> -p <host_port>:80 -e ASPNETCORE_ENVIRONMENT=<env> <image_name>:<tag>
+```
+
+> Note: The Standalone image does not require the API_HOST_URL build argument since relative paths are handled by Nginx. Also, the WebAPI service runs on port 5000 internally, proxied by Nginx. This port is hardcoded and in case of changes, the `nginx-standalone.conf` and `Dockerfile.standalone` file must be updated accordingly.
+
 ### Debug WebAPI project using VS Code and Docker Compose
 
 To debug the WebAPI service, do the following:
@@ -161,7 +189,6 @@ To debug the WebAPI service, do the following:
 -   Create a .env file with the following content:
 
 ```env
-DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=<your_database_name>
 DB_USER=<your_database_user>

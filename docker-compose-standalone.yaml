@@ -1,8 +1,8 @@
-name: pfm-hybrid
+name: pfm-standalone
 services:
     postgresql:
         image: postgres:17.6-alpine3.22
-        container_name: pfm-hybrid-postgresql
+        container_name: pfm-standalone-postgresql
         environment:
             - POSTGRES_DB=${DB_NAME}
             - POSTGRES_USER=${DB_USER}
@@ -22,46 +22,30 @@ services:
         depends_on:
             postgresql:
                 condition: service_healthy
-        container_name: pfm-hybrid-migrations_job
+        container_name: pfm-standalone-migrations_job
         pull_policy: build
-        image: pfm/hybrid:latest
+        image: pfm/standalone:latest
         build:
             context: .
-            dockerfile: Dockerfile.hybrid
-            args:
-                - API_HOST_URL=http://localhost:8080
+            dockerfile: Dockerfile.standalone
         environment:
             - ASPNETCORE_ENVIRONMENT=Development
-            - ASPNETCORE_HTTP_PORTS=80
-            - ConnectionStrings__pfm=Host=pfm-hybrid-postgresql;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
+            - ConnectionStrings__pfm=Host=pfm-standalone-postgresql;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
         command: ["dotnet", "/webapi/PoultryFarmManager.WebAPI.dll", "migrate"]
-    webapi:
+    app:
         depends_on:
             postgresql:
                 condition: service_healthy
             migrations_job:
                 condition: service_completed_successfully # Waits until container is finished
-        container_name: pfm-hybrid-webapi
         pull_policy: never # Built once as both services (migrations_job) use the same image
-        image: pfm/hybrid:latest
+        image: pfm/standalone:latest
+        container_name: pfm-standalone-app
         ports:
-            - "8080:80"
+            - "80:80"
         environment:
             - ASPNETCORE_ENVIRONMENT=Development
-            - ASPNETCORE_HTTP_PORTS=80
-            - ConnectionStrings__pfm=Host=pfm-hybrid-postgresql;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
-        command: ["dotnet", "/webapi/PoultryFarmManager.WebAPI.dll"]
-    webapp:
-        depends_on:
-            migrations_job:
-                condition: service_started # Waits until container is finished. So Image is ready
-        container_name: pfm-hybrid-webapp
-        image: pfm/hybrid:latest
-        pull_policy: never # Built once as both services use the same image
-        ports:
-            - "8081:80"
-        environment:
-            - NODE_ENV=development
+            - ConnectionStrings__pfm=Host=pfm-standalone-postgresql;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
 volumes:
     postgresql_data:
         driver: local
