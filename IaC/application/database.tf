@@ -1,6 +1,6 @@
 # PostgreSQL database cluster
 resource "digitalocean_database_cluster" "pfm_postgres" {
-  name       = "${var.app_code}-postgres"
+  name       = "${local.app_prefix}-postgres"
   engine     = "pg"
   version    = var.database_version
   size       = "db-s-1vcpu-1gb"
@@ -22,4 +22,15 @@ resource "digitalocean_database_db" "pfm_db" {
 resource "digitalocean_database_user" "app_user" {
   cluster_id = digitalocean_database_cluster.pfm_postgres.id
   name       = "app_user"
+}
+
+# Grant permissions to app_user on all tables
+resource "postgresql_grant" "app_user_tables" {
+  database    = local.db_secrets.database
+  role        = local.db_secrets.app_user
+  schema      = "public"
+  object_type = "table"
+  privileges  = ["SELECT", "INSERT", "UPDATE", "DELETE", "TRUNCATE"]
+
+  depends_on = [digitalocean_app.platform]
 }
