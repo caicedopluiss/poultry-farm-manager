@@ -1,6 +1,6 @@
 # Docker Image Build Scripts
 
-This directory contains PowerShell scripts to build and push Docker images.
+This directory contains PowerShell scripts to build, run, and manage Docker images for the Poultry Farm Manager project.
 
 > **Note**: Make sure to run the script from the project root.
 
@@ -34,6 +34,24 @@ doctl registry login
 
 ## Available Functions
 
+### Build-StandaloneImage
+
+Builds the standalone Docker image containing nginx, WebAPI, and WebApp services.
+
+```powershell
+# Build with default settings
+Build-StandaloneImage -ImageName "pfm/standalone"
+
+# Build with custom tag
+Build-StandaloneImage -ImageName "pfm/standalone" -Tag "v1.0.0"
+
+# Build with custom API URL
+Build-StandaloneImage -ImageName "pfm/standalone" -Tag "latest" -ApiHostUrl "/api/v1"
+
+# Build pushing to registry
+Build-StandaloneImage -ImageName "pfm/standalone" -Tag "dev" -Push $true
+```
+
 ### Build-HybridImage
 
 Builds the multi-stage Docker image containing both WebAPI and WebApp services.
@@ -48,8 +66,8 @@ Build-HybridImage -ImageName "pfm/hybrid" -Tag "v1.0.0"
 # Build with custom API URL
 Build-HybridImage -ImageName "pfm/hybrid" -Tag "latest" -ApiHostUrl "/api/v1"
 
-# Build without pushing to registry
-Build-HybridImage -ImageName "pfm/hybrid" -Tag "dev" -Push $false
+# Build pushing to registry
+Build-HybridImage -ImageName "pfm/hybrid" -Tag "dev" -Push $true
 ```
 
 ### Build-WebApiImage
@@ -63,8 +81,8 @@ Build-WebApiImage -ImageName "pfm/webapi"
 # Build with custom tag
 Build-WebApiImage -ImageName "pfm/webapi" -Tag "v1.0.0"
 
-# Build without pushing
-Build-WebApiImage -ImageName "pfm/webapi" -Tag "dev" -Push $false
+# Build pushing
+Build-WebApiImage -ImageName "pfm/webapi" -Tag "dev" -Push $true
 ```
 
 ### Build-WebAppImage

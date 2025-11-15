@@ -25,6 +25,7 @@ Poultry Farm Manager is a comprehensive solution for managing broiler chicken fa
 
 ![VS Code](https://img.shields.io/badge/IDE-VS%20Code-007ACC?style=flat&logo=visualstudiocode&logoColor=white)
 ![Git](https://img.shields.io/badge/Version%20Control-Git-F05032?style=flat&logo=git&logoColor=white)
+![PowerShell](https://img.shields.io/badge/Scripting-PowerShell-5391FE?style=flat&logo=powershell&logoColor=white)
 ![GitHub Desktop](https://img.shields.io/badge/GitHub%20Desktop-24292F?style=flat&logo=github&logoColor=white)
 ![Docker Desktop](https://img.shields.io/badge/Containerization-Docker%20Desktop-2496ED?style=flat&logo=docker&logoColor=white)
 ![Postman](https://img.shields.io/badge/API%20Testing-Postman-FF6C37?style=flat&logo=postman&logoColor=white)
@@ -40,6 +41,7 @@ Poultry Farm Manager is a comprehensive solution for managing broiler chicken fa
         -   [Build and Run WebApp Image](#build-and-run-webapp-image)
         -   [Build and Run Hybrid Image](#build-and-run-hybrid-image)
         -   [Build and Run Standalone Image](#build-and-run-standalone-image)
+    -   [Using PowerShell Build Scripts](#using-powershell-build-scripts)
     -   [Debug WebAPI project using VS Code and Docker Compose](#debug-webapi-project-using-vs-code-and-docker-compose)
     -   [Deploy solution to DigitalOcean locally](#deploy-solution-to-digitalocean-locally)
     -   [Create a Release and Deploy it using GitHub Actions](#create-a-release-and-deploy-it-using-github-actions)
@@ -109,7 +111,7 @@ docker build -t <image_name>:<tag> ./../../ -f ./Dockerfile
 3. Run the container:
 
 ```bash
-docker run -d --name <container_name> -e ASPNETCORE_ENVIRONMENT=<env> -e ASPNETCORE_HTTP_PORTS=<port> <image_name>:<tag>
+docker run -d --name <container_name> -e ASPNETCORE_ENVIRONMENT=<env> -e ASPNETCORE_HTTP_PORTS=<port> -e ConnectionStrings__pfm="Host=<db_host>;Port=5432;Database=<db_name>;Username=<db_user>;Password=<db_password>" <image_name>:<tag>
 ```
 
 ---
@@ -149,7 +151,7 @@ docker build -f Dockerfile.hybrid -t <image_name>:<tag> --build-arg API_HOST_URL
 **Run a container for WebAPI:**
 
 ```bash
-docker run -d --name <container_name> -p <host_port>:80 -e ASPNETCORE_ENVIRONMENT=<env> -e ASPNETCORE_HTTP_PORTS=80 <image_name>:<tag> dotnet /webapi/PoultryFarmManager.WebAPI.dll
+docker run -d --name <container_name> -p <host_port>:80 -e ASPNETCORE_ENVIRONMENT=<env> -e ASPNETCORE_HTTP_PORTS=80 -e ConnectionStrings__pfm="Host=<db_host>;Port=5432;Database=<db_name>;Username=<db_user>;Password=<db_password>" <image_name>:<tag> dotnet /webapi/PoultryFarmManager.WebAPI.dll
 ```
 
 > The last part overrides the default CMD to run the WebAPI with dotnet through port 80 instead of Nginx.
@@ -174,10 +176,41 @@ docker build -f Dockerfile.standalone -t <image_name>:<tag> .
 3. Run the container:
 
 ```bash
-docker run -d --name <container_name> -p <host_port>:80 -e ASPNETCORE_ENVIRONMENT=<env> <image_name>:<tag>
+docker run -d --name <container_name> -p <host_port>:80 -e ASPNETCORE_ENVIRONMENT=<env> -e ConnectionStrings__pfm="Host=<db_host>;Port=5432;Database=<db_name>;Username=<db_user>;Password=<db_password>" <image_name>:<tag>
 ```
 
 > Note: The Standalone image does not require the API_HOST_URL build argument since relative paths are handled by Nginx. Also, the WebAPI service runs on port 5000 internally, proxied by Nginx. This port is hardcoded and in case of changes, the `nginx-standalone.conf` and `Dockerfile.standalone` file must be updated accordingly.
+
+### Using PowerShell Build Scripts
+
+For a more streamlined approach to building and pushing Docker images locally, you can use the PowerShell utility scripts located in the `scripts/` directory. These scripts provide convenient functions to build all image types with customizable options.
+
+**Prerequisites:**
+
+-   Docker Desktop (running)
+-   DigitalOcean CLI (`doctl`) for registry authentication
+-   PowerShell 5.1+ or PowerShell Core 7+
+
+**Quick Start:**
+
+```powershell
+# Load the script
+. .\scripts\Build-DockerImages.ps1
+
+> IMPORTANT: Make sure to run the script from the project root. So cd .. to the project root before running the above command.
+
+# Build and push standalone image
+Build-StandaloneImage -ImageName "pfm/standalone" -Tag "v1.0.0" -Push $true
+
+# Build hybrid image
+Build-HybridImage -ImageName "pfm/hybrid" -Tag "latest"
+
+# Build individual service images
+Build-WebApiImage -ImageName "pfm/webapi" -Tag "dev"
+Build-WebAppImage -ImageName "pfm/webapp" -Tag "dev"
+```
+
+For detailed documentation on available functions, configuration options, and examples, see [Build Scripts Documentation](docs/BUILD_SCRIPTS.md).
 
 ### Debug WebAPI project using VS Code and Docker Compose
 

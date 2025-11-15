@@ -34,7 +34,6 @@ function Test-DockerRunning {
 }
 
 function Test-RegistryLogin {
-
     param([string]$Registry)
 
     Write-ColorOutput "Checking Docker registry authentication..." $Blue
@@ -49,6 +48,92 @@ function Test-RegistryLogin {
 
     Write-ColorOutput "Registry authentication verified" $Green
     return $true
+}
+
+function Build-StandaloneImage {
+    <#
+    .SYNOPSIS
+    Builds and pushes the standalone Docker image (nginx + WebAPI + WebApp)
+
+    .DESCRIPTION
+    This function builds the Dockerfile.standalone that contains nginx, WebAPI, and WebApp in a single container.
+
+    .PARAMETER ImageName
+    The name of the Docker image (without registry prefix)
+
+    .PARAMETER Tag
+    The tag for the Docker image (default: latest)
+
+    .PARAMETER Registry
+    The Docker registry URL (default: registry.digitalocean.com/caicedopluiss)
+
+    .PARAMETER Push
+    Whether to push the image to the registry (default: false)
+
+    .EXAMPLE
+    Build-StandaloneImage -ImageName "pfm-standalone" -Tag "v1.0.0"
+
+    .EXAMPLE
+    Build-StandaloneImage -ImageName "pfm-standalone" -Tag "latest" -Push $true
+    #>
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ImageName,
+        [string]$Tag = $DefaultTag,
+        [string]$Registry = $DefaultRegistry,
+        [bool]$Push = $false
+    )
+
+    if (-not (Test-DockerRunning)) { return }
+
+    $FullImageName = "$Registry/$ImageName`:$Tag"
+    $RootPath = Split-Path $PSScriptRoot -Parent
+    $DockerfilePath = Join-Path $RootPath "Dockerfile.standalone"
+
+    Write-ColorOutput "Building Standalone Image (nginx + WebAPI + WebApp)" $Blue
+    Write-ColorOutput "Context: $RootPath" $Blue
+    Write-ColorOutput "Dockerfile: $DockerfilePath" $Blue
+    Write-ColorOutput "Image: $FullImageName" $Blue
+
+    try {
+        # Build the standalone image
+        $buildArgs = @(
+            "build",
+            "-t", $FullImageName,
+            "-f", $DockerfilePath,
+            $RootPath
+        )
+
+        Write-ColorOutput "Building image..." $Yellow
+        docker @buildArgs
+
+        if ($LASTEXITCODE -ne 0) {
+            Write-ColorOutput "Build failed for image: $FullImageName" $Red
+            return $false
+        }
+
+        Write-ColorOutput "Successfully built: $FullImageName" $Green
+
+        if ($Push) {
+            if (-not (Test-RegistryLogin -Registry $Registry)) { return $false }
+
+            Write-ColorOutput "Pushing image to registry..." $Yellow
+            docker push $FullImageName
+
+            if ($LASTEXITCODE -ne 0) {
+                Write-ColorOutput "Push failed for image: $FullImageName" $Red
+                return $false
+            }
+
+            Write-ColorOutput "Successfully pushed: $FullImageName" $Green
+        }
+
+        return $true
+    }
+    catch {
+        Write-ColorOutput "Error building standalone image: $($_.Exception.Message)" $Red
+        return $false
+    }
 }
 
 function Build-HybridImage {
@@ -173,7 +258,6 @@ function Build-WebApiImage {
     param(
         [Parameter(Mandatory=$true)]
         [string]$ImageName,
-
         [string]$Tag = $DefaultTag,
         [string]$Registry = $DefaultRegistry,
         [bool]$Push = $false
@@ -330,9 +414,10 @@ function Show-Usage {
 Docker Image Build Script for Poultry Farm Manager
 
 Available Functions:
-  Build-HybridImage   - Builds the combined WebAPI + WebApp image
-  Build-WebApiImage   - Builds the standalone WebAPI image
-  Build-WebAppImage   - Builds the standalone WebApp image
+  Build-StandaloneImage - Builds the standalone Docker image (nginx + WebAPI + WebApp) - RECOMMENDED
+  Build-HybridImage     - Builds the hybrid image (WebAPI + WebApp with ingress routing)
+  Build-WebApiImage     - Builds the standalone WebAPI image
+  Build-WebAppImage     - Builds the standalone WebApp image
 
 Usage Examples:
   # Build specific image with custom tag
