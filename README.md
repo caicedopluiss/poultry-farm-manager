@@ -46,6 +46,7 @@ Poultry Farm Manager is a comprehensive solution for managing broiler chicken fa
     -   [Deploy solution to DigitalOcean locally](#deploy-solution-to-digitalocean-locally)
     -   [Create a Release and Deploy it using GitHub Actions](#create-a-release-and-deploy-it-using-github-actions)
     -   [Create a new database migration](#create-a-new-database-migration)
+        -   [Applying migrations](#applying-migrations)
 -   [API Testing with Postman](#api-testing-with-postman)
 -   [CI/CD and Automation Workflows](#cicd-and-automation-workflows)
 
@@ -417,13 +418,27 @@ The `--startup-project` option is not required since the command is run from the
 
 Migrations are automatically applied when you run the migrations job (`PoultryFarmManager.WebAPI` project with `migrate` argument). **It's mandatory to run this job before starting the WebAPI service** to ensure the database schema is up to date.
 
-You can also apply migrations manually by running the following command from the `./server/PoultryFarmManager.WebAPI/` directory:
+You can also apply migrations manually by running the following command from the `./server/PoultryFarmManager.WebAPI/` project directory:
 
 ```bash
 dotnet run migrate
 ```
 
 This ensures your database is always up to date with the latest schema changes.
+
+**Migration command options:**
+
+-   `--exit`: Exits the application after applying migrations.
+
+    Use this when you need a dedicated migration job that runs once and exits. Perfect for running migrations and WebAPI service separately, such as in Docker containers.
+
+See example below:
+
+```bash
+dotnet run migrate --exit
+```
+
+> **Note**: This flexibility allows you to use the same Docker image for both migration jobs and the main application by simply passing different command arguments.
 
 ## API Testing with Postman
 

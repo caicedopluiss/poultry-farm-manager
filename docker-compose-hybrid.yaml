@@ -34,7 +34,13 @@ services:
             - ASPNETCORE_ENVIRONMENT=Development
             - ASPNETCORE_HTTP_PORTS=80
             - ConnectionStrings__pfm=Host=pfm-hybrid-postgresql;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
-        command: ["dotnet", "/webapi/PoultryFarmManager.WebAPI.dll", "migrate"]
+        command:
+            [
+                "dotnet",
+                "/webapi/PoultryFarmManager.WebAPI.dll",
+                "migrate",
+                "--exit",
+            ]
     webapi:
         depends_on:
             postgresql:

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -55,10 +56,19 @@ public class Program
 
         var app = builder.Build();
 
-        if (args.Length > 0 && args[0].Equals("migrate", StringComparison.InvariantCultureIgnoreCase))
+        if (args.Contains("migrate", StringComparer.InvariantCultureIgnoreCase))
         {
             ApplyDbMigrations.Run(app);
-            return;
+            Console.WriteLine("Migration completed.");
+
+            if (args.Contains("--exit", StringComparer.InvariantCultureIgnoreCase))
+            {
+                Console.WriteLine("Exiting...");
+                Environment.Exit(0);
+                return;
+            }
+
+            Console.WriteLine("Starting WebAPI...");
         }
 
         app.UseSwagger();
