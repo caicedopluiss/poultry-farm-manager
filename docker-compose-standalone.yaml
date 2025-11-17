@@ -31,7 +31,9 @@ services:
         environment:
             - ASPNETCORE_ENVIRONMENT=Development
             - ConnectionStrings__pfm=Host=pfm-standalone-postgresql;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
-        command: ["dotnet", "/webapi/PoultryFarmManager.WebAPI.dll", "migrate"]
+        command: [/bin/sh, /start.sh, migrate, --exit]
+        # alternative way
+        # command: ["dotnet", "/webapi/PoultryFarmManager.WebAPI.dll", "migrate", "--exit"]
     app:
         depends_on:
             postgresql:

@@ -22,36 +22,6 @@ resource "digitalocean_app" "platform" {
       value = jsonencode(local.db_secrets)
     }
 
-    # Migration job - runs before services start
-    job {
-      name = "${local.app_prefix}-migrations-job"
-      image {
-        registry_type = "DOCR"
-        registry      = data.digitalocean_container_registry.personal.name
-        repository    = var.image_name
-        tag           = var.image_tag
-        deploy_on_push {
-          enabled = false
-        }
-      }
-      run_command        = "dotnet /webapi/PoultryFarmManager.WebAPI.dll migrate"
-      instance_size_slug = "basic-xxs" #hardcoded for now, to prevent cost spikes
-      instance_count     = 1
-      kind               = "PRE_DEPLOY" # Runs before services are deployed
-
-      env {
-        key   = "ASPNETCORE_ENVIRONMENT"
-        value = var.env
-      }
-
-      env {
-        key  = "ConnectionStrings__pfm"
-        type = "SECRET"
-        # Using the admin user for migrations
-        value = "Host=${local.db_secrets.host};Port=${local.db_secrets.port};Database=${local.db_secrets.database};Username=${local.db_secrets.admin_user};Password=${local.db_secrets.admin_user_password};Pooling=true;Trust Server Certificate=true;"
-      }
-    }
-
     service {
       name = "${local.app_prefix}-standalone"
       image {
@@ -63,8 +33,8 @@ resource "digitalocean_app" "platform" {
           enabled = false
         }
       }
-      # No run_command needed - uses CMD from Dockerfile (/start.sh)
-      instance_size_slug = "basic-xxs" #hardcoded for now, to prevent cost spikes
+      run_command        = "/bin/sh /start.sh migrate" # run migrations on startup
+      instance_size_slug = "basic-xxs"                 # hardcoded for now, to prevent cost spikes
       instance_count     = 1
       http_port          = 80
 

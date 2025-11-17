@@ -24,7 +24,7 @@ public static class InfrastructureServices
         var connectionString = configuration.GetConnectionString("pfm");
         if (string.IsNullOrWhiteSpace(connectionString))
         {
-            throw new InvalidOperationException("The connection string 'pfm' is missing or empty in the configuration.");
+            throw new InvalidOperationException("The application connection string is missing or empty in the configuration.");
         }
         services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
     }

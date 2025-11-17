@@ -12,7 +12,8 @@ services:
         volumes:
             - postgresql_data:/var/lib/postgresql/data
         healthcheck:
-            test: ["CMD-SHELL", "sh -c 'pg_isready -U ${DB_USER} -d ${DB_NAME}'"]
+            test:
+                ["CMD-SHELL", "sh -c 'pg_isready -U ${DB_USER} -d ${DB_NAME}'"]
             interval: 10s
             timeout: 5s
             retries: 5
@@ -31,7 +32,7 @@ services:
             - ASPNETCORE_ENVIRONMENT=Development
             - ASPNETCORE_HTTP_PORTS=80
             - ConnectionStrings__pfm=Host=pfm-postgresql;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
-        command: [PoultryFarmManager.WebAPI.dll, migrate]
+        command: [PoultryFarmManager.WebAPI.dll, migrate, --exit]
     webapi:
         depends_on:
             postgresql:
