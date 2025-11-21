@@ -5,7 +5,8 @@ resource "digitalocean_project_resources" "pfm" {
 
   project = data.digitalocean_project.pfm[0].id
   resources = [
-    digitalocean_app.platform.urn
+    digitalocean_app.platform.urn,
+    digitalocean_database_cluster.pfm_postgres.urn
   ]
 }
 
@@ -15,6 +16,12 @@ resource "digitalocean_app" "platform" {
   spec {
     name   = "${local.app_prefix}-platform"
     region = var.region
+
+    # Maintenance mode: stops app instances to save costs while keeping configuration
+    maintenance {
+      enabled = var.maintenance_mode
+      #   offline_page_url = "https://example.com/images/offline.png"
+    }
 
     env {
       key   = "DB_SECRETS"

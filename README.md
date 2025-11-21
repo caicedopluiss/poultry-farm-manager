@@ -47,6 +47,7 @@ Poultry Farm Manager is a comprehensive solution for managing broiler chicken fa
     -   [Create a Release and Deploy it using GitHub Actions](#create-a-release-and-deploy-it-using-github-actions)
     -   [Create a new database migration](#create-a-new-database-migration)
         -   [Applying migrations](#applying-migrations)
+    -   [Archive/Restore App Platform (Cost Savings)](#archiverestore-app-platform-cost-savings)
 -   [API Testing with Postman](#api-testing-with-postman)
 -   [CI/CD and Automation Workflows](#cicd-and-automation-workflows)
 
@@ -439,6 +440,72 @@ dotnet run migrate --exit
 ```
 
 > **Note**: This flexibility allows you to use the same Docker image for both migration jobs and the main application by simply passing different command arguments.
+
+### Archive/Restore App Platform (Cost Savings)
+
+The application deployed on DigitalOcean App Platform can be put into **maintenance mode** to save costs when not in use. This stops the app instances while keeping the database running.
+
+**Manual Operation via GitHub Actions:**
+
+1. Navigate to **Actions** -> **App Platform Maintenance** -> **Run workflow**
+2. Select action:
+    - **archive**: Enable maintenance mode (stops app instances)
+    - **restore**: Disable maintenance mode (starts app instances)
+3. Select environment: `production`
+4. Run workflow
+
+**Automatic Scheduling (Optional):**
+
+The workflow includes commented schedule triggers for automatic archive/restore:
+
+-   **8:00 AM Bogota time**: Restore (app starts)
+-   **8:00 PM Bogota time**: Archive (app stops)
+
+To enable automatic scheduling, uncomment the `schedule` section in `.github/workflows/workflow_app_maintenance.yaml`.
+
+**How It Works:**
+
+The workflow uses Terraform to toggle the `maintenance_mode` variable:
+
+-   `maintenance_mode=true`: App enters maintenance mode, instances stop, billing stops
+-   `maintenance_mode=false`: App exits maintenance mode, instances start, billing resumes
+
+The database remains running and accessible throughout, ensuring no data loss.
+
+**Local PowerShell Script:**
+
+You can also toggle maintenance mode locally when deploying solution from local environment using the PowerShell function. See [Deploy solution to DigitalOcean locally](#deploy-solution-to-digitalocean-locally) for local deployment setup.
+
+**Important**: The function must be executed from the project root directory.
+
+```powershell
+# Load the function (dot-source the script)
+. .\scripts\Invoke-AppMaintenance.ps1
+
+# Enable maintenance mode (stop app instances)
+Invoke-AppMaintenance -Action archive
+
+# Disable maintenance mode (start app instances)
+Invoke-AppMaintenance -Action restore
+
+# With auto-approve (skip confirmation)
+Invoke-AppMaintenance -Action archive -AutoApprove
+
+# Specify environment
+Invoke-AppMaintenance -Action archive -Environment production
+
+# Specify custom working directory (default: ./IaC/application)
+Invoke-AppMaintenance -Action restore -Environment production -WorkingDirectory "./IaC/application"
+```
+
+**Usage Pattern:**
+
+1. Navigate to the project root directory
+2. Dot-source the script to load the function: `. .\scripts\Invoke-AppMaintenance.ps1`
+3. Call the function with desired parameters
+4. The function will change to the IaC directory, run Terraform, and return to the original location
+
+The function runs Terraform apply with the appropriate `maintenance_mode` variable setting.
 
 ## API Testing with Postman
 
