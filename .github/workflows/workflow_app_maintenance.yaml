@@ -1,0 +1,98 @@
+name: App Platform Maintenance
+
+on:
+    workflow_dispatch:
+        inputs:
+            action:
+                description: "Action to perform"
+                required: true
+                type: choice
+                options:
+                    - archive
+                    - restore
+                default: "archive"
+            environment:
+                description: "Environment"
+                required: true
+                type: choice
+                options:
+                    - production
+                default: "production"
+
+    # Uncomment to enable automatic scheduling (Bogota time = UTC-5)
+    # schedule:
+    #     - cron: '0 13 * * *'  # 8:00 AM Bogota (13:00 UTC) - RESTORE (Start app)
+    #     - cron: '0 1 * * *'   # 8:00 PM Bogota (01:00 UTC next day) - ARCHIVE (stop app)
+
+jobs:
+    prepare:
+        runs-on: ubuntu-latest
+        outputs:
+            env: ${{ steps.vars.outputs.env }}
+            action: ${{ steps.vars.outputs.action }}
+        steps:
+            - name: Determine Terraform Variables
+              id: vars
+              run: |
+                  echo "📊 Determining maintenance configuration..."
+
+                  # Determine action based on trigger type
+                  if [ "${{ github.event_name }}" = "schedule" ]; then
+                      # For scheduled triggers, determine action based on time
+                      HOUR=$(date -u +%H)
+                      if [ "$HOUR" = "13" ]; then
+                          ACTION="restore"  # 8 AM Bogota - Scale UP
+                      else
+                          ACTION="archive"  # 8 PM Bogota - Scale DOWN
+                      fi
+                      echo "🕐 Scheduled trigger detected at ${HOUR}:00 UTC"
+                  else
+                      # For manual triggers, use input
+                      ACTION="${{ inputs.action }}"
+                      echo "👤 Manual trigger detected"
+                  fi
+
+                  # Set environment-specific prefix
+                  case "${{ inputs.environment }}" in
+                      production)
+                          ENV="Production"
+                          ;;
+                      *)
+                          # Default to Production when triggered by schedule (no inputs)
+                          ENV="Production"
+                          ;;
+                  esac
+
+                  echo "action=$ACTION" >> $GITHUB_OUTPUT
+                  echo "env=$ENV" >> $GITHUB_OUTPUT
+
+                  echo "✅ Configuration determined:"
+                  echo "   Action: $ACTION"
+                  echo "   Environment: $ENV"
+    archive:
+        needs: prepare
+        if: needs.prepare.outputs.action == 'archive'
+        uses: ./.github/workflows/job_terraform_infrastructure.yaml
+        with:
+            terraform_action: "apply"
+            working_directory: "./IaC/application"
+            env_vars: |
+                TF_VAR_env=${{ needs.prepare.outputs.env }}
+                TF_VAR_maintenance_mode=true
+        secrets:
+            DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+            TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+
+    restore:
+        needs: prepare
+        if: needs.prepare.outputs.action == 'restore'
+        uses: ./.github/workflows/job_terraform_infrastructure.yaml
+        with:
+            terraform_action: "apply"
+            working_directory: "./IaC/application"
+            env_vars: |
+                TF_VAR_env=${{ needs.prepare.outputs.env }}
+                TF_VAR_maintenance_mode=false
+        secrets:
+            DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+            TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}

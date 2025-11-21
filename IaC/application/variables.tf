@@ -71,3 +71,9 @@ variable "database_version" {
   type        = string
   default     = "17"
 }
+
+variable "maintenance_mode" {
+  description = "Enable maintenance mode to stop app instances (saves costs)"
+  type        = bool
+  default     = false
+}
