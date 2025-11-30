@@ -8,91 +8,106 @@ on:
                 required: true
                 type: choice
                 options:
-                    - archive
-                    - restore
-                default: "archive"
-            environment:
-                description: "Environment"
-                required: true
-                type: choice
-                options:
-                    - production
-                default: "production"
+                    - stop
+                    - start
+                default: "stop"
 
     # Uncomment to enable automatic scheduling (Bogota time = UTC-5)
+    # Scheduled triggers will only run on main branch (production environment)
     # schedule:
-    #     - cron: '0 13 * * *'  # 8:00 AM Bogota (13:00 UTC) - RESTORE (Start app)
-    #     - cron: '0 1 * * *'   # 8:00 PM Bogota (01:00 UTC next day) - ARCHIVE (stop app)
+    #     - cron: '0 13 * * *'  # 8:00 AM Bogota (13:00 UTC) - START maintenance
+    #     - cron: '0 1 * * *'   # 8:00 PM Bogota (01:00 UTC next day) - STOP maintenance
 
 jobs:
-    prepare:
+    check-context:
         runs-on: ubuntu-latest
         outputs:
             env: ${{ steps.vars.outputs.env }}
             action: ${{ steps.vars.outputs.action }}
+            can_proceed: ${{ steps.vars.outputs.can_proceed }}
+            image_tag: ${{ steps.vars.outputs.image_tag }}
         steps:
-            - name: Determine Terraform Variables
+            - name: Check Branch and Determine Configuration
               id: vars
               run: |
+                  echo "🔍 Checking branch..."
+
+                  # Initialize variables
+                  ENV=""
+                  IMAGE_TAG=""
+                  ACTION=""
+
+                  # Check branch and set environment
+                  if [[ "${{ github.ref_name }}" != "main" ]]; then
+                      echo "❌ This workflow can only run on main branch"
+                      echo "Current branch: ${{ github.ref_name }}"
+                      echo "can_proceed=false" >> $GITHUB_OUTPUT
+                  else
+                      echo "✅ Running on main branch"
+                      echo "can_proceed=true" >> $GITHUB_OUTPUT
+                      ENV="Production"
+                      IMAGE_TAG="latest"  # main branch uses latest tag
+                  fi
+
+                  echo ""
                   echo "📊 Determining maintenance configuration..."
 
                   # Determine action based on trigger type
-                  if [ "${{ github.event_name }}" = "schedule" ]; then
+                  if [[ "${{ github.event_name }}" = "schedule" ]]; then
                       # For scheduled triggers, determine action based on time
                       HOUR=$(date -u +%H)
-                      if [ "$HOUR" = "13" ]; then
-                          ACTION="restore"  # 8 AM Bogota - Scale UP
+                      if [[ "$HOUR" = "13" ]]; then
+                          ACTION="start"  # 8 AM Bogota - Start app
                       else
-                          ACTION="archive"  # 8 PM Bogota - Scale DOWN
+                          ACTION="stop"  # 8 PM Bogota - Stop app
                       fi
-                      echo "🕐 Scheduled trigger detected at ${HOUR}:00 UTC"
+                      echo "🕐 Scheduled trigger at ${HOUR}:00 UTC"
                   else
                       # For manual triggers, use input
                       ACTION="${{ inputs.action }}"
-                      echo "👤 Manual trigger detected"
+                      echo "👤 Manual trigger"
                   fi
-
-                  # Set environment-specific prefix
-                  case "${{ inputs.environment }}" in
-                      production)
-                          ENV="Production"
-                          ;;
-                      *)
-                          # Default to Production when triggered by schedule (no inputs)
-                          ENV="Production"
-                          ;;
-                  esac
 
                   echo "action=$ACTION" >> $GITHUB_OUTPUT
                   echo "env=$ENV" >> $GITHUB_OUTPUT
+                  echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-                  echo "✅ Configuration determined:"
+                  echo ""
+                  echo "✅ Configuration:"
+                  echo "   Branch: ${{ github.ref_name }}"
                   echo "   Action: $ACTION"
                   echo "   Environment: $ENV"
-    archive:
-        needs: prepare
-        if: needs.prepare.outputs.action == 'archive'
+                  echo "   Image Tag: $IMAGE_TAG"
+    stop_maintenance:
+        needs: check-context
+        if: needs.check-context.outputs.can_proceed == 'true' && needs.check-context.outputs.action == 'stop'
         uses: ./.github/workflows/job_terraform_infrastructure.yaml
         with:
             terraform_action: "apply"
             working_directory: "./IaC/application"
             env_vars: |
-                TF_VAR_env=${{ needs.prepare.outputs.env }}
-                TF_VAR_maintenance_mode=true
+                TF_VAR_image_name=${{ vars.IMAGE_NAME }}
+                TF_VAR_image_tag=${{ needs.check-context.outputs.image_tag }}
+                TF_VAR_api_base_path=${{ vars.API_HOST_URL_PROD }}
+                TF_VAR_env=${{ needs.check-context.outputs.env }}
+                TF_VAR_maintenance_mode=false
         secrets:
             DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
             TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
 
-    restore:
-        needs: prepare
-        if: needs.prepare.outputs.action == 'restore'
+    start_maintenance:
+        needs: check-context
+        if: needs.check-context.outputs.can_proceed == 'true' && needs.check-context.outputs.action == 'start'
         uses: ./.github/workflows/job_terraform_infrastructure.yaml
         with:
             terraform_action: "apply"
             working_directory: "./IaC/application"
             env_vars: |
-                TF_VAR_env=${{ needs.prepare.outputs.env }}
-                TF_VAR_maintenance_mode=false
+                TF_VAR_image_name=${{ vars.IMAGE_NAME }}
+                TF_VAR_image_tag=${{ needs.check-context.outputs.image_tag }}
+                TF_VAR_api_base_path=${{ vars.API_HOST_URL_PROD }}
+                TF_VAR_env=${{ needs.check-context.outputs.env }}
+                TF_VAR_maintenance_mode=true
         secrets:
             DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
             TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
