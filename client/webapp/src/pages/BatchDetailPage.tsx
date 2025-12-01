@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Container, Box, Button, CircularProgress, Alert } from "@mui/material";
 import { ArrowBack as BackIcon } from "@mui/icons-material";
 import BatchDetail from "../components/BatchDetail";
@@ -16,31 +16,31 @@ export default function BatchDetailPage() {
     const { fetchBatchById } = useBatches();
 
     // Fetch batch data when component mounts or ID changes
-    useEffect(() => {
+    const loadBatch = useCallback(async () => {
         if (!id) {
             setError("No batch ID provided");
             return;
         }
 
-        const loadBatch = async () => {
-            try {
-                setIsLoading(true);
-                setError(null);
-                const batchData = await fetchBatchById(id);
-                setBatch(batchData);
-                if (!batchData) {
-                    setError("Batch not found");
-                }
-            } catch (err) {
-                setError("Failed to load batch details");
-                console.error("Error loading batch:", err);
-            } finally {
-                setIsLoading(false);
+        try {
+            setIsLoading(true);
+            setError(null);
+            const batchData = await fetchBatchById(id);
+            setBatch(batchData);
+            if (!batchData) {
+                setError("Batch not found");
             }
-        };
-
-        loadBatch();
+        } catch (err) {
+            setError("Failed to load batch details");
+            console.error("Error loading batch:", err);
+        } finally {
+            setIsLoading(false);
+        }
     }, [id, fetchBatchById]);
+
+    useEffect(() => {
+        loadBatch();
+    }, [loadBatch]);
 
     // Loading state
     if (isLoading) {
@@ -73,5 +73,5 @@ export default function BatchDetailPage() {
     }
 
     // Render the BatchDetail component with the loaded batch
-    return <BatchDetail batch={batch} />;
+    return <BatchDetail batch={batch} onRefresh={loadBatch} />;
 }

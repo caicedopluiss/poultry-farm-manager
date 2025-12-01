@@ -23,9 +23,16 @@ public sealed class BatchesRepository(AppDbContext context) : IBatchesRepository
         return batches;
     }
 
-    public async Task<Batch?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Batch?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default, bool track = false)
     {
-        var batch = await context.Batches.AsNoTracking().FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
+        var query = context.Batches.AsQueryable();
+
+        if (!track)
+        {
+            query = query.AsNoTracking();
+        }
+
+        var batch = await query.FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
         return batch;
     }
 }

@@ -9,6 +9,6 @@ namespace PoultryFarmManager.Application.Repositories;
 public interface IBatchesRepository
 {
     Task<IReadOnlyCollection<Batch>> GetAllAsync(CancellationToken cancellationToken = default);
-    Task<Batch?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<Batch?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default, bool track = false);
     Task<Batch> CreateAsync(Batch batch, CancellationToken cancellationToken = default);
 }

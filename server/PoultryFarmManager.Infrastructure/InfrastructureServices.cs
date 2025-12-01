@@ -32,6 +32,7 @@ public static class InfrastructureServices
     private static void AddRepositories(IServiceCollection services)
     {
         services.AddScoped<IBatchesRepository, BatchesRepository>();
+        services.AddScoped<IBatchActivitiesRepository, BatchActivitiesRepository>();
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
     }

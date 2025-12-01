@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     Container,
@@ -11,6 +12,10 @@ import {
     Divider,
     useTheme,
     useMediaQuery,
+    Menu,
+    MenuItem,
+    ListItemIcon,
+    ListItemText,
 } from "@mui/material";
 import {
     ArrowBack as BackIcon,
@@ -22,18 +27,29 @@ import {
     CalendarMonth as WeekIcon,
     CalendarToday as StartDateIcon,
     Pets as BreedIcon,
+    Add as AddIcon,
+    LocalHospital as MortalityActivityIcon,
+    Restaurant as FeedingIcon,
 } from "@mui/icons-material";
 import moment from "moment";
 import type { Batch } from "../../types/batch";
+import type { BatchActivityType } from "../../types/batchActivity";
+import RegisterActivityDialog from "../RegisterActivityDialog";
 
 interface BatchDetailProps {
     batch: Batch;
+    onRefresh?: () => void;
 }
 
-export default function BatchDetail({ batch }: BatchDetailProps) {
+export default function BatchDetail({ batch, onRefresh }: BatchDetailProps) {
     const navigate = useNavigate();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+    const [activityDialogOpen, setActivityDialogOpen] = useState(false);
+    const [selectedActivityType, setSelectedActivityType] = useState<BatchActivityType | null>(null);
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const menuOpen = Boolean(anchorEl);
 
     const calculateDays = (startDate: string): number => {
         const start = moment(startDate);
@@ -72,6 +88,32 @@ export default function BatchDetail({ batch }: BatchDetailProps) {
     const days = calculateDays(batch.startDate);
     const weeks = calculateWeeks(batch.startDate);
     const mortalityPercent = calculateMortality(batch.initialPopulation, batch.population);
+
+    const handleOpenActivityMenu = (event: React.MouseEvent<HTMLElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleCloseActivityMenu = () => {
+        setAnchorEl(null);
+    };
+
+    const handleSelectActivity = (activityType: BatchActivityType) => {
+        setSelectedActivityType(activityType);
+        setActivityDialogOpen(true);
+        handleCloseActivityMenu();
+    };
+
+    const handleCloseActivityDialog = () => {
+        setActivityDialogOpen(false);
+        setSelectedActivityType(null);
+    };
+
+    const handleActivitySuccess = () => {
+        // Refresh the batch data by calling the parent's refresh callback
+        if (onRefresh) {
+            onRefresh();
+        }
+    };
 
     return (
         <Container maxWidth="lg" sx={{ py: 3 }}>
@@ -345,6 +387,75 @@ export default function BatchDetail({ batch }: BatchDetailProps) {
                     </Box>
                 </CardContent>
             </Card>
+
+            {/* Activities Section */}
+            <Card sx={{ mt: 3 }}>
+                <CardContent>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+                        <Typography variant="h6" fontWeight="bold">
+                            Activities
+                        </Typography>
+                        <Button
+                            variant="contained"
+                            startIcon={<AddIcon />}
+                            onClick={handleOpenActivityMenu}
+                            disabled={batch.status.toLowerCase() !== "active"}
+                        >
+                            Register Activity
+                        </Button>
+                    </Box>
+
+                    <Divider sx={{ mb: 2 }} />
+
+                    <Typography variant="body2" color="text.secondary" align="center" sx={{ py: 4 }}>
+                        Activity history will be displayed here.
+                        {batch.status.toLowerCase() !== "active" && (
+                            <Box component="span" sx={{ display: "block", mt: 1 }}>
+                                (Activity registration is only available for active batches)
+                            </Box>
+                        )}
+                    </Typography>
+                </CardContent>
+            </Card>
+
+            {/* Activity Menu */}
+            <Menu
+                anchorEl={anchorEl}
+                open={menuOpen}
+                onClose={handleCloseActivityMenu}
+                anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "right",
+                }}
+                transformOrigin={{
+                    vertical: "top",
+                    horizontal: "right",
+                }}
+            >
+                <MenuItem onClick={() => handleSelectActivity("MortalityRecording")}>
+                    <ListItemIcon>
+                        <MortalityActivityIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>Register Mortality</ListItemText>
+                </MenuItem>
+                <MenuItem onClick={() => handleSelectActivity("Feeding")} disabled>
+                    <ListItemIcon>
+                        <FeedingIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>Register Feeding (Coming Soon)</ListItemText>
+                </MenuItem>
+            </Menu>
+
+            {/* Activity Dialog */}
+            {selectedActivityType && (
+                <RegisterActivityDialog
+                    open={activityDialogOpen}
+                    onClose={handleCloseActivityDialog}
+                    batch={batch}
+                    activityType={selectedActivityType}
+                    onSuccess={handleActivitySuccess}
+                />
+            )}
         </Container>
     );
 }

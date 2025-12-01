@@ -12,7 +12,7 @@ using PoultryFarmManager.Infrastructure;
 namespace PoultryFarmManager.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251009031221_Initial")]
+    [Migration("20251201020342_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -68,6 +68,49 @@ namespace PoultryFarmManager.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Batches", (string)null);
+                });
+
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.BatchActivities.MortalityRegistrationBatchActivity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BatchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("NumberOfDeaths")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Sex")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BatchId");
+
+                    b.ToTable("MortalityRegistrationActivities", (string)null);
+                });
+
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.BatchActivities.MortalityRegistrationBatchActivity", b =>
+                {
+                    b.HasOne("PoultryFarmManager.Core.Models.Batch", "Batch")
+                        .WithMany()
+                        .HasForeignKey("BatchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Batch");
                 });
 #pragma warning restore 612, 618
         }
