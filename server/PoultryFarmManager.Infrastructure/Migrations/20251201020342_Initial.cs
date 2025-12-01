@@ -31,16 +31,47 @@ namespace PoultryFarmManager.Infrastructure.Migrations
                     table.PrimaryKey("PK_Batches", x => x.Id);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "MortalityRegistrationActivities",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    NumberOfDeaths = table.Column<int>(type: "integer", nullable: false),
+                    Sex = table.Column<int>(type: "integer", nullable: false),
+                    BatchId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Type = table.Column<int>(type: "integer", nullable: false),
+                    Date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Notes = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MortalityRegistrationActivities", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MortalityRegistrationActivities_Batches_BatchId",
+                        column: x => x.BatchId,
+                        principalTable: "Batches",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Batches_Name",
                 table: "Batches",
                 column: "Name",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MortalityRegistrationActivities_BatchId",
+                table: "MortalityRegistrationActivities",
+                column: "BatchId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "MortalityRegistrationActivities");
+
             migrationBuilder.DropTable(
                 name: "Batches");
         }

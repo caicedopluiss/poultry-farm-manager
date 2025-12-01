@@ -10,19 +10,19 @@ public record NewBatchDto(
     int FemaleCount,
     int UnsexedCount,
     string? Breed,
-    string? Shed) : IDtoEntityMapper<NewBatchDto, Batch>
+    string? Shed)
 {
-    public Batch Map(NewBatchDto from, Batch? to = null)
+    public Batch Map(Batch? to = null)
     {
         var result = to ?? new();
 
-        result.Name = from.Name;
-        result.StartDate = Utils.ParseIso8601DateTimeString(from.StartClientDateIsoString).UtcDateTime;
-        result.MaleCount = from.MaleCount;
-        result.FemaleCount = from.FemaleCount;
-        result.UnsexedCount = from.UnsexedCount;
-        result.Breed = from.Breed;
-        result.Shed = from.Shed;
+        result.Name = Name;
+        result.StartDate = Utils.ParseIso8601DateTimeString(StartClientDateIsoString).UtcDateTime;
+        result.MaleCount = MaleCount;
+        result.FemaleCount = FemaleCount;
+        result.UnsexedCount = UnsexedCount;
+        result.Breed = Breed;
+        result.Shed = Shed;
 
         return result;
     }
@@ -40,7 +40,7 @@ public record BatchDto(
     int UnsexedCount,
     int Population,
     string? Shed
-) : IDtoEntityMapper<Batch, BatchDto>
+)
 {
     /// <summary>
     /// Parameterless constructor for mapping dto instance from core model/entity.

@@ -17,7 +17,7 @@ public sealed class CreateBatchCommand
     {
         protected override async Task<Result> ExecuteAsync(Args args, CancellationToken cancellationToken = default)
         {
-            var batch = args.NewBatch.Map(args.NewBatch);
+            var batch = args.NewBatch.Map();
             batch.InitialPopulation = batch.Population;
             batch.Status = batch.StartDate > DateTime.UtcNow ? BatchStatus.Planned : BatchStatus.Active;
 

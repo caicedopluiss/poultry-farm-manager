@@ -7,6 +7,7 @@ namespace PoultryFarmManager.Application;
 public interface IUnitOfWork
 {
     IBatchesRepository Batches { get; }
+    IBatchActivitiesRepository BatchActivities { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

@@ -20,6 +20,7 @@ public static class ApplicationServices
     private static void AddCommandHandlers(IServiceCollection services)
     {
         services.AddScoped<IAppRequestHandler<CreateBatchCommand.Args, CreateBatchCommand.Result>, CreateBatchCommand.Handler>();
+        services.AddScoped<IAppRequestHandler<RegisterMortalityCommand.Args, RegisterMortalityCommand.Result>, RegisterMortalityCommand.Handler>();
     }
 
     private static void AddQueryHandlers(IServiceCollection services)
