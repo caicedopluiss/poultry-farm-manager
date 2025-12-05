@@ -12,40 +12,40 @@ using PoultryFarmManager.Application.Shared.CQRS;
 
 namespace PoultryFarmManager.WebAPI.Endpoints.v1.Batches;
 
-public class RegisterMortalityEndpoint : IEndpoint
+public class SwitchBatchStatusEndpoint : IEndpoint
 {
-    public record RegisterMortalityRequestBody(NewMortalityRegistrationDto MortalityRegistration);
-    public record RegisterMortalityResponseBody(MortalityRegistrationActivityDto MortalityRegistration);
+    public record SwitchStatusRequestBody(NewStatusSwitchDto StatusSwitch);
+    public record SwitchStatusResponseBody(StatusSwitchActivityDto StatusSwitch);
 
     public static void Map(IEndpointRouteBuilder app, string? prefix = null)
     {
-        var route = Utils.BuildEndpointRoute(prefix, "v1", "batches", "{id:guid}", "mortality");
-        app.MapPost(route, RegisterAsync)
-            .WithName(nameof(RegisterMortalityEndpoint))
+        var route = Utils.BuildEndpointRoute(prefix, "v1", "batches", "{id:guid}", "status");
+        app.MapPost(route, SwitchStatusAsync)
+            .WithName(nameof(SwitchBatchStatusEndpoint))
             .WithTags(nameof(Batches))
-            .Accepts<RegisterMortalityRequestBody>(MediaTypeNames.Application.Json)
-            .Produces<RegisterMortalityResponseBody>(StatusCodes.Status201Created, MediaTypeNames.Application.Json)
+            .Accepts<SwitchStatusRequestBody>(MediaTypeNames.Application.Json)
+            .Produces<SwitchStatusResponseBody>(StatusCodes.Status201Created, MediaTypeNames.Application.Json)
             .Produces<ErrorResponse>(StatusCodes.Status400BadRequest, MediaTypeNames.Application.Json)
             .Produces<ErrorResponse>(StatusCodes.Status404NotFound, MediaTypeNames.Application.Json)
             .Produces<ErrorResponse>(StatusCodes.Status500InternalServerError, MediaTypeNames.Application.Json);
     }
 
-    private static async Task<IResult> RegisterAsync(
+    private static async Task<IResult> SwitchStatusAsync(
         [FromServices] IAppRequestsMediator mediator,
         [FromRoute] Guid id,
-        [FromBody] RegisterMortalityRequestBody body,
+        [FromBody] SwitchStatusRequestBody body,
         CancellationToken cancellationToken = default)
     {
-        var request = new AppRequest<RegisterMortalityCommand.Args>(new(id, body.MortalityRegistration));
+        var request = new AppRequest<SwitchBatchStatusCommand.Args>(new(id, body.StatusSwitch));
         try
         {
-            var result = await mediator.SendAsync<RegisterMortalityCommand.Args, RegisterMortalityCommand.Result>(request, cancellationToken);
+            var result = await mediator.SendAsync<SwitchBatchStatusCommand.Args, SwitchBatchStatusCommand.Result>(request, cancellationToken);
 
             return !result.IsSuccess ?
                 Results.BadRequest(new ErrorResponse(result.Message, result.ValidationErrors)) :
                 Results.Created(
-                    $"/api/v1/batches/{result.Value!.MortalityRegistration.BatchId}/mortality/{result.Value!.MortalityRegistration.Id}",
-                    new RegisterMortalityResponseBody(result.Value!.MortalityRegistration));
+                    $"/api/v1/batches/{result.Value!.StatusSwitch.BatchId}/status/{result.Value!.StatusSwitch.Id}",
+                    new SwitchStatusResponseBody(result.Value!.StatusSwitch));
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
         {

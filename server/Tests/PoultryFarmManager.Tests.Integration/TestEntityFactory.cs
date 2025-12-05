@@ -32,7 +32,7 @@ internal class BatchFactory : IEntityFactory<Batch>
         var maleCount = _random.Next(10, 200);
         var femaleCount = _random.Next(10, 200);
         var unsexedCount = _random.Next(0, 50);
-        var status = startDate > DateTime.UtcNow ? BatchStatus.Planned : BatchStatus.Active;
+        var status = BatchStatus.Active;
 
         return new Batch
         {

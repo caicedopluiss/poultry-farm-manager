@@ -21,13 +21,13 @@ namespace PoultryFarmManager.WebAPI
                 using var dbContext = GetDbContextWithAdminCredentials(scope, configuration);
 
                 dbContext.Database.Migrate();
-                Console.WriteLine("Database migrated successfully.");
+                Console.WriteLine("Database migration process completed successfully.");
 
                 // GrantPermissionsToAppUser(dbContext, configuration);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Database migration failed: {ex.Message}");
+                Console.WriteLine($"Database migration process failed: {ex.Message}");
                 throw;
             }
         }

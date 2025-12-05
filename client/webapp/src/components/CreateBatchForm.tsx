@@ -99,7 +99,7 @@ export default function CreateBatchForm({ open, onSubmit, onClose, loading, erro
             }}
         >
             <DialogTitle sx={{ pb: 1 }}>
-                <Typography variant={isSmallMobile ? "h5" : "h4"} component="h2" sx={{ fontWeight: "bold" }}>
+                <Typography variant={isSmallMobile ? "h5" : "h4"} component="div" sx={{ fontWeight: "bold" }}>
                     Create New Batch
                 </Typography>
             </DialogTitle>

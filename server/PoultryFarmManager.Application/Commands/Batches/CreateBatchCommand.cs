@@ -19,7 +19,7 @@ public sealed class CreateBatchCommand
         {
             var batch = args.NewBatch.Map();
             batch.InitialPopulation = batch.Population;
-            batch.Status = batch.StartDate > DateTime.UtcNow ? BatchStatus.Planned : BatchStatus.Active;
+            batch.Status = BatchStatus.Active;
 
             var createdBatch = await unitOfWork.Batches.CreateAsync(batch, cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);

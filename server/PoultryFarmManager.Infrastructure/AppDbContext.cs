@@ -8,6 +8,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 {
     public DbSet<Batch> Batches { get; set; }
     public DbSet<MortalityRegistrationBatchActivity> MortalityRegistrationActivities { get; set; }
+    public DbSet<StatusSwitchBatchActivity> StatusSwitchActivities { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -42,6 +43,24 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
             entity.Property(e => e.NumberOfDeaths).IsRequired();
             entity.Property(e => e.Sex).IsRequired();
+
+            entity.HasOne(e => e.Batch)
+                .WithMany()
+                .HasForeignKey(e => e.BatchId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<StatusSwitchBatchActivity>(entity =>
+        {
+            entity.ToTable(nameof(StatusSwitchActivities));
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).IsRequired().ValueGeneratedOnAdd();
+            entity.Property(e => e.BatchId).IsRequired();
+            entity.Property(e => e.Type).IsRequired();
+            entity.Property(e => e.Date).IsRequired();
+            entity.Property(e => e.Notes).HasMaxLength(500);
+
+            entity.Property(e => e.NewStatus).IsRequired();
 
             entity.HasOne(e => e.Batch)
                 .WithMany()

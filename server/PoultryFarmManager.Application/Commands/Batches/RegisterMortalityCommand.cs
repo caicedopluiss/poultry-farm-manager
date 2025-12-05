@@ -13,7 +13,7 @@ namespace PoultryFarmManager.Application.Commands.Batches;
 public sealed class RegisterMortalityCommand
 {
     public record Args(Guid BatchId, NewMortalityRegistrationDto NewMortalityRegistration);
-    public record Result(MortalityRegistrationDto MortalityRegistration);
+    public record Result(MortalityRegistrationActivityDto MortalityRegistration);
 
     public sealed class Handler(IUnitOfWork unitOfWork) : AppRequestHandler<Args, Result>
     {
@@ -49,7 +49,7 @@ public sealed class RegisterMortalityCommand
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            var mortalityDto = new MortalityRegistrationDto().Map((MortalityRegistrationBatchActivity)createdMortality);
+            var mortalityDto = MortalityRegistrationActivityDto.MapFrom((MortalityRegistrationBatchActivity)createdMortality);
             var result = new Result(mortalityDto);
 
             return result;

@@ -30,18 +30,20 @@ import {
     Add as AddIcon,
     LocalHospital as MortalityActivityIcon,
     Restaurant as FeedingIcon,
+    SwapHoriz as StatusSwitchIcon,
 } from "@mui/icons-material";
 import moment from "moment";
 import type { Batch } from "../../types/batch";
-import type { BatchActivityType } from "../../types/batchActivity";
+import type { BatchActivity, StatusSwitch, MortalityRegistration, BatchActivityType } from "../../types/batchActivity";
 import RegisterActivityDialog from "../RegisterActivityDialog";
 
 interface BatchDetailProps {
     batch: Batch;
+    activities?: BatchActivity[];
     onRefresh?: () => void;
 }
 
-export default function BatchDetail({ batch, onRefresh }: BatchDetailProps) {
+export default function BatchDetail({ batch, activities = [], onRefresh }: BatchDetailProps) {
     const navigate = useNavigate();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -51,16 +53,35 @@ export default function BatchDetail({ batch, onRefresh }: BatchDetailProps) {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const menuOpen = Boolean(anchorEl);
 
-    const calculateDays = (startDate: string): number => {
-        const start = moment(startDate);
-        const now = moment();
-        return now.diff(start, "days");
+    // Filter status switches from activities (with safety check)
+    const statusSwitches = (activities || []).filter((a): a is StatusSwitch => a.type === "StatusSwitch");
+
+    // Calculate statusChangedDate from statusSwitches
+    // Find the first switch to Processed or Canceled
+    const getStatusChangedDate = (): string | null => {
+        const relevantSwitch = statusSwitches.find(
+            (s: StatusSwitch) =>
+                s.newStatus && (s.newStatus.toLowerCase() === "processed" || s.newStatus.toLowerCase() === "canceled")
+        );
+        return relevantSwitch?.date || null;
     };
 
-    const calculateWeeks = (startDate: string): number => {
-        const start = moment(startDate);
-        const now = moment();
-        return now.diff(start, "weeks");
+    const statusChangedDate = getStatusChangedDate();
+
+    const calculateDays = (startDate: string, statusChangedDate?: string | null, status?: string): number => {
+        // Continue counting for Active and ForSale, use statusChangedDate for others
+        const shouldContinueCounting =
+            !status || status.toLowerCase() === "active" || status.toLowerCase() === "forsale";
+        const end = shouldContinueCounting || !statusChangedDate ? moment() : moment(statusChangedDate);
+        return end.diff(moment(startDate), "days");
+    };
+
+    const calculateWeeks = (startDate: string, statusChangedDate?: string | null, status?: string): number => {
+        // Continue counting for Active and ForSale, use statusChangedDate for others
+        const shouldContinueCounting =
+            !status || status.toLowerCase() === "active" || status.toLowerCase() === "forsale";
+        const end = shouldContinueCounting || !statusChangedDate ? moment() : moment(statusChangedDate);
+        return end.diff(moment(startDate), "weeks");
     };
 
     const calculateMortality = (initial: number, current: number): number => {
@@ -85,8 +106,19 @@ export default function BatchDetail({ batch, onRefresh }: BatchDetailProps) {
         }
     };
 
-    const days = calculateDays(batch.startDate);
-    const weeks = calculateWeeks(batch.startDate);
+    const canSwitchStatus = (): boolean => {
+        const status = batch.status.toLowerCase();
+        // Status transitions: Active -> Processed/ForSale/Canceled, Processed -> ForSale, ForSale -> Sold
+        return status === "active" || status === "processed" || status === "forsale";
+    };
+
+    const canRegisterMortality = (): boolean => {
+        // Can only register mortality for active batches
+        return batch.status.toLowerCase() === "active";
+    };
+
+    const days = calculateDays(batch.startDate, statusChangedDate, batch.status);
+    const weeks = calculateWeeks(batch.startDate, statusChangedDate, batch.status);
     const mortalityPercent = calculateMortality(batch.initialPopulation, batch.population);
 
     const handleOpenActivityMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -151,7 +183,7 @@ export default function BatchDetail({ batch, onRefresh }: BatchDetailProps) {
                 {/* Basic Information */}
                 <Card>
                     <CardContent>
-                        <Typography variant="h6" gutterBottom fontWeight="bold">
+                        <Typography variant="h6" component="div" gutterBottom fontWeight="bold">
                             Basic Information
                         </Typography>
                         <Divider sx={{ mb: 2 }} />
@@ -203,7 +235,7 @@ export default function BatchDetail({ batch, onRefresh }: BatchDetailProps) {
                 {/* Time Metrics */}
                 <Card>
                     <CardContent>
-                        <Typography variant="h6" gutterBottom fontWeight="bold">
+                        <Typography variant="h6" component="div" gutterBottom fontWeight="bold">
                             Time Metrics
                         </Typography>
                         <Divider sx={{ mb: 2 }} />
@@ -245,7 +277,7 @@ export default function BatchDetail({ batch, onRefresh }: BatchDetailProps) {
             {/* Population Details */}
             <Card sx={{ mt: 3 }}>
                 <CardContent>
-                    <Typography variant="h6" gutterBottom fontWeight="bold">
+                    <Typography variant="h6" component="div" gutterBottom fontWeight="bold">
                         Population Details
                     </Typography>
                     <Divider sx={{ mb: 3 }} />
@@ -363,7 +395,7 @@ export default function BatchDetail({ batch, onRefresh }: BatchDetailProps) {
                                 <Typography variant="body2" color="text.secondary">
                                     Male
                                 </Typography>
-                                <Typography variant="h6" fontWeight="bold" color="info.main">
+                                <Typography variant="h6" component="div" fontWeight="bold" color="info.main">
                                     {batch.maleCount.toLocaleString()}
                                 </Typography>
                             </Box>
@@ -371,7 +403,7 @@ export default function BatchDetail({ batch, onRefresh }: BatchDetailProps) {
                                 <Typography variant="body2" color="text.secondary">
                                     Female
                                 </Typography>
-                                <Typography variant="h6" fontWeight="bold" color="secondary.main">
+                                <Typography variant="h6" component="div" fontWeight="bold" color="secondary.main">
                                     {batch.femaleCount.toLocaleString()}
                                 </Typography>
                             </Box>
@@ -379,7 +411,7 @@ export default function BatchDetail({ batch, onRefresh }: BatchDetailProps) {
                                 <Typography variant="body2" color="text.secondary">
                                     Unsexed
                                 </Typography>
-                                <Typography variant="h6" fontWeight="bold">
+                                <Typography variant="h6" component="div" fontWeight="bold">
                                     {batch.unsexedCount.toLocaleString()}
                                 </Typography>
                             </Box>
@@ -392,14 +424,14 @@ export default function BatchDetail({ batch, onRefresh }: BatchDetailProps) {
             <Card sx={{ mt: 3 }}>
                 <CardContent>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-                        <Typography variant="h6" fontWeight="bold">
+                        <Typography variant="h6" component="div" fontWeight="bold">
                             Activities
                         </Typography>
                         <Button
                             variant="contained"
                             startIcon={<AddIcon />}
                             onClick={handleOpenActivityMenu}
-                            disabled={batch.status.toLowerCase() !== "active"}
+                            disabled={!canRegisterMortality() && !canSwitchStatus()}
                         >
                             Register Activity
                         </Button>
@@ -407,14 +439,76 @@ export default function BatchDetail({ batch, onRefresh }: BatchDetailProps) {
 
                     <Divider sx={{ mb: 2 }} />
 
-                    <Typography variant="body2" color="text.secondary" align="center" sx={{ py: 4 }}>
-                        Activity history will be displayed here.
-                        {batch.status.toLowerCase() !== "active" && (
-                            <Box component="span" sx={{ display: "block", mt: 1 }}>
-                                (Activity registration is only available for active batches)
-                            </Box>
-                        )}
-                    </Typography>
+                    {activities.length === 0 ? (
+                        <Typography variant="body2" color="text.secondary" align="center" sx={{ py: 4 }}>
+                            No activities recorded yet.
+                        </Typography>
+                    ) : (
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                            {activities.map((activity) => (
+                                <Card key={activity.id} variant="outlined">
+                                    <CardContent>
+                                        <Box
+                                            sx={{
+                                                display: "flex",
+                                                justifyContent: "space-between",
+                                                alignItems: "flex-start",
+                                                mb: 1,
+                                            }}
+                                        >
+                                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                                {activity.type === "MortalityRecording" ? (
+                                                    <MortalityActivityIcon color="error" />
+                                                ) : activity.type === "StatusSwitch" ? (
+                                                    <StatusSwitchIcon color="action" />
+                                                ) : (
+                                                    <StatusIcon color="action" />
+                                                )}
+                                                <Typography variant="subtitle1" fontWeight="medium">
+                                                    {activity.type === "MortalityRecording"
+                                                        ? "Mortality Registration"
+                                                        : "Status Switch"}
+                                                </Typography>
+                                            </Box>
+                                            <Typography variant="body2" color="text.secondary">
+                                                {moment(activity.date).format("MMM DD, YYYY")}
+                                            </Typography>
+                                        </Box>
+
+                                        {activity.type === "MortalityRecording" && (
+                                            <Box sx={{ display: "flex", gap: 2, mt: 1 }}>
+                                                <Typography variant="body2">
+                                                    <strong>Deaths:</strong>{" "}
+                                                    {(activity as MortalityRegistration).numberOfDeaths}
+                                                </Typography>
+                                                <Typography variant="body2">
+                                                    <strong>Sex:</strong> {(activity as MortalityRegistration).sex}
+                                                </Typography>
+                                            </Box>
+                                        )}
+
+                                        {activity.type === "StatusSwitch" && (
+                                            <Box sx={{ display: "flex", gap: 2, mt: 1 }}>
+                                                <Typography variant="body2">
+                                                    <strong>New Status:</strong> {(activity as StatusSwitch).newStatus}
+                                                </Typography>
+                                            </Box>
+                                        )}
+
+                                        {activity.notes && (
+                                            <Typography
+                                                variant="body2"
+                                                color="text.secondary"
+                                                sx={{ mt: 1, fontStyle: "italic" }}
+                                            >
+                                                {activity.notes}
+                                            </Typography>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </Box>
+                    )}
                 </CardContent>
             </Card>
 
@@ -432,11 +526,17 @@ export default function BatchDetail({ batch, onRefresh }: BatchDetailProps) {
                     horizontal: "right",
                 }}
             >
-                <MenuItem onClick={() => handleSelectActivity("MortalityRecording")}>
+                <MenuItem onClick={() => handleSelectActivity("MortalityRecording")} disabled={!canRegisterMortality()}>
                     <ListItemIcon>
                         <MortalityActivityIcon fontSize="small" />
                     </ListItemIcon>
                     <ListItemText>Register Mortality</ListItemText>
+                </MenuItem>
+                <MenuItem onClick={() => handleSelectActivity("StatusSwitch")} disabled={!canSwitchStatus()}>
+                    <ListItemIcon>
+                        <StatusSwitchIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>Switch Status</ListItemText>
                 </MenuItem>
                 <MenuItem onClick={() => handleSelectActivity("Feeding")} disabled>
                     <ListItemIcon>

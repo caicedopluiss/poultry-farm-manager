@@ -85,6 +85,7 @@ public class Program
         app.MapEndpoint<GetBatchesListEndpoint>(apiPrefix);
         app.MapEndpoint<GetBatchByIdEndpoint>(apiPrefix);
         app.MapEndpoint<RegisterMortalityEndpoint>(apiPrefix);
+        app.MapEndpoint<SwitchBatchStatusEndpoint>(apiPrefix);
 
         app.UseCors("AllowAllOrigins");
 

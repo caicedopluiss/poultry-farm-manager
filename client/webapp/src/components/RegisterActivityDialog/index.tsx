@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, CircularProgress, Alert } from "@mui/material";
 import moment from "moment";
 import type { Batch } from "../../types/batch";
-import type { NewMortalityRegistration, BatchActivityType } from "../../types/batchActivity";
+import type { NewMortalityRegistration, NewStatusSwitch, BatchActivityType } from "../../types/batchActivity";
 import RegisterMortalityForm from "./RegisterMortalityForm";
-import { registerMortality } from "../../api/v1/batches";
+import StatusSwitchForm from "./StatusSwitchForm";
+import { registerMortality, switchBatchStatus } from "../../api/v1/batches";
 
 interface RegisterActivityDialogProps {
     open: boolean;
@@ -32,6 +33,12 @@ export default function RegisterActivityDialog({
         notes: null,
     });
 
+    const [statusSwitchFormData, setStatusSwitchFormData] = useState<NewStatusSwitch>({
+        newStatus: "Processed",
+        dateClientIsoString: moment().format(),
+        notes: null,
+    });
+
     const handleClose = () => {
         if (!loading) {
             // Reset form
@@ -39,6 +46,11 @@ export default function RegisterActivityDialog({
                 numberOfDeaths: 1,
                 dateClientIsoString: moment().toISOString(),
                 sex: "Unsexed",
+                notes: null,
+            });
+            setStatusSwitchFormData({
+                newStatus: "Processed",
+                dateClientIsoString: moment().format(),
                 notes: null,
             });
             setError(null);
@@ -57,6 +69,17 @@ export default function RegisterActivityDialog({
                 await registerMortality(batch.id, {
                     ...mortalityFormData,
                     dateClientIsoString: moment(mortalityFormData.dateClientIsoString).format(),
+                });
+
+                // Success - close and notify parent
+                handleClose();
+                if (onSuccess) {
+                    onSuccess();
+                }
+            } else if (activityType === "StatusSwitch") {
+                await switchBatchStatus(batch.id, {
+                    ...statusSwitchFormData,
+                    dateClientIsoString: moment(statusSwitchFormData.dateClientIsoString).format(),
                 });
 
                 // Success - close and notify parent
@@ -94,6 +117,8 @@ export default function RegisterActivityDialog({
         switch (activityType) {
             case "MortalityRecording":
                 return "Register Mortality";
+            case "StatusSwitch":
+                return "Switch Batch Status";
             case "Feeding":
                 return "Register Feeding";
             default:
@@ -109,6 +134,15 @@ export default function RegisterActivityDialog({
                         batch={batch}
                         formData={mortalityFormData}
                         onChange={setMortalityFormData}
+                        errors={fieldErrors}
+                    />
+                );
+            case "StatusSwitch":
+                return (
+                    <StatusSwitchForm
+                        batch={batch}
+                        formData={statusSwitchFormData}
+                        onChange={setStatusSwitchFormData}
                         errors={fieldErrors}
                     />
                 );

@@ -7,7 +7,7 @@ namespace PoultryFarmManager.Core.Models
     {
         public string Name { get; set; } = string.Empty;
         public string? Breed { get; set; }
-        public BatchStatus Status { get; set; } = BatchStatus.Planned;
+        public BatchStatus Status { get; set; } = BatchStatus.Active;
         public DateTime StartDate { get; set; }
         public int InitialPopulation { get; set; }
         public int MaleCount { get; set; }

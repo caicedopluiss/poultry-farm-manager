@@ -5,12 +5,14 @@ import { ArrowBack as BackIcon } from "@mui/icons-material";
 import BatchDetail from "../components/BatchDetail";
 import useBatches from "../hooks/useBatches";
 import type { Batch } from "../types/batch";
+import type { BatchActivity } from "../types/batchActivity";
 
 export default function BatchDetailPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
 
     const [batch, setBatch] = useState<Batch | null>(null);
+    const [activities, setActivities] = useState<BatchActivity[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const { fetchBatchById } = useBatches();
@@ -25,8 +27,9 @@ export default function BatchDetailPage() {
         try {
             setIsLoading(true);
             setError(null);
-            const batchData = await fetchBatchById(id);
+            const { batch: batchData, activities: batchActivities } = await fetchBatchById(id);
             setBatch(batchData);
+            setActivities(batchActivities);
             if (!batchData) {
                 setError("Batch not found");
             }
@@ -73,5 +76,5 @@ export default function BatchDetailPage() {
     }
 
     // Render the BatchDetail component with the loaded batch
-    return <BatchDetail batch={batch} onRefresh={loadBatch} />;
+    return <BatchDetail batch={batch} activities={activities} onRefresh={loadBatch} />;
 }

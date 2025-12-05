@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Mime;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -13,7 +15,9 @@ namespace PoultryFarmManager.WebAPI.Endpoints.v1.Batches;
 
 public class GetBatchByIdEndpoint : IEndpoint
 {
-    public record GetBatchByIdResponseBody(BatchDto? Batch);
+    public record GetBatchByIdResponseBody(
+        BatchDto? Batch,
+        IEnumerable<BatchActivityDto> Activities);
 
     public static void Map(IEndpointRouteBuilder app, string? prefix = null)
     {
@@ -37,6 +41,8 @@ public class GetBatchByIdEndpoint : IEndpoint
         if (!result.IsSuccess) return Results.BadRequest(new ErrorResponse(result.Message, result.ValidationErrors));
         if (result.Value?.Batch is null) return Results.NotFound();
 
-        return Results.Ok(new GetBatchByIdResponseBody(result.Value.Batch));
+        return Results.Ok(new GetBatchByIdResponseBody(
+            result.Value.Batch,
+            result.Value.Activities));
     }
 }
