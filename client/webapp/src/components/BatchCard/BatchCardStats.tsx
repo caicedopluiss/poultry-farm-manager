@@ -16,15 +16,13 @@ interface Props {
 
 export default function BatchCardStats({ startDate, population, initialPopulation }: Props) {
     const calculateDays = (startDate: string): number => {
-        const start = moment(startDate);
-        const now = moment();
-        return now.diff(start, "days");
+        // For batch list, always calculate from start to now
+        return moment().diff(moment(startDate), "days");
     };
 
     const calculateWeeks = (startDate: string): number => {
-        const start = moment(startDate);
-        const now = moment();
-        return now.diff(start, "weeks");
+        // For batch list, always calculate from start to now
+        return moment().diff(moment(startDate), "weeks");
     };
 
     const calculateMortality = (initial: number, current: number): number => {

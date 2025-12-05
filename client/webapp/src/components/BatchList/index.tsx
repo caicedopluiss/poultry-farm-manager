@@ -17,7 +17,6 @@ export default function BatchList({ batches = [], loading = false, onBatchClick,
     const isExtraSmall = useMediaQuery("(max-width:400px)");
 
     const handleBatchClick = (batch: Batch) => {
-        console.log("Batch clicked:", batch.name, batch.id);
         if (onBatchClick) {
             onBatchClick(batch);
         }

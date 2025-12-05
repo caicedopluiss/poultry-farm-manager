@@ -21,6 +21,7 @@ public static class ApplicationServices
     {
         services.AddScoped<IAppRequestHandler<CreateBatchCommand.Args, CreateBatchCommand.Result>, CreateBatchCommand.Handler>();
         services.AddScoped<IAppRequestHandler<RegisterMortalityCommand.Args, RegisterMortalityCommand.Result>, RegisterMortalityCommand.Handler>();
+        services.AddScoped<IAppRequestHandler<SwitchBatchStatusCommand.Args, SwitchBatchStatusCommand.Result>, SwitchBatchStatusCommand.Handler>();
     }
 
     private static void AddQueryHandlers(IServiceCollection services)

@@ -99,7 +99,47 @@ namespace PoultryFarmManager.Infrastructure.Migrations
                     b.ToTable("MortalityRegistrationActivities", (string)null);
                 });
 
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.BatchActivities.StatusSwitchBatchActivity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BatchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<byte>("NewStatus")
+                        .HasColumnType("smallint");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BatchId");
+
+                    b.ToTable("StatusSwitchActivities", (string)null);
+                });
+
             modelBuilder.Entity("PoultryFarmManager.Core.Models.BatchActivities.MortalityRegistrationBatchActivity", b =>
+                {
+                    b.HasOne("PoultryFarmManager.Core.Models.Batch", "Batch")
+                        .WithMany()
+                        .HasForeignKey("BatchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Batch");
+                });
+
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.BatchActivities.StatusSwitchBatchActivity", b =>
                 {
                     b.HasOne("PoultryFarmManager.Core.Models.Batch", "Batch")
                         .WithMany()

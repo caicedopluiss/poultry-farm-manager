@@ -1,21 +1,39 @@
 export type Sex = "Unsexed" | "Male" | "Female";
 
-export type BatchActivityType = "MortalityRecording" | "Feeding";
+export type BatchActivityType = "MortalityRecording" | "StatusSwitch" | "Feeding";
 
-export interface MortalityRegistration {
+export type BatchStatus = "Active" | "Processed" | "ForSale" | "Sold" | "Canceled";
+
+// Base activity interface
+export interface BatchActivity {
     id: string;
     batchId: string;
-    type: string;
-    numberOfDeaths: number;
+    type: BatchActivityType;
     date: string;
-    sex: Sex;
     notes?: string | null;
+}
+
+export interface MortalityRegistration extends BatchActivity {
+    type: "MortalityRecording";
+    numberOfDeaths: number;
+    sex: Sex;
 }
 
 export interface NewMortalityRegistration {
     numberOfDeaths: number;
     dateClientIsoString: string;
     sex: Sex;
+    notes?: string | null;
+}
+
+export interface StatusSwitch extends BatchActivity {
+    type: "StatusSwitch";
+    newStatus: BatchStatus;
+}
+
+export interface NewStatusSwitch {
+    newStatus: BatchStatus;
+    dateClientIsoString: string;
     notes?: string | null;
 }
 

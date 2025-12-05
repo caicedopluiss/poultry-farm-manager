@@ -15,19 +15,59 @@ public class BatchActivitiesRepository(AppDbContext context) : IBatchActivitiesR
 {
     public async Task<IReadOnlyCollection<BatchActivity>> GetAllByBatchIdAsync(Guid batchId, BatchActivityType? type = null, CancellationToken cancellationToken = default)
     {
-        // TODO: Implement filtering by type when more types are added
-        var query = context.MortalityRegistrationActivities.AsNoTracking()
-            .Where(ba => ba.BatchId == batchId);
+        if (type is null)
+        {
+            // Fetch both activity types separately to preserve all derived properties (Sex, NumberOfDeaths, NewStatus, etc.)
+            // EF Core's TPT pattern with polymorphism doesn't support efficient UNION queries across different entity types
+            var mortalityActivities = await context.MortalityRegistrationActivities.AsNoTracking()
+                .Where(ba => ba.BatchId == batchId)
+                .OrderByDescending(ba => ba.Date)
+                .ToListAsync(cancellationToken);
 
-        return await query
-            .OrderByDescending(ba => ba.Date)
-            .ToListAsync(cancellationToken);
+            var statusSwitchActivities = await context.StatusSwitchActivities.AsNoTracking()
+                .Where(ba => ba.BatchId == batchId)
+                .OrderByDescending(ba => ba.Date)
+                .ToListAsync(cancellationToken);
+
+            // Combine and sort in memory - this preserves all derived type properties
+            var allActivities = mortalityActivities
+                .Cast<BatchActivity>()
+                .Concat(statusSwitchActivities)
+                .OrderByDescending(ba => ba.Date)
+                .ToList();
+
+            return allActivities;
+        }
+        else
+        {
+            IQueryable<BatchActivity> query = type.Value switch
+            {
+                BatchActivityType.MortalityRecording => context.MortalityRegistrationActivities.AsNoTracking()
+                    .Where(ba => ba.BatchId == batchId),
+                BatchActivityType.StatusSwitch => context.StatusSwitchActivities.AsNoTracking()
+                    .Where(ba => ba.BatchId == batchId),
+                _ => throw new NotSupportedException($"Batch activity type '{type.Value}' is not supported for retrieval.")
+            };
+
+            return await query
+                .OrderByDescending(ba => ba.Date)
+                .ToListAsync(cancellationToken);
+        }
     }
 
     public async Task<BatchActivity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await context.MortalityRegistrationActivities.AsNoTracking()
+        // Try to find in mortality activities first
+        var mortalityActivity = await context.MortalityRegistrationActivities.AsNoTracking()
             .FirstOrDefaultAsync(ba => ba.Id == id, cancellationToken);
+
+        if (mortalityActivity is not null) return mortalityActivity;
+
+        // Try to find in status switch activities
+        var statusSwitchActivity = await context.StatusSwitchActivities.AsNoTracking()
+            .FirstOrDefaultAsync(ba => ba.Id == id, cancellationToken);
+
+        return statusSwitchActivity;
     }
 
     public Task<BatchActivity> CreateAsync(BatchActivity batchActivity, CancellationToken cancellationToken = default)
@@ -35,6 +75,7 @@ public class BatchActivitiesRepository(AppDbContext context) : IBatchActivitiesR
         BatchActivity created = batchActivity.Type switch
         {
             BatchActivityType.MortalityRecording => context.MortalityRegistrationActivities.Add((MortalityRegistrationBatchActivity)batchActivity).Entity,
+            BatchActivityType.StatusSwitch => context.StatusSwitchActivities.Add((StatusSwitchBatchActivity)batchActivity).Entity,
             _ => throw new NotSupportedException($"Batch activity type '{batchActivity.Type}' is not supported for creation.")
         };
         return Task.FromResult(created);

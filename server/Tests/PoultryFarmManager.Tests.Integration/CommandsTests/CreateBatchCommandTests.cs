@@ -76,7 +76,7 @@ public class CreateBatchCommandTests(TestsFixture fixture) : IClassFixture<Tests
         Assert.NotNull(result);
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
-        Assert.Equal(nameof(BatchStatus.Planned), result.Value!.CreatedBatch.Status);
+        Assert.Equal(nameof(BatchStatus.Active), result.Value!.CreatedBatch.Status);
     }
 
     [Theory]
