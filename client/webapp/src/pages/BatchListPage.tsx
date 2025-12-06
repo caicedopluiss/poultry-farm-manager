@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { Batch, NewBatch } from "../types/batch";
-import BatchList from "../components/BatchList";
-import CreateBatchForm from "../components/CreateBatchForm";
-import { useBatchesContext } from "../hooks/useBatchesContext";
-import useBatches from "../hooks/useBatches";
+import type { Batch, NewBatch } from "@/types/batch";
+import BatchList from "@/components/BatchList";
+import CreateBatchForm from "@/components/CreateBatchForm";
+import { useBatchesContext } from "@/hooks/useBatchesContext";
+import useBatches from "@/hooks/useBatches";
 
 export default function BatchListPage() {
     const navigate = useNavigate();

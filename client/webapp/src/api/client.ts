@@ -1,5 +1,5 @@
 import axios from "axios";
-import type ApiErrorResponse from "../types/apiErrorResponse";
+import type ApiErrorResponse from "@/types/apiErrorResponse";
 
 export const API_RESULT_CODE_NO_RESPONSE: string = "NO_RESPONSE";
 export const API_RESULT_CODE_BAD_REQUEST: string = "BAD_REQUEST";

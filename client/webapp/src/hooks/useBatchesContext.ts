@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { BatchesContext, type BatchesContextValue } from "../contexts/batches";
+import { BatchesContext, type BatchesContextValue } from "@/contexts/batches";
 
 export function useBatchesContext(): BatchesContextValue {
     const context = useContext(BatchesContext);

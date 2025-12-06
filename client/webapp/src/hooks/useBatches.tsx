@@ -1,8 +1,8 @@
 import { useCallback, useState } from "react";
-import { getBatchById, getBatches, postBatch } from "../api/v1/batches";
-import type { Batch, NewBatch } from "../types/batch";
-import type { BatchActivity } from "../types/batchActivity";
-import { API_RESULT_CODE_BAD_REQUEST, API_RESULT_CODE_NOT_FOUND, type ApiClientError } from "../api/client";
+import { getBatchById, getBatches, postBatch } from "@/api/v1/batches";
+import type { Batch, NewBatch } from "@/types/batch";
+import type { BatchActivity } from "@/types/batchActivity";
+import { API_RESULT_CODE_BAD_REQUEST, API_RESULT_CODE_NOT_FOUND, type ApiClientError } from "@/api/client";
 
 interface UseBatches {
     loading: boolean;

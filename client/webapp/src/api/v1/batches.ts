@@ -1,12 +1,12 @@
-import type { Batch, NewBatch } from "../../types/batch";
+import type { Batch, NewBatch } from "@/types/batch";
 import type {
     BatchActivity,
     MortalityRegistration,
     NewMortalityRegistration,
     StatusSwitch,
     NewStatusSwitch,
-} from "../../types/batchActivity";
-import apiClient from "../client";
+} from "@/types/batchActivity";
+import apiClient from "@/api/client";
 
 const url = "v1/batches";
 

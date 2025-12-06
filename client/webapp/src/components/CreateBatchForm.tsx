@@ -14,7 +14,7 @@ import {
     useTheme,
     useMediaQuery,
 } from "@mui/material";
-import type { NewBatch } from "../types/batch";
+import type { NewBatch } from "@/types/batch";
 import moment from "moment";
 
 interface CreateBatchFormProps {
