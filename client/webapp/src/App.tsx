@@ -1,5 +1,10 @@
-import { ThemeProvider, createTheme, CssBaseline } from "@mui/material";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { createTheme } from "@mui/material";
+import { AppProvider } from "@toolpad/core/AppProvider";
+import { DashboardLayout } from "@toolpad/core/DashboardLayout";
+import type { Navigation } from "@toolpad/core";
+import { useNavigate, useLocation, Routes, Route } from "react-router-dom";
+import { useMemo } from "react";
+import GroupsIcon from "@mui/icons-material/Groups";
 import { BatchListPage, BatchDetailPage, NotFoundPage } from "@/pages";
 import { BatchesProvider } from "@/contexts/batches";
 
@@ -16,21 +21,48 @@ const theme = createTheme({
     },
 });
 
+// Define navigation structure for Toolpad
+const NAVIGATION: Navigation = [
+    {
+        segment: "batches",
+        title: "Batches",
+        icon: <GroupsIcon />,
+    },
+];
+
 function App() {
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    // Create router for Toolpad
+    const router = useMemo(() => {
+        return {
+            pathname: location.pathname,
+            searchParams: new URLSearchParams(location.search),
+            navigate: (path: string | URL) => navigate(String(path)),
+        };
+    }, [location, navigate]);
+
     return (
-        <ThemeProvider theme={theme}>
-            <CssBaseline />
+        <AppProvider
+            theme={theme}
+            navigation={NAVIGATION}
+            router={router}
+            branding={{
+                title: "Poultry Farm Manager",
+            }}
+        >
             <BatchesProvider>
-                <Router>
+                <DashboardLayout>
                     <Routes>
                         <Route path="/" element={<BatchListPage />} />
                         <Route path="/batches" element={<BatchListPage />} />
                         <Route path="/batches/:id" element={<BatchDetailPage />} />
                         <Route path="*" element={<NotFoundPage />} />
                     </Routes>
-                </Router>
+                </DashboardLayout>
             </BatchesProvider>
-        </ThemeProvider>
+        </AppProvider>
     );
 }
 
