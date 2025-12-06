@@ -1,7 +1,7 @@
 import { Box, Container, Typography, useTheme, useMediaQuery, CircularProgress, Button } from "@mui/material";
 import { Refresh as RefreshIcon, Add as AddIcon } from "@mui/icons-material";
-import BatchCard from "../BatchCard";
-import type { Batch } from "../../types/batch";
+import BatchCard from "@/components/BatchCard";
+import type { Batch } from "@/types/batch";
 
 interface Props {
     batches?: Batch[];

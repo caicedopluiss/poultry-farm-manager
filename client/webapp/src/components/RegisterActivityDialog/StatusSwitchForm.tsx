@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { Box, TextField, MenuItem, Typography, Alert, FormControl, InputLabel, Select } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
 import moment from "moment";
-import type { NewStatusSwitch, BatchStatus } from "../../types/batchActivity";
-import type { Batch } from "../../types/batch";
+import type { NewStatusSwitch, BatchStatus } from "@/types/batchActivity";
+import type { Batch } from "@/types/batch";
 
 interface StatusSwitchFormProps {
     batch: Batch;

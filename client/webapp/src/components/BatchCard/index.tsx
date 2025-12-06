@@ -1,5 +1,5 @@
 import { Card, CardContent, CardActionArea, useTheme } from "@mui/material";
-import type { Batch } from "../../types/batch";
+import type { Batch } from "@/types/batch";
 import BatchCardHeader from "./BatchCardHeader";
 import BatchCardInfo from "./BatchCardInfo";
 import BatchCardStats from "./BatchCardStats";

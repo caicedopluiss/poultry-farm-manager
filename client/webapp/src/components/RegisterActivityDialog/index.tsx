@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, CircularProgress, Alert } from "@mui/material";
 import moment from "moment";
-import type { Batch } from "../../types/batch";
-import type { NewMortalityRegistration, NewStatusSwitch, BatchActivityType } from "../../types/batchActivity";
+import type { Batch } from "@/types/batch";
+import type { NewMortalityRegistration, NewStatusSwitch, BatchActivityType } from "@/types/batchActivity";
 import RegisterMortalityForm from "./RegisterMortalityForm";
 import StatusSwitchForm from "./StatusSwitchForm";
-import { registerMortality, switchBatchStatus } from "../../api/v1/batches";
+import { registerMortality, switchBatchStatus } from "@/api/v1/batches";
 
 interface RegisterActivityDialogProps {
     open: boolean;

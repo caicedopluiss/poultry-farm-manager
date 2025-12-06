@@ -1,8 +1,8 @@
 import { useCallback, useState, type ReactNode } from "react";
-import type { Batch } from "../../types/batch";
+import type { Batch } from "@/types/batch";
 import type { BatchesContextValue } from "./context";
 import { BatchesContext } from "./context";
-import useBatches from "../../hooks/useBatches";
+import useBatches from "@/hooks/useBatches";
 
 interface BatchesProviderProps {
     children: ReactNode;
