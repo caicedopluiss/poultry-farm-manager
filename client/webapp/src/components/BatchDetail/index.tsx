@@ -33,9 +33,9 @@ import {
     SwapHoriz as StatusSwitchIcon,
 } from "@mui/icons-material";
 import moment from "moment";
-import type { Batch } from "../../types/batch";
-import type { BatchActivity, StatusSwitch, MortalityRegistration, BatchActivityType } from "../../types/batchActivity";
-import RegisterActivityDialog from "../RegisterActivityDialog";
+import type { Batch } from "@/types/batch";
+import type { BatchActivity, StatusSwitch, MortalityRegistration, BatchActivityType } from "@/types/batchActivity";
+import RegisterActivityDialog from "@/components/RegisterActivityDialog";
 
 interface BatchDetailProps {
     batch: Batch;

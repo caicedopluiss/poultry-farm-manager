@@ -2,10 +2,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
 import { Container, Box, Button, CircularProgress, Alert } from "@mui/material";
 import { ArrowBack as BackIcon } from "@mui/icons-material";
-import BatchDetail from "../components/BatchDetail";
-import useBatches from "../hooks/useBatches";
-import type { Batch } from "../types/batch";
-import type { BatchActivity } from "../types/batchActivity";
+import BatchDetail from "@/components/BatchDetail";
+import useBatches from "@/hooks/useBatches";
+import type { Batch } from "@/types/batch";
+import type { BatchActivity } from "@/types/batchActivity";
 
 export default function BatchDetailPage() {
     const { id } = useParams<{ id: string }>();

@@ -1,18 +1,9 @@
 import { useState, useEffect } from "react";
-import {
-    Box,
-    TextField,
-    MenuItem,
-    Typography,
-    Alert,
-    FormControl,
-    InputLabel,
-    Select,
-} from "@mui/material";
+import { Box, TextField, MenuItem, Typography, Alert, FormControl, InputLabel, Select } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
 import moment from "moment";
-import type { NewMortalityRegistration, Sex } from "../../types/batchActivity";
-import type { Batch } from "../../types/batch";
+import type { NewMortalityRegistration, Sex } from "@/types/batchActivity";
+import type { Batch } from "@/types/batch";
 
 interface RegisterMortalityFormProps {
     batch: Batch;
@@ -21,12 +12,7 @@ interface RegisterMortalityFormProps {
     errors: Record<string, string>;
 }
 
-export default function RegisterMortalityForm({
-    batch,
-    formData,
-    onChange,
-    errors,
-}: RegisterMortalityFormProps) {
+export default function RegisterMortalityForm({ batch, formData, onChange, errors }: RegisterMortalityFormProps) {
     const [availableCounts, setAvailableCounts] = useState({
         male: batch.maleCount,
         female: batch.femaleCount,
@@ -98,22 +84,10 @@ export default function RegisterMortalityForm({
 
             <FormControl fullWidth error={!!errors.sex}>
                 <InputLabel id="sex-label">Sex</InputLabel>
-                <Select
-                    labelId="sex-label"
-                    value={formData.sex}
-                    onChange={handleSexChange}
-                    label="Sex"
-                    required
-                >
-                    <MenuItem value="Unsexed">
-                        Unsexed ({availableCounts.unsexed} available)
-                    </MenuItem>
-                    <MenuItem value="Male">
-                        Male ({availableCounts.male} available)
-                    </MenuItem>
-                    <MenuItem value="Female">
-                        Female ({availableCounts.female} available)
-                    </MenuItem>
+                <Select labelId="sex-label" value={formData.sex} onChange={handleSexChange} label="Sex" required>
+                    <MenuItem value="Unsexed">Unsexed ({availableCounts.unsexed} available)</MenuItem>
+                    <MenuItem value="Male">Male ({availableCounts.male} available)</MenuItem>
+                    <MenuItem value="Female">Female ({availableCounts.female} available)</MenuItem>
                 </Select>
                 {errors.sex && (
                     <Typography variant="caption" color="error" sx={{ mt: 0.5 }}>
@@ -168,10 +142,7 @@ export default function RegisterMortalityForm({
                 value={formData.notes || ""}
                 onChange={handleNotesChange}
                 error={!!errors.notes}
-                helperText={
-                    errors.notes ||
-                    `${(formData.notes?.length || 0)}/500 characters`
-                }
+                helperText={errors.notes || `${formData.notes?.length || 0}/500 characters`}
                 inputProps={{
                     maxLength: 500,
                 }}
@@ -179,8 +150,8 @@ export default function RegisterMortalityForm({
 
             {showWarning && (
                 <Alert severity="warning">
-                    The number of deaths exceeds the available {formData.sex.toLowerCase()} population.
-                    Please verify the count.
+                    The number of deaths exceeds the available {formData.sex.toLowerCase()} population. Please verify
+                    the count.
                 </Alert>
             )}
         </Box>

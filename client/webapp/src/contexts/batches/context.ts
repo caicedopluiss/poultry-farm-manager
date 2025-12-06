@@ -1,5 +1,5 @@
 import { createContext } from "react";
-import type { Batch } from "../../types/batch";
+import type { Batch } from "@/types/batch";
 
 export interface BatchesContextValue {
     batches: Batch[];
