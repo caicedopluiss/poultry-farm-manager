@@ -36,6 +36,7 @@ public class GetBatchByIdQuery
                 {
                     MortalityRegistrationBatchActivity m => MortalityRegistrationActivityDto.MapFrom(m) as BatchActivityDto,
                     StatusSwitchBatchActivity s => StatusSwitchActivityDto.MapFrom(s),
+                    ProductConsumptionBatchActivity p => ProductConsumptionActivityDto.MapFrom(p),
                     _ => throw new InvalidOperationException($"Unknown batch activity type: {activity.GetType().Name}")
                 })
                 .ToList();

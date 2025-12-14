@@ -1,6 +1,6 @@
 export type Sex = "Unsexed" | "Male" | "Female";
 
-export type BatchActivityType = "MortalityRecording" | "StatusSwitch" | "Feeding";
+export type BatchActivityType = "MortalityRecording" | "StatusSwitch" | "Feeding" | "ProductConsumption";
 
 export type BatchStatus = "Active" | "Processed" | "ForSale" | "Sold" | "Canceled";
 
@@ -33,6 +33,22 @@ export interface StatusSwitch extends BatchActivity {
 
 export interface NewStatusSwitch {
     newStatus: BatchStatus;
+    dateClientIsoString: string;
+    notes?: string | null;
+}
+
+export interface ProductConsumption extends BatchActivity {
+    type: "ProductConsumption";
+    productId: string;
+    productName: string;
+    stock: number;
+    unitOfMeasure: string;
+}
+
+export interface NewProductConsumption {
+    productId: string;
+    stock: number;
+    unitOfMeasure: string;
     dateClientIsoString: string;
     notes?: string | null;
 }

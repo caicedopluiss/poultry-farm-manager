@@ -45,12 +45,35 @@ public record NewStatusSwitchDto(
     }
 }
 
+public record NewProductConsumptionDto(
+    Guid ProductId,
+    decimal Stock,
+    string UnitOfMeasure,
+    string DateClientIsoString,
+    string? Notes)
+{
+    public ProductConsumptionBatchActivity Map(ProductConsumptionBatchActivity? to = null)
+    {
+        var result = to ?? new();
+
+        result.ProductId = ProductId;
+        result.Stock = Stock;
+        result.UnitOfMeasure = Enum.Parse<Core.Enums.UnitOfMeasure>(UnitOfMeasure, ignoreCase: true);
+        result.Date = Utils.ParseIso8601DateTimeString(DateClientIsoString).UtcDateTime;
+        result.Notes = Notes;
+        result.Type = BatchActivityType.ProductConsumption;
+
+        return result;
+    }
+}
+
 // Output DTOs for batch activities
 // NOTE: Using JsonPolymorphic for proper derived type serialization.
 // The Type property must be defined first and used as the discriminator.
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
 [JsonDerivedType(typeof(MortalityRegistrationActivityDto), "MortalityRecording")]
 [JsonDerivedType(typeof(StatusSwitchActivityDto), "StatusSwitch")]
+[JsonDerivedType(typeof(ProductConsumptionActivityDto), "ProductConsumption")]
 public record BatchActivityDto
 {
     // IMPORTANT: Type must be the first property.
@@ -98,6 +121,30 @@ public record StatusSwitchActivityDto : BatchActivityDto
             Date = activity.Date.ToString(Constants.DateTimeFormat),
             Notes = activity.Notes,
             NewStatus = activity.NewStatus.ToString()
+        };
+    }
+}
+
+public record ProductConsumptionActivityDto : BatchActivityDto
+{
+    public Guid ProductId { get; set; }
+    public string ProductName { get; set; } = string.Empty;
+    public decimal Stock { get; set; }
+    public string UnitOfMeasure { get; set; } = string.Empty;
+
+    public static ProductConsumptionActivityDto MapFrom(ProductConsumptionBatchActivity activity)
+    {
+        return new ProductConsumptionActivityDto
+        {
+            Id = activity.Id,
+            BatchId = activity.BatchId,
+            Type = activity.Type.ToString(),
+            Date = activity.Date.ToString(Constants.DateTimeFormat),
+            Notes = activity.Notes,
+            ProductId = activity.ProductId,
+            ProductName = activity.Product?.Name ?? string.Empty,
+            Stock = activity.Stock,
+            UnitOfMeasure = activity.UnitOfMeasure.ToString()
         };
     }
 }

@@ -5,6 +5,8 @@ import type {
     NewMortalityRegistration,
     StatusSwitch,
     NewStatusSwitch,
+    ProductConsumption,
+    NewProductConsumption,
 } from "@/types/batchActivity";
 import apiClient from "@/api/client";
 
@@ -42,7 +44,7 @@ interface RegisterMortalityResponse {
 }
 export async function registerMortality(
     batchId: string,
-    mortalityData: NewMortalityRegistration
+    mortalityData: NewMortalityRegistration,
 ): Promise<RegisterMortalityResponse> {
     const response: RegisterMortalityResponse = await apiClient.post(`${url}/${batchId}/mortality`, {
         mortalityRegistration: mortalityData,
@@ -56,6 +58,19 @@ interface SwitchStatusResponse {
 export async function switchBatchStatus(batchId: string, statusData: NewStatusSwitch): Promise<SwitchStatusResponse> {
     const response: SwitchStatusResponse = await apiClient.post(`${url}/${batchId}/status`, {
         statusSwitch: statusData,
+    });
+    return response;
+}
+
+interface RegisterProductConsumptionResponse {
+    productConsumption: ProductConsumption;
+}
+export async function registerProductConsumption(
+    batchId: string,
+    consumptionData: NewProductConsumption,
+): Promise<RegisterProductConsumptionResponse> {
+    const response: RegisterProductConsumptionResponse = await apiClient.post(`${url}/${batchId}/product-consumption`, {
+        productConsumption: consumptionData,
     });
     return response;
 }
