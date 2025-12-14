@@ -8,7 +8,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using PoultryFarmManager.Application;
 using PoultryFarmManager.Infrastructure;
+using PoultryFarmManager.WebAPI.Endpoints.v1.Assets;
 using PoultryFarmManager.WebAPI.Endpoints.v1.Batches;
+using PoultryFarmManager.WebAPI.Endpoints.v1.Products;
+using PoultryFarmManager.WebAPI.Endpoints.v1.ProductVariants;
 
 namespace PoultryFarmManager.WebAPI;
 
@@ -81,11 +84,32 @@ public class Program
 
         string apiPrefix = "api";
 
+        // Batch endpoints
         app.MapEndpoint<CreateBatchEndpoint>(apiPrefix);
         app.MapEndpoint<GetBatchesListEndpoint>(apiPrefix);
         app.MapEndpoint<GetBatchByIdEndpoint>(apiPrefix);
         app.MapEndpoint<RegisterMortalityEndpoint>(apiPrefix);
         app.MapEndpoint<SwitchBatchStatusEndpoint>(apiPrefix);
+        app.MapEndpoint<RegisterProductConsumptionEndpoint>(apiPrefix);
+
+        // Asset endpoints
+        app.MapEndpoint<CreateAssetEndpoint>(apiPrefix);
+        app.MapEndpoint<GetAllAssetsEndpoint>(apiPrefix);
+        app.MapEndpoint<GetAssetByIdEndpoint>(apiPrefix);
+        app.MapEndpoint<UpdateAssetEndpoint>(apiPrefix);
+
+        // Product endpoints
+        app.MapEndpoint<CreateProductEndpoint>(apiPrefix);
+        app.MapEndpoint<GetAllProductsEndpoint>(apiPrefix);
+        app.MapEndpoint<GetProductByIdEndpoint>(apiPrefix);
+        app.MapEndpoint<UpdateProductEndpoint>(apiPrefix);
+
+        // ProductVariant endpoints
+        app.MapEndpoint<CreateProductVariantEndpoint>(apiPrefix);
+        app.MapEndpoint<GetAllProductVariantsEndpoint>(apiPrefix);
+        app.MapEndpoint<GetProductVariantByIdEndpoint>(apiPrefix);
+        app.MapEndpoint<GetProductVariantsByProductIdEndpoint>(apiPrefix);
+        app.MapEndpoint<UpdateProductVariantEndpoint>(apiPrefix);
 
         app.UseCors("AllowAllOrigins");
 

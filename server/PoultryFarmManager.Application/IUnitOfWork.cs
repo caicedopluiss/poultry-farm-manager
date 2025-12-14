@@ -8,6 +8,9 @@ public interface IUnitOfWork
 {
     IBatchesRepository Batches { get; }
     IBatchActivitiesRepository BatchActivities { get; }
+    IAssetsRepository Assets { get; }
+    IProductsRepository Products { get; }
+    IProductVariantsRepository ProductVariants { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

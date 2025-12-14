@@ -99,6 +99,44 @@ namespace PoultryFarmManager.Infrastructure.Migrations
                     b.ToTable("MortalityRegistrationActivities", (string)null);
                 });
 
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.BatchActivities.ProductConsumptionBatchActivity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BatchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Stock")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<byte>("UnitOfMeasure")
+                        .HasColumnType("smallint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BatchId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ProductConsumptionActivities", (string)null);
+                });
+
             modelBuilder.Entity("PoultryFarmManager.Core.Models.BatchActivities.StatusSwitchBatchActivity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -128,6 +166,132 @@ namespace PoultryFarmManager.Infrastructure.Migrations
                     b.ToTable("StatusSwitchActivities", (string)null);
                 });
 
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.Inventory.Asset", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Assets", (string)null);
+                });
+
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.Inventory.AssetState", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AssetId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("smallint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssetId");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("AssetStates", (string)null);
+                });
+
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.Inventory.Product", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Manufacturer")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<decimal>("Stock")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<byte>("UnitOfMeasure")
+                        .HasColumnType("smallint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name", "Manufacturer", "UnitOfMeasure")
+                        .IsUnique();
+
+                    b.ToTable("Products", (string)null);
+                });
+
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.Inventory.ProductVariant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("Stock")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<byte>("UnitOfMeasure")
+                        .HasColumnType("smallint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("ProductVariants", (string)null);
+                });
+
             modelBuilder.Entity("PoultryFarmManager.Core.Models.BatchActivities.MortalityRegistrationBatchActivity", b =>
                 {
                     b.HasOne("PoultryFarmManager.Core.Models.Batch", "Batch")
@@ -139,6 +303,25 @@ namespace PoultryFarmManager.Infrastructure.Migrations
                     b.Navigation("Batch");
                 });
 
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.BatchActivities.ProductConsumptionBatchActivity", b =>
+                {
+                    b.HasOne("PoultryFarmManager.Core.Models.Batch", "Batch")
+                        .WithMany()
+                        .HasForeignKey("BatchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PoultryFarmManager.Core.Models.Inventory.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Batch");
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("PoultryFarmManager.Core.Models.BatchActivities.StatusSwitchBatchActivity", b =>
                 {
                     b.HasOne("PoultryFarmManager.Core.Models.Batch", "Batch")
@@ -148,6 +331,38 @@ namespace PoultryFarmManager.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Batch");
+                });
+
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.Inventory.AssetState", b =>
+                {
+                    b.HasOne("PoultryFarmManager.Core.Models.Inventory.Asset", "Asset")
+                        .WithMany("States")
+                        .HasForeignKey("AssetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Asset");
+                });
+
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.Inventory.ProductVariant", b =>
+                {
+                    b.HasOne("PoultryFarmManager.Core.Models.Inventory.Product", "Product")
+                        .WithMany("Variants")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.Inventory.Asset", b =>
+                {
+                    b.Navigation("States");
+                });
+
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.Inventory.Product", b =>
+                {
+                    b.Navigation("Variants");
                 });
 #pragma warning restore 612, 618
         }

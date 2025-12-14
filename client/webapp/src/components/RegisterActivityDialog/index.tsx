@@ -2,10 +2,16 @@ import { useState } from "react";
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, CircularProgress, Alert } from "@mui/material";
 import moment from "moment";
 import type { Batch } from "@/types/batch";
-import type { NewMortalityRegistration, NewStatusSwitch, BatchActivityType } from "@/types/batchActivity";
+import type {
+    NewMortalityRegistration,
+    NewStatusSwitch,
+    NewProductConsumption,
+    BatchActivityType,
+} from "@/types/batchActivity";
 import RegisterMortalityForm from "./RegisterMortalityForm";
 import StatusSwitchForm from "./StatusSwitchForm";
-import { registerMortality, switchBatchStatus } from "@/api/v1/batches";
+import RegisterProductConsumptionForm from "./RegisterProductConsumptionForm";
+import { registerMortality, switchBatchStatus, registerProductConsumption } from "@/api/v1/batches";
 
 interface RegisterActivityDialogProps {
     open: boolean;
@@ -39,6 +45,14 @@ export default function RegisterActivityDialog({
         notes: null,
     });
 
+    const [productConsumptionFormData, setProductConsumptionFormData] = useState<NewProductConsumption>({
+        productId: "",
+        stock: 0,
+        unitOfMeasure: "Kilogram",
+        dateClientIsoString: moment().toISOString(),
+        notes: null,
+    });
+
     const handleClose = () => {
         if (!loading) {
             // Reset form
@@ -51,6 +65,13 @@ export default function RegisterActivityDialog({
             setStatusSwitchFormData({
                 newStatus: "Processed",
                 dateClientIsoString: moment().format(),
+                notes: null,
+            });
+            setProductConsumptionFormData({
+                productId: "",
+                stock: 0,
+                unitOfMeasure: "Kilogram",
+                dateClientIsoString: moment().toISOString(),
                 notes: null,
             });
             setError(null);
@@ -80,6 +101,17 @@ export default function RegisterActivityDialog({
                 await switchBatchStatus(batch.id, {
                     ...statusSwitchFormData,
                     dateClientIsoString: moment(statusSwitchFormData.dateClientIsoString).format(),
+                });
+
+                // Success - close and notify parent
+                handleClose();
+                if (onSuccess) {
+                    onSuccess();
+                }
+            } else if (activityType === "ProductConsumption") {
+                await registerProductConsumption(batch.id, {
+                    ...productConsumptionFormData,
+                    dateClientIsoString: moment(productConsumptionFormData.dateClientIsoString).format(),
                 });
 
                 // Success - close and notify parent
@@ -119,6 +151,8 @@ export default function RegisterActivityDialog({
                 return "Register Mortality";
             case "StatusSwitch":
                 return "Switch Batch Status";
+            case "ProductConsumption":
+                return "Register Product Consumption";
             case "Feeding":
                 return "Register Feeding";
             default:
@@ -143,6 +177,15 @@ export default function RegisterActivityDialog({
                         batch={batch}
                         formData={statusSwitchFormData}
                         onChange={setStatusSwitchFormData}
+                        errors={fieldErrors}
+                    />
+                );
+            case "ProductConsumption":
+                return (
+                    <RegisterProductConsumptionForm
+                        batch={batch}
+                        formData={productConsumptionFormData}
+                        onChange={setProductConsumptionFormData}
                         errors={fieldErrors}
                     />
                 );

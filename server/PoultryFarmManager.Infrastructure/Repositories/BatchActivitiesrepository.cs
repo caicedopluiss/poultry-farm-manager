@@ -17,7 +17,7 @@ public class BatchActivitiesRepository(AppDbContext context) : IBatchActivitiesR
     {
         if (type is null)
         {
-            // Fetch both activity types separately to preserve all derived properties (Sex, NumberOfDeaths, NewStatus, etc.)
+            // Fetch all activity types separately to preserve all derived properties (Sex, NumberOfDeaths, NewStatus, etc.)
             // EF Core's TPT pattern with polymorphism doesn't support efficient UNION queries across different entity types
             var mortalityActivities = await context.MortalityRegistrationActivities.AsNoTracking()
                 .Where(ba => ba.BatchId == batchId)
@@ -29,10 +29,17 @@ public class BatchActivitiesRepository(AppDbContext context) : IBatchActivitiesR
                 .OrderByDescending(ba => ba.Date)
                 .ToListAsync(cancellationToken);
 
+            var productConsumptionActivities = await context.ProductConsumptionActivities.AsNoTracking()
+                .Include(ba => ba.Product)
+                .Where(ba => ba.BatchId == batchId)
+                .OrderByDescending(ba => ba.Date)
+                .ToListAsync(cancellationToken);
+
             // Combine and sort in memory - this preserves all derived type properties
             var allActivities = mortalityActivities
                 .Cast<BatchActivity>()
                 .Concat(statusSwitchActivities)
+                .Concat(productConsumptionActivities)
                 .OrderByDescending(ba => ba.Date)
                 .ToList();
 
@@ -45,6 +52,9 @@ public class BatchActivitiesRepository(AppDbContext context) : IBatchActivitiesR
                 BatchActivityType.MortalityRecording => context.MortalityRegistrationActivities.AsNoTracking()
                     .Where(ba => ba.BatchId == batchId),
                 BatchActivityType.StatusSwitch => context.StatusSwitchActivities.AsNoTracking()
+                    .Where(ba => ba.BatchId == batchId),
+                BatchActivityType.ProductConsumption => context.ProductConsumptionActivities.AsNoTracking()
+                    .Include(ba => ba.Product)
                     .Where(ba => ba.BatchId == batchId),
                 _ => throw new NotSupportedException($"Batch activity type '{type.Value}' is not supported for retrieval.")
             };
@@ -67,7 +77,14 @@ public class BatchActivitiesRepository(AppDbContext context) : IBatchActivitiesR
         var statusSwitchActivity = await context.StatusSwitchActivities.AsNoTracking()
             .FirstOrDefaultAsync(ba => ba.Id == id, cancellationToken);
 
-        return statusSwitchActivity;
+        if (statusSwitchActivity is not null) return statusSwitchActivity;
+
+        // Try to find in product consumption activities
+        var productConsumptionActivity = await context.ProductConsumptionActivities.AsNoTracking()
+            .Include(ba => ba.Product)
+            .FirstOrDefaultAsync(ba => ba.Id == id, cancellationToken);
+
+        return productConsumptionActivity;
     }
 
     public Task<BatchActivity> CreateAsync(BatchActivity batchActivity, CancellationToken cancellationToken = default)
@@ -76,6 +93,7 @@ public class BatchActivitiesRepository(AppDbContext context) : IBatchActivitiesR
         {
             BatchActivityType.MortalityRecording => context.MortalityRegistrationActivities.Add((MortalityRegistrationBatchActivity)batchActivity).Entity,
             BatchActivityType.StatusSwitch => context.StatusSwitchActivities.Add((StatusSwitchBatchActivity)batchActivity).Entity,
+            BatchActivityType.ProductConsumption => context.ProductConsumptionActivities.Add((ProductConsumptionBatchActivity)batchActivity).Entity,
             _ => throw new NotSupportedException($"Batch activity type '{batchActivity.Type}' is not supported for creation.")
         };
         return Task.FromResult(created);
