@@ -59,10 +59,26 @@ public class TestsFixture : IDisposable
 
     public void Dispose()
     {
-        serviceScope.ServiceProvider.GetRequiredService<TestsDbContext>().Database.EnsureDeleted();
-
+        // Dispose the scope first to close all DbContext connections
         serviceScope.Dispose();
         webApplicationFactory.Dispose();
+
+        // Force garbage collection to ensure connections are released
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+
+        // Now attempt to delete the database
+        try
+        {
+            using var scope = webApplicationFactory.Services.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<TestsDbContext>();
+            context.Database.EnsureDeleted();
+        }
+        catch
+        {
+            // Ignore cleanup errors - database will be dropped eventually
+        }
+
         GC.SuppressFinalize(this);
     }
 

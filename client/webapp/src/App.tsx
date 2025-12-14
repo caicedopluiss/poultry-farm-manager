@@ -5,7 +5,9 @@ import type { Navigation } from "@toolpad/core";
 import { useNavigate, useLocation, Routes, Route } from "react-router-dom";
 import { useMemo } from "react";
 import GroupsIcon from "@mui/icons-material/Groups";
-import { BatchListPage, BatchDetailPage, NotFoundPage } from "@/pages";
+import Inventory2Icon from "@mui/icons-material/Inventory2";
+import { BatchListPage, BatchDetailPage, NotFoundPage, AssetDetailPage, ProductDetailPage } from "@/pages";
+import InventoryPage from "@/pages/InventoryPage";
 import { BatchesProvider } from "@/contexts/batches";
 
 // Create a basic MUI theme
@@ -27,6 +29,11 @@ const NAVIGATION: Navigation = [
         segment: "batches",
         title: "Batches",
         icon: <GroupsIcon />,
+    },
+    {
+        segment: "inventory",
+        title: "Inventory",
+        icon: <Inventory2Icon />,
     },
 ];
 
@@ -58,6 +65,9 @@ function App() {
                         <Route path="/" element={<BatchListPage />} />
                         <Route path="/batches" element={<BatchListPage />} />
                         <Route path="/batches/:id" element={<BatchDetailPage />} />
+                        <Route path="/inventory" element={<InventoryPage />} />
+                        <Route path="/inventory/assets/:id" element={<AssetDetailPage />} />
+                        <Route path="/inventory/products/:id" element={<ProductDetailPage />} />
                         <Route path="*" element={<NotFoundPage />} />
                     </Routes>
                 </DashboardLayout>

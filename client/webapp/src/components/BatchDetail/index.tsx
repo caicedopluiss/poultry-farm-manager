@@ -29,12 +29,18 @@ import {
     Pets as BreedIcon,
     Add as AddIcon,
     LocalHospital as MortalityActivityIcon,
-    Restaurant as FeedingIcon,
     SwapHoriz as StatusSwitchIcon,
+    Inventory as ProductConsumptionIcon,
 } from "@mui/icons-material";
 import moment from "moment";
 import type { Batch } from "@/types/batch";
-import type { BatchActivity, StatusSwitch, MortalityRegistration, BatchActivityType } from "@/types/batchActivity";
+import type {
+    BatchActivity,
+    StatusSwitch,
+    MortalityRegistration,
+    ProductConsumption,
+    BatchActivityType,
+} from "@/types/batchActivity";
 import RegisterActivityDialog from "@/components/RegisterActivityDialog";
 
 interface BatchDetailProps {
@@ -61,7 +67,7 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
     const getStatusChangedDate = (): string | null => {
         const relevantSwitch = statusSwitches.find(
             (s: StatusSwitch) =>
-                s.newStatus && (s.newStatus.toLowerCase() === "processed" || s.newStatus.toLowerCase() === "canceled")
+                s.newStatus && (s.newStatus.toLowerCase() === "processed" || s.newStatus.toLowerCase() === "canceled"),
         );
         return relevantSwitch?.date || null;
     };
@@ -427,12 +433,7 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                         <Typography variant="h6" component="div" fontWeight="bold">
                             Activities
                         </Typography>
-                        <Button
-                            variant="contained"
-                            startIcon={<AddIcon />}
-                            onClick={handleOpenActivityMenu}
-                            disabled={!canRegisterMortality() && !canSwitchStatus()}
-                        >
+                        <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenActivityMenu}>
                             Register Activity
                         </Button>
                     </Box>
@@ -461,13 +462,19 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                                                     <MortalityActivityIcon color="error" />
                                                 ) : activity.type === "StatusSwitch" ? (
                                                     <StatusSwitchIcon color="action" />
+                                                ) : activity.type === "ProductConsumption" ? (
+                                                    <ProductConsumptionIcon color="primary" />
                                                 ) : (
                                                     <StatusIcon color="action" />
                                                 )}
                                                 <Typography variant="subtitle1" fontWeight="medium">
                                                     {activity.type === "MortalityRecording"
                                                         ? "Mortality Registration"
-                                                        : "Status Switch"}
+                                                        : activity.type === "StatusSwitch"
+                                                          ? "Status Switch"
+                                                          : activity.type === "ProductConsumption"
+                                                            ? "Product Consumption"
+                                                            : activity.type}
                                                 </Typography>
                                             </Box>
                                             <Typography variant="body2" color="text.secondary">
@@ -491,6 +498,19 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                                             <Box sx={{ display: "flex", gap: 2, mt: 1 }}>
                                                 <Typography variant="body2">
                                                     <strong>New Status:</strong> {(activity as StatusSwitch).newStatus}
+                                                </Typography>
+                                            </Box>
+                                        )}
+
+                                        {activity.type === "ProductConsumption" && (
+                                            <Box sx={{ display: "flex", gap: 2, mt: 1 }}>
+                                                <Typography variant="body2">
+                                                    <strong>Product:</strong>{" "}
+                                                    {(activity as ProductConsumption).productName}
+                                                </Typography>
+                                                <Typography variant="body2">
+                                                    <strong>Stock:</strong> {(activity as ProductConsumption).stock}{" "}
+                                                    {(activity as ProductConsumption).unitOfMeasure}
                                                 </Typography>
                                             </Box>
                                         )}
@@ -538,11 +558,11 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                     </ListItemIcon>
                     <ListItemText>Switch Status</ListItemText>
                 </MenuItem>
-                <MenuItem onClick={() => handleSelectActivity("Feeding")} disabled>
+                <MenuItem onClick={() => handleSelectActivity("ProductConsumption")}>
                     <ListItemIcon>
-                        <FeedingIcon fontSize="small" />
+                        <ProductConsumptionIcon fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText>Register Feeding (Coming Soon)</ListItemText>
+                    <ListItemText>Register Product Consumption</ListItemText>
                 </MenuItem>
             </Menu>
 
