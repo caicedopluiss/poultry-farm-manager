@@ -79,7 +79,8 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
         const shouldContinueCounting =
             !status || status.toLowerCase() === "active" || status.toLowerCase() === "forsale";
         const end = shouldContinueCounting || !statusChangedDate ? moment() : moment(statusChangedDate);
-        return end.diff(moment(startDate), "days");
+        // Add 1 to show current day (Day 1 on first day, not Day 0)
+        return end.diff(moment(startDate), "days") + 1;
     };
 
     const calculateWeeks = (startDate: string, statusChangedDate?: string | null, status?: string): number => {
@@ -87,7 +88,8 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
         const shouldContinueCounting =
             !status || status.toLowerCase() === "active" || status.toLowerCase() === "forsale";
         const end = shouldContinueCounting || !statusChangedDate ? moment() : moment(statusChangedDate);
-        return end.diff(moment(startDate), "weeks");
+        // Add 1 to show current week (Week 1 on first week, not Week 0)
+        return end.diff(moment(startDate), "weeks") + 1;
     };
 
     const calculateMortality = (initial: number, current: number): number => {
@@ -257,7 +259,7 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                                 <WeekIcon color="action" />
                                 <Box>
                                     <Typography variant="body2" color="text.secondary">
-                                        Weeks
+                                        Week
                                     </Typography>
                                     <Typography variant="h5" fontWeight="bold">
                                         {weeks}
