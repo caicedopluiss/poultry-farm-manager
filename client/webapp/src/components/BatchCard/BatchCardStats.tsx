@@ -17,12 +17,14 @@ interface Props {
 export default function BatchCardStats({ startDate, population, initialPopulation }: Props) {
     const calculateDays = (startDate: string): number => {
         // For batch list, always calculate from start to now
-        return moment().diff(moment(startDate), "days");
+        // Add 1 to show current day (Day 1 on first day, not Day 0)
+        return moment().diff(moment(startDate), "days") + 1;
     };
 
     const calculateWeeks = (startDate: string): number => {
         // For batch list, always calculate from start to now
-        return moment().diff(moment(startDate), "weeks");
+        // Add 1 to show current week (Week 1 on first week, not Week 0)
+        return moment().diff(moment(startDate), "weeks") + 1;
     };
 
     const calculateMortality = (initial: number, current: number): number => {
