@@ -23,6 +23,7 @@ namespace PoultryFarmManager.WebAPI
                 dbContext.Database.Migrate();
                 Console.WriteLine("Database migration process completed successfully.");
 
+                // Permissions are managed by Terraform default_privileges
                 // GrantPermissionsToAppUser(dbContext, configuration);
             }
             catch (Exception ex)
