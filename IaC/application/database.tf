@@ -34,3 +34,15 @@ resource "postgresql_grant" "app_user_tables" {
 
   depends_on = [digitalocean_app.platform]
 }
+
+# Grant default privileges on future tables created by admin user
+resource "postgresql_default_privileges" "app_user_future_tables" {
+  database    = local.db_secrets.database
+  role        = local.db_secrets.app_user
+  schema      = "public"
+  owner       = local.db_secrets.admin_user
+  object_type = "table"
+  privileges  = ["SELECT", "INSERT", "UPDATE", "DELETE", "TRUNCATE"]
+
+  depends_on = [digitalocean_app.platform]
+}
