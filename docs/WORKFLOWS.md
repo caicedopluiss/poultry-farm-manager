@@ -122,6 +122,89 @@ Deploys or destroys infrastructure and applications to DigitalOcean.
 
 -   `action`: Choose between "deploy" or "destroy"
 -   `clean_registry`: Whether to clean untagged images (default: false)
+-   `force_replace_resources`: Resources to force replace (newline separated, optional)
+
+#### Advanced Parameters
+
+**`force_replace_resources`** - For troubleshooting stuck or failed deployments
+
+This parameter allows you to force Terraform to destroy and recreate specific resources that are stuck, failed, or corrupted. Enter resource names one per line.
+
+**What it does:**
+
+1. Terraform destroys the specified resource in DigitalOcean
+2. Creates a fresh replacement with the same configuration
+3. Updates Terraform state automatically
+
+**When to use:**
+
+-   ✅ **Deployment stuck or failed** - Common after DigitalOcean maintenance windows
+-   ✅ **App won't respond** - Resource is in an error state that normal apply can't fix
+-   ✅ **Database connection issues** - Connection problems that persist after redeployment
+-   ✅ **Configuration drift** - Resource was manually changed in DO console
+-   ✅ **Health check failures** - App Platform health checks repeatedly fail
+-   ✅ **Corrupted deployment** - Application won't start or load properly
+
+**How to use:**
+
+1. Go to **Actions** → **Deploy Workflow** → **Run workflow**
+2. Select your release tag (e.g., `v1.0.0`)
+3. Set `action` to `deploy`
+4. In `force_replace_resources`, enter resource names one per line:
+    ```
+    digitalocean_app.platform
+    ```
+5. Click **Run workflow**
+
+**Common scenarios:**
+
+_Stuck app deployment (most common):_
+
+```
+digitalocean_app.platform
+```
+
+_Database permissions issue:_
+
+```
+postgresql_grant.app_user_tables
+postgresql_default_privileges.app_user_future_tables
+```
+
+_Multiple resources at once:_
+
+```
+digitalocean_app.platform
+postgresql_grant.app_user_tables
+```
+
+_Database needs recreation (⚠️ destroys data):_
+
+```
+digitalocean_database_cluster.pfm_postgres
+```
+
+**⚠️ Important Warnings:**
+
+-   **Downtime**: Replacing resources causes temporary service interruption
+-   **Data Loss**: Replacing database resources (`digitalocean_database_cluster.pfm_postgres`) will **permanently delete all data** unless you have backups
+-   **Production Impact**: Use during maintenance windows for production environments
+-   **Sequence Matters**: Resources are replaced in the order listed
+
+**Best practices:**
+
+-   Start with just the app platform: `digitalocean_app.platform`
+-   Only add database resources if absolutely necessary and backups exist
+-   Document why you're force replacing in your deployment notes
+-   Monitor the GitHub Actions logs during replacement
+-   Verify the new resource is healthy after deployment
+
+**Example use case:**
+After a DigitalOcean maintenance window, your app deployment shows "Deploy" step with status "ERROR". Normal redeployment doesn't fix it. Solution:
+
+1. Run Deploy Workflow on your current tag
+2. Set `force_replace_resources` to `digitalocean_app.platform`
+3. This destroys the stuck app and creates a fresh deployment
 
 #### Jobs
 
