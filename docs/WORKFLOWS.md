@@ -122,7 +122,7 @@ Deploys or destroys infrastructure and applications to DigitalOcean.
 
 -   `action`: Choose between "deploy" or "destroy"
 -   `clean_registry`: Whether to clean untagged images (default: false)
--   `force_replace_resources`: Resources to force replace (newline separated, optional)
+-   `force_replace_resources`: Resources to force replace (newline-separated, optional)
 
 #### Advanced Parameters
 
@@ -189,7 +189,7 @@ digitalocean_database_cluster.pfm_postgres
 -   **Downtime**: Replacing resources causes temporary service interruption
 -   **Data Loss**: Replacing database resources (`digitalocean_database_cluster.pfm_postgres`) will **permanently delete all data** unless you have backups
 -   **Production Impact**: Use during maintenance windows for production environments
--   **Sequence Matters**: Resources are replaced in the order listed
+-   **Sequence and Dependencies**: While you choose which resources to replace, Terraform determines the actual replacement order based on its dependency graph (not strictly the order listed), and may replace some resources in parallel.
 
 **Best practices:**
 

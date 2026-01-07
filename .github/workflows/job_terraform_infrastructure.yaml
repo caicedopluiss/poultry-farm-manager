@@ -105,11 +105,12 @@ jobs:
               if: (inputs.terraform_action == 'plan' || inputs.terraform_action == 'apply') && inputs.force_replace_resources != ''
               run: |
                   echo "🔧 Building resource replacement flags..."
-                  
-                  # Use a file to store arguments safely
-                  rm -f /tmp/replace_args.txt
-                  touch /tmp/replace_args.txt
-                  
+
+                  # Use runner's isolated temp directory for security
+                  REPLACE_ARGS_FILE="$RUNNER_TEMP/replace_args.txt"
+                  rm -f "$REPLACE_ARGS_FILE"
+                  touch "$REPLACE_ARGS_FILE"
+
                   while IFS= read -r resource; do
                       # Skip empty lines and comments
                       if [[ -n "$resource" && "$resource" != \#* ]]; then
@@ -118,13 +119,14 @@ jobs:
                           if [[ -n "$resource" ]]; then
                               echo "⚠️ Will replace: $resource"
                               # Write each argument on a new line for safe handling
-                              echo "-replace=$resource" >> /tmp/replace_args.txt
+                              echo "-replace=$resource" >> "$REPLACE_ARGS_FILE"
                           fi
                       fi
                   done <<< "${{ inputs.force_replace_resources }}"
-                  
-                  # Store flag to indicate replacements are configured
-                  if [[ -s /tmp/replace_args.txt ]]; then
+
+                  # Store file path and flag in environment for subsequent steps
+                  echo "REPLACE_ARGS_FILE=$REPLACE_ARGS_FILE" >> $GITHUB_ENV
+                  if [[ -s "$REPLACE_ARGS_FILE" ]]; then
                       echo "HAS_REPLACE_FLAGS=true" >> $GITHUB_ENV
                       echo "✅ Replace flags configured"
                   else
@@ -135,17 +137,17 @@ jobs:
               if: inputs.terraform_action == 'plan' || inputs.terraform_action == 'apply'
               run: |
                   echo "📋 Showing Terraform plan..."
-                  
+
                   # Build args array safely
                   ARGS=("plan")
-                  
+
                   # Add replace flags if they exist
-                  if [[ "$HAS_REPLACE_FLAGS" == "true" && -f /tmp/replace_args.txt ]]; then
+                  if [[ "$HAS_REPLACE_FLAGS" == "true" && -f "$REPLACE_ARGS_FILE" ]]; then
                       while IFS= read -r arg; do
                           ARGS+=("$arg")
-                      done < /tmp/replace_args.txt
+                      done < "$REPLACE_ARGS_FILE"
                   fi
-                  
+
                   # Execute terraform with proper argument handling (no eval)
                   terraform "${ARGS[@]}"
                   echo "✅ Terraform plan displayed"
@@ -154,17 +156,17 @@ jobs:
               if: inputs.terraform_action == 'apply'
               run: |
                   echo "🚀 Applying Terraform configuration..."
-                  
+
                   # Build args array safely
                   ARGS=("apply" "-auto-approve")
-                  
+
                   # Add replace flags if they exist
-                  if [[ "$HAS_REPLACE_FLAGS" == "true" && -f /tmp/replace_args.txt ]]; then
+                  if [[ "$HAS_REPLACE_FLAGS" == "true" && -f "$REPLACE_ARGS_FILE" ]]; then
                       while IFS= read -r arg; do
                           ARGS+=("$arg")
-                      done < /tmp/replace_args.txt
+                      done < "$REPLACE_ARGS_FILE"
                   fi
-                  
+
                   # Execute terraform with proper argument handling (no eval)
                   terraform "${ARGS[@]}"
                   echo "✅ Terraform apply completed successfully"
