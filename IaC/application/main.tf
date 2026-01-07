@@ -8,6 +8,14 @@ resource "digitalocean_project_resources" "pfm" {
     digitalocean_app.platform.urn,
     digitalocean_database_cluster.pfm_postgres.urn
   ]
+
+  # Force replacement when app is replaced
+  # This ensures clean project resource assignment after app recreation
+  lifecycle {
+    replace_triggered_by = [
+      digitalocean_app.platform.id
+    ]
+  }
 }
 
 # Solution deployed as a single app with multiple services and routing rules
