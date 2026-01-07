@@ -381,6 +381,10 @@ See the [Workflows Documentation](docs/WORKFLOWS.md#deploy-workflow) for detaile
 
 > Note: Make sure to use semantic versioning for your release tags (e.g., v1.0.0, v1.1.0, v2.0.0).
 
+#### Troubleshooting Deployments
+
+If your deployment gets stuck or fails (common after DO maintenance windows), you can use the `force_replace_resources` parameter to recreate problematic resources. See the [Deploy Workflow - Advanced Parameters](docs/WORKFLOWS.md#advanced-parameters) documentation for detailed instructions and examples.
+
 ### Create a new database migration
 
 To create a new database migration for the WebAPI project, follow these steps:

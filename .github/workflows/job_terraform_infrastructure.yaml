@@ -13,12 +13,17 @@ on:
                 required: true
                 type: string
             env_vars:
-                description: "Additional environment variables (key=value format, new line separated)"
+                description: "Additional environment variables (key=value format, newline-separated)"
                 required: false
                 type: string
                 default: ""
             output_names:
-                description: "Terraform output names to extract (new line separated, only for apply action)"
+                description: "Terraform output names to extract (newline-separated, only for apply action)"
+                required: false
+                type: string
+                default: ""
+            force_replace_resources:
+                description: "Resources to force replace (newline-separated, e.g., digitalocean_app.platform)"
                 required: false
                 type: string
                 default: ""
@@ -96,18 +101,72 @@ jobs:
                   terraform validate
                   echo "✅ Terraform configuration is valid"
 
+            - name: Build replace flags
+              if: (inputs.terraform_action == 'plan' || inputs.terraform_action == 'apply') && inputs.force_replace_resources != ''
+              run: |
+                  echo "🔧 Building resource replacement flags..."
+                  
+                  # Use a file to store arguments safely
+                  rm -f /tmp/replace_args.txt
+                  touch /tmp/replace_args.txt
+                  
+                  while IFS= read -r resource; do
+                      # Skip empty lines and comments
+                      if [[ -n "$resource" && "$resource" != \#* ]]; then
+                          # Trim whitespace
+                          resource=$(echo "$resource" | xargs)
+                          if [[ -n "$resource" ]]; then
+                              echo "⚠️ Will replace: $resource"
+                              # Write each argument on a new line for safe handling
+                              echo "-replace=$resource" >> /tmp/replace_args.txt
+                          fi
+                      fi
+                  done <<< "${{ inputs.force_replace_resources }}"
+                  
+                  # Store flag to indicate replacements are configured
+                  if [[ -s /tmp/replace_args.txt ]]; then
+                      echo "HAS_REPLACE_FLAGS=true" >> $GITHUB_ENV
+                      echo "✅ Replace flags configured"
+                  else
+                      echo "HAS_REPLACE_FLAGS=false" >> $GITHUB_ENV
+                  fi
+
             - name: Terraform Plan
               if: inputs.terraform_action == 'plan' || inputs.terraform_action == 'apply'
               run: |
                   echo "📋 Showing Terraform plan..."
-                  terraform plan
+                  
+                  # Build args array safely
+                  ARGS=("plan")
+                  
+                  # Add replace flags if they exist
+                  if [[ "$HAS_REPLACE_FLAGS" == "true" && -f /tmp/replace_args.txt ]]; then
+                      while IFS= read -r arg; do
+                          ARGS+=("$arg")
+                      done < /tmp/replace_args.txt
+                  fi
+                  
+                  # Execute terraform with proper argument handling (no eval)
+                  terraform "${ARGS[@]}"
                   echo "✅ Terraform plan displayed"
 
             - name: Terraform Apply
               if: inputs.terraform_action == 'apply'
               run: |
-                  echo "� Applying Terraform configuration..."
-                  terraform apply -auto-approve
+                  echo "🚀 Applying Terraform configuration..."
+                  
+                  # Build args array safely
+                  ARGS=("apply" "-auto-approve")
+                  
+                  # Add replace flags if they exist
+                  if [[ "$HAS_REPLACE_FLAGS" == "true" && -f /tmp/replace_args.txt ]]; then
+                      while IFS= read -r arg; do
+                          ARGS+=("$arg")
+                      done < /tmp/replace_args.txt
+                  fi
+                  
+                  # Execute terraform with proper argument handling (no eval)
+                  terraform "${ARGS[@]}"
                   echo "✅ Terraform apply completed successfully"
                   echo "### ✅ Terraform Apply - Completed" >> $GITHUB_STEP_SUMMARY
                   echo "Terraform configuration has been applied successfully." >> $GITHUB_STEP_SUMMARY

@@ -16,6 +16,11 @@ on:
                 required: false
                 type: boolean
                 default: false
+            force_replace_resources:
+                description: "Force replace resources (newline-separated, e.g., digitalocean_app.platform)"
+                required: false
+                type: string
+                default: ""
 
 jobs:
     check-context:
@@ -143,6 +148,7 @@ jobs:
                 TF_VAR_image_tag=${{ github.ref_name }}
                 TF_VAR_api_base_path=${{ vars.API_HOST_URL_PROD }}
                 TF_VAR_env=Production
+            force_replace_resources: ${{ github.event.inputs.force_replace_resources }}
         secrets:
             DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
             TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
