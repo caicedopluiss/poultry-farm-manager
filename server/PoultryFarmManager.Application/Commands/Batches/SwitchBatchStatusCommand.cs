@@ -48,7 +48,7 @@ public sealed class SwitchBatchStatusCommand
             }
             else
             {
-                batch = await unitOfWork.Batches.GetByIdAsync(args.BatchId, cancellationToken, true);
+                batch = await unitOfWork.Batches.GetByIdAsync(args.BatchId, track: true, cancellationToken);
                 if (batch is null)
                 {
                     throw new InvalidOperationException($"Batch with ID {args.BatchId} not found.");

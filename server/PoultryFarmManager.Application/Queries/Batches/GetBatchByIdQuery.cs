@@ -21,7 +21,7 @@ public class GetBatchByIdQuery
     {
         protected override async Task<Result> ExecuteAsync(Args args, CancellationToken cancellationToken = default)
         {
-            var batch = await batchesRepository.GetByIdAsync(args.Id, cancellationToken);
+            var batch = await batchesRepository.GetByIdAsync(args.Id, track: false, cancellationToken);
             if (batch == null)
             {
                 return new Result(null, []);
