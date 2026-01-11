@@ -91,6 +91,7 @@ public class Program
         app.MapEndpoint<RegisterMortalityEndpoint>(apiPrefix);
         app.MapEndpoint<SwitchBatchStatusEndpoint>(apiPrefix);
         app.MapEndpoint<RegisterProductConsumptionEndpoint>(apiPrefix);
+        app.MapEndpoint<UpdateBatchNameEndpoint>(apiPrefix);
 
         // Asset endpoints
         app.MapEndpoint<CreateAssetEndpoint>(apiPrefix);

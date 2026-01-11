@@ -31,6 +31,7 @@ import {
     LocalHospital as MortalityActivityIcon,
     SwapHoriz as StatusSwitchIcon,
     Inventory as ProductConsumptionIcon,
+    Edit as EditIcon,
 } from "@mui/icons-material";
 import moment from "moment";
 import type { Batch } from "@/types/batch";
@@ -42,6 +43,7 @@ import type {
     BatchActivityType,
 } from "@/types/batchActivity";
 import RegisterActivityDialog from "@/components/RegisterActivityDialog";
+import EditBatchNameDialog from "@/components/EditBatchNameDialog";
 
 interface BatchDetailProps {
     batch: Batch;
@@ -58,6 +60,7 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
     const [selectedActivityType, setSelectedActivityType] = useState<BatchActivityType | null>(null);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const menuOpen = Boolean(anchorEl);
+    const [editNameDialogOpen, setEditNameDialogOpen] = useState(false);
 
     // Filter status switches from activities (with safety check)
     const statusSwitches = (activities || []).filter((a): a is StatusSwitch => a.type === "StatusSwitch");
@@ -163,15 +166,26 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                     Back to Batches
                 </Button>
 
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
-                    <Typography
-                        variant={isMobile ? "h4" : "h3"}
-                        component="h1"
-                        fontWeight="bold"
-                        sx={{ color: theme.palette.primary.main }}
-                    >
-                        {batch.name}
-                    </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2, flexWrap: "wrap" }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <Typography
+                            variant={isMobile ? "h4" : "h3"}
+                            component="h1"
+                            fontWeight="bold"
+                            sx={{ color: theme.palette.primary.main }}
+                        >
+                            {batch.name}
+                        </Typography>
+                        <Button
+                            size="small"
+                            variant="outlined"
+                            startIcon={<EditIcon />}
+                            onClick={() => setEditNameDialogOpen(true)}
+                            sx={{ minWidth: "auto", px: 1.5 }}
+                        >
+                            {!isMobile && "Edit"}
+                        </Button>
+                    </Box>
                     <Chip
                         label={batch.status}
                         color={getStatusColor(batch.status)}
@@ -578,6 +592,14 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                     onSuccess={handleActivitySuccess}
                 />
             )}
+
+            {/* Edit Batch Name Dialog */}
+            <EditBatchNameDialog
+                open={editNameDialogOpen}
+                onClose={() => setEditNameDialogOpen(false)}
+                batch={batch}
+                onSuccess={handleActivitySuccess}
+            />
         </Container>
     );
 }
