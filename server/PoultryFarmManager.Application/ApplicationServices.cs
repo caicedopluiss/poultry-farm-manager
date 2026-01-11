@@ -30,6 +30,7 @@ public static class ApplicationServices
         services.AddScoped<IAppRequestHandler<RegisterMortalityCommand.Args, RegisterMortalityCommand.Result>, RegisterMortalityCommand.Handler>();
         services.AddScoped<IAppRequestHandler<SwitchBatchStatusCommand.Args, SwitchBatchStatusCommand.Result>, SwitchBatchStatusCommand.Handler>();
         services.AddScoped<IAppRequestHandler<RegisterProductConsumptionCommand.Args, RegisterProductConsumptionCommand.Result>, RegisterProductConsumptionCommand.Handler>();
+        services.AddScoped<IAppRequestHandler<UpdateBatchNameCommand.Args, UpdateBatchNameCommand.Result>, UpdateBatchNameCommand.Handler>();
 
         // Assets
         services.AddScoped<IAppRequestHandler<CreateAssetCommand.Args, CreateAssetCommand.Result>, CreateAssetCommand.Handler>();

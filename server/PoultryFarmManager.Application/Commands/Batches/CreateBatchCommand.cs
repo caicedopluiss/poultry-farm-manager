@@ -30,7 +30,7 @@ public sealed class CreateBatchCommand
             return result;
         }
 
-        protected override Task<IEnumerable<(string field, string error)>> ValidateAsync(Args args, CancellationToken cancellationToken = default)
+        protected override async Task<IEnumerable<(string field, string error)>> ValidateAsync(Args args, CancellationToken cancellationToken = default)
         {
             var errors = new List<(string field, string error)>();
 
@@ -41,6 +41,14 @@ public sealed class CreateBatchCommand
             else if (args.NewBatch.Name.Length > 100)
             {
                 errors.Add(("name", "Name cannot exceed 100 characters."));
+            }
+            else
+            {
+                var existingBatch = await unitOfWork.Batches.GetByNameAsync(args.NewBatch.Name, cancellationToken);
+                if (existingBatch != null)
+                {
+                    errors.Add(("name", "A batch with this name already exists."));
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(args.NewBatch.Breed) && args.NewBatch.Breed.Length > 100)
@@ -78,7 +86,7 @@ public sealed class CreateBatchCommand
                 errors.Add(("population", "Batch population must be greater than zero."));
             }
 
-            return Task.FromResult<IEnumerable<(string field, string error)>>(errors);
+            return errors;
         }
     }
 }
