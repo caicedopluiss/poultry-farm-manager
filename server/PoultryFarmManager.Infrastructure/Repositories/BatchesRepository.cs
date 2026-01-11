@@ -23,7 +23,7 @@ public sealed class BatchesRepository(AppDbContext context) : IBatchesRepository
         return batches;
     }
 
-    public async Task<Batch?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default, bool track = false)
+    public async Task<Batch?> GetByIdAsync(Guid id, bool track = false, CancellationToken cancellationToken = default)
     {
         var query = context.Batches.AsQueryable();
 
@@ -33,6 +33,12 @@ public sealed class BatchesRepository(AppDbContext context) : IBatchesRepository
         }
 
         var batch = await query.FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
+        return batch;
+    }
+
+    public async Task<Batch?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
+    {
+        var batch = await context.Batches.AsNoTracking().FirstOrDefaultAsync(b => b.Name == name, cancellationToken);
         return batch;
     }
 }

@@ -74,3 +74,13 @@ export async function registerProductConsumption(
     });
     return response;
 }
+
+interface UpdateBatchNameResponse {
+    batch: Batch;
+}
+export async function updateBatchName(batchId: string, name: string): Promise<UpdateBatchNameResponse> {
+    const response: UpdateBatchNameResponse = await apiClient.put(`${url}/${batchId}/name`, {
+        name,
+    });
+    return response;
+}
