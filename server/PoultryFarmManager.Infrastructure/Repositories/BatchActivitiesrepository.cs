@@ -98,4 +98,26 @@ public class BatchActivitiesRepository(AppDbContext context) : IBatchActivitiesR
         };
         return Task.FromResult(created);
     }
+
+    public async Task<Dictionary<Guid, DateTime?>> GetFirstStatusSwitchByBatchIdsAsync(IEnumerable<Guid> batchIds, CancellationToken cancellationToken = default)
+    {
+        var batchIdsList = batchIds.ToList();
+        if (!batchIdsList.Any())
+        {
+            return new Dictionary<Guid, DateTime?>();
+        }
+
+        // Query all status switch activities for the given batch IDs and get the earliest one per batch
+        var firstStatusSwitches = await context.StatusSwitchActivities.AsNoTracking()
+            .Where(a => batchIdsList.Contains(a.BatchId))
+            .GroupBy(a => a.BatchId)
+            .Select(g => new
+            {
+                BatchId = g.Key,
+                FirstDate = g.Min(a => a.Date)
+            })
+            .ToDictionaryAsync(x => x.BatchId, x => (DateTime?)x.FirstDate, cancellationToken);
+
+        return firstStatusSwitches;
+    }
 }

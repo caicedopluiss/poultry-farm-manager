@@ -62,35 +62,18 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
     const menuOpen = Boolean(anchorEl);
     const [editNameDialogOpen, setEditNameDialogOpen] = useState(false);
 
-    // Filter status switches from activities (with safety check)
-    const statusSwitches = (activities || []).filter((a): a is StatusSwitch => a.type === "StatusSwitch");
-
-    // Calculate statusChangedDate from statusSwitches
-    // Find the first switch to Processed or Canceled
-    const getStatusChangedDate = (): string | null => {
-        const relevantSwitch = statusSwitches.find(
-            (s: StatusSwitch) =>
-                s.newStatus && (s.newStatus.toLowerCase() === "processed" || s.newStatus.toLowerCase() === "canceled"),
-        );
-        return relevantSwitch?.date || null;
-    };
-
-    const statusChangedDate = getStatusChangedDate();
-
-    const calculateDays = (startDate: string, statusChangedDate?: string | null, status?: string): number => {
-        // Continue counting for Active and ForSale, use statusChangedDate for others
-        const shouldContinueCounting =
-            !status || status.toLowerCase() === "active" || status.toLowerCase() === "forsale";
-        const end = shouldContinueCounting || !statusChangedDate ? moment() : moment(statusChangedDate);
+    const calculateDays = (startDate: string, firstStatusChangeDate?: string | null, status?: string): number => {
+        // Only continue counting for Active status
+        const shouldContinueCounting = !status || status.toLowerCase() === "active";
+        const end = shouldContinueCounting || !firstStatusChangeDate ? moment() : moment(firstStatusChangeDate);
         // Add 1 to show current day (Day 1 on first day, not Day 0)
         return end.diff(moment(startDate), "days") + 1;
     };
 
-    const calculateWeeks = (startDate: string, statusChangedDate?: string | null, status?: string): number => {
-        // Continue counting for Active and ForSale, use statusChangedDate for others
-        const shouldContinueCounting =
-            !status || status.toLowerCase() === "active" || status.toLowerCase() === "forsale";
-        const end = shouldContinueCounting || !statusChangedDate ? moment() : moment(statusChangedDate);
+    const calculateWeeks = (startDate: string, firstStatusChangeDate?: string | null, status?: string): number => {
+        // Only continue counting for Active status
+        const shouldContinueCounting = !status || status.toLowerCase() === "active";
+        const end = shouldContinueCounting || !firstStatusChangeDate ? moment() : moment(firstStatusChangeDate);
         // Add 1 to show current week (Week 1 on first week, not Week 0)
         return end.diff(moment(startDate), "weeks") + 1;
     };
@@ -128,8 +111,8 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
         return batch.status.toLowerCase() === "active";
     };
 
-    const days = calculateDays(batch.startDate, statusChangedDate, batch.status);
-    const weeks = calculateWeeks(batch.startDate, statusChangedDate, batch.status);
+    const days = calculateDays(batch.startDate, batch.firstStatusChangeDate, batch.status);
+    const weeks = calculateWeeks(batch.startDate, batch.firstStatusChangeDate, batch.status);
     const mortalityPercent = calculateMortality(batch.initialPopulation, batch.population);
 
     const handleOpenActivityMenu = (event: React.MouseEvent<HTMLElement>) => {
