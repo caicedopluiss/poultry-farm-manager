@@ -45,6 +45,8 @@ export default function BatchCard({ batch, onClick }: Props) {
                         startDate={batch.startDate}
                         population={batch.population}
                         initialPopulation={batch.initialPopulation}
+                        status={batch.status}
+                        firstStatusChangeDate={batch.firstStatusChangeDate}
                     />
                 </CardContent>
             </CardActionArea>

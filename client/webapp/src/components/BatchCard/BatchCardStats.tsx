@@ -12,19 +12,33 @@ interface Props {
     startDate: string;
     population: number;
     initialPopulation: number;
+    status: string;
+    firstStatusChangeDate?: string | null;
 }
 
-export default function BatchCardStats({ startDate, population, initialPopulation }: Props) {
-    const calculateDays = (startDate: string): number => {
-        // For batch list, always calculate from start to now
+export default function BatchCardStats({
+    startDate,
+    population,
+    initialPopulation,
+    status,
+    firstStatusChangeDate,
+}: Props) {
+    const calculateDays = (startDate: string, status: string, firstStatusChangeDate?: string | null): number => {
+        // Only continue counting for Active status
+        // For other statuses, use the first status change date as the end date
+        const shouldContinueCounting = !status || status.toLowerCase() === "active";
+        const end = shouldContinueCounting || !firstStatusChangeDate ? moment() : moment(firstStatusChangeDate);
         // Add 1 to show current day (Day 1 on first day, not Day 0)
-        return moment().diff(moment(startDate), "days") + 1;
+        return end.diff(moment(startDate), "days") + 1;
     };
 
-    const calculateWeeks = (startDate: string): number => {
-        // For batch list, always calculate from start to now
+    const calculateWeeks = (startDate: string, status: string, firstStatusChangeDate?: string | null): number => {
+        // Only continue counting for Active status
+        // For other statuses, use the first status change date as the end date
+        const shouldContinueCounting = !status || status.toLowerCase() === "active";
+        const end = shouldContinueCounting || !firstStatusChangeDate ? moment() : moment(firstStatusChangeDate);
         // Add 1 to show current week (Week 1 on first week, not Week 0)
-        return moment().diff(moment(startDate), "weeks") + 1;
+        return end.diff(moment(startDate), "weeks") + 1;
     };
 
     const calculateMortality = (initial: number, current: number): number => {
@@ -32,8 +46,8 @@ export default function BatchCardStats({ startDate, population, initialPopulatio
         return Math.round(((initial - current) / initial) * 100);
     };
 
-    const days = calculateDays(startDate);
-    const weeks = calculateWeeks(startDate);
+    const days = calculateDays(startDate, status, firstStatusChangeDate);
+    const weeks = calculateWeeks(startDate, status, firstStatusChangeDate);
     const mortalityPercent = calculateMortality(initialPopulation, population);
 
     return (

@@ -39,19 +39,22 @@ public record BatchDto(
     int FemaleCount,
     int UnsexedCount,
     int Population,
-    string? Shed
+    string? Shed,
+    string? FirstStatusChangeDate
 )
 {
     /// <summary>
     /// Parameterless constructor for mapping dto instance from core model/entity.
     /// </summary>
-    public BatchDto() : this(Guid.Empty, string.Empty, null, string.Empty, string.Empty, 0, 0, 0, 0, 0, null)
+    public BatchDto() : this(Guid.Empty, string.Empty, null, string.Empty, string.Empty, 0, 0, 0, 0, 0, null, null)
     {
 
     }
 
-    public BatchDto Map(Batch from, BatchDto? to = null)
+    public BatchDto Map(Batch from, BatchDto? to = null, DateTime? firstStatusChangeDate = null)
     {
+        var firstStatusChangeDateString = firstStatusChangeDate?.ToString(Constants.DateTimeFormat);
+        
         return to is not null ? to with
         {
             Id = from.Id,
@@ -64,7 +67,8 @@ public record BatchDto(
             FemaleCount = from.FemaleCount,
             UnsexedCount = from.UnsexedCount,
             Population = from.Population,
-            Shed = from.Shed
+            Shed = from.Shed,
+            FirstStatusChangeDate = firstStatusChangeDateString
         } : new BatchDto(
             from.Id,
             from.Name,
@@ -76,7 +80,8 @@ public record BatchDto(
             from.FemaleCount,
             from.UnsexedCount,
             from.Population,
-            from.Shed
+            from.Shed,
+            firstStatusChangeDateString
         );
     }
 }

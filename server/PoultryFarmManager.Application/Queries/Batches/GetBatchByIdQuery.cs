@@ -27,10 +27,17 @@ public class GetBatchByIdQuery
                 return new Result(null, []);
             }
 
-            var batchDto = new BatchDto().Map(batch);
-
             // Get all activities for this batch and map to DTOs
             var activities = await activitiesRepository.GetAllByBatchIdAsync(args.Id, cancellationToken: cancellationToken);
+
+            // Find the first status switch activity date
+            var firstStatusSwitch = activities
+                .OfType<StatusSwitchBatchActivity>()
+                .OrderBy(a => a.Date)
+                .FirstOrDefault();
+
+            var batchDto = new BatchDto().Map(batch, firstStatusChangeDate: firstStatusSwitch?.Date);
+
             var activityDtos = activities
                 .Select(activity => activity switch
                 {
