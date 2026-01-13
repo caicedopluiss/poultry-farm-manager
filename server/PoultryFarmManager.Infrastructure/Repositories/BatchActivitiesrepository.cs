@@ -35,11 +35,17 @@ public class BatchActivitiesRepository(AppDbContext context) : IBatchActivitiesR
                 .OrderByDescending(ba => ba.Date)
                 .ToListAsync(cancellationToken);
 
+            var weightMeasurementActivities = await context.WeightMeasurementActivities.AsNoTracking()
+                .Where(ba => ba.BatchId == batchId)
+                .OrderByDescending(ba => ba.Date)
+                .ToListAsync(cancellationToken);
+
             // Combine and sort in memory - this preserves all derived type properties
             var allActivities = mortalityActivities
                 .Cast<BatchActivity>()
                 .Concat(statusSwitchActivities)
                 .Concat(productConsumptionActivities)
+                .Concat(weightMeasurementActivities)
                 .OrderByDescending(ba => ba.Date)
                 .ToList();
 
@@ -55,6 +61,8 @@ public class BatchActivitiesRepository(AppDbContext context) : IBatchActivitiesR
                     .Where(ba => ba.BatchId == batchId),
                 BatchActivityType.ProductConsumption => context.ProductConsumptionActivities.AsNoTracking()
                     .Include(ba => ba.Product)
+                    .Where(ba => ba.BatchId == batchId),
+                BatchActivityType.WeightMeasurement => context.WeightMeasurementActivities.AsNoTracking()
                     .Where(ba => ba.BatchId == batchId),
                 _ => throw new NotSupportedException($"Batch activity type '{type.Value}' is not supported for retrieval.")
             };
@@ -84,7 +92,13 @@ public class BatchActivitiesRepository(AppDbContext context) : IBatchActivitiesR
             .Include(ba => ba.Product)
             .FirstOrDefaultAsync(ba => ba.Id == id, cancellationToken);
 
-        return productConsumptionActivity;
+        if (productConsumptionActivity is not null) return productConsumptionActivity;
+
+        // Try to find in weight measurement activities
+        var weightMeasurementActivity = await context.WeightMeasurementActivities.AsNoTracking()
+            .FirstOrDefaultAsync(ba => ba.Id == id, cancellationToken);
+
+        return weightMeasurementActivity;
     }
 
     public Task<BatchActivity> CreateAsync(BatchActivity batchActivity, CancellationToken cancellationToken = default)
@@ -94,6 +108,7 @@ public class BatchActivitiesRepository(AppDbContext context) : IBatchActivitiesR
             BatchActivityType.MortalityRecording => context.MortalityRegistrationActivities.Add((MortalityRegistrationBatchActivity)batchActivity).Entity,
             BatchActivityType.StatusSwitch => context.StatusSwitchActivities.Add((StatusSwitchBatchActivity)batchActivity).Entity,
             BatchActivityType.ProductConsumption => context.ProductConsumptionActivities.Add((ProductConsumptionBatchActivity)batchActivity).Entity,
+            BatchActivityType.WeightMeasurement => context.WeightMeasurementActivities.Add((WeightMeasurementBatchActivity)batchActivity).Entity,
             _ => throw new NotSupportedException($"Batch activity type '{batchActivity.Type}' is not supported for creation.")
         };
         return Task.FromResult(created);

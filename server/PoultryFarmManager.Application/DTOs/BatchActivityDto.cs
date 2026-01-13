@@ -45,6 +45,28 @@ public record NewStatusSwitchDto(
     }
 }
 
+public record NewWeightMeasurementDto(
+    decimal AverageWeight,
+    int SampleSize,
+    string UnitOfMeasure,
+    string DateClientIsoString,
+    string? Notes)
+{
+    public WeightMeasurementBatchActivity Map(WeightMeasurementBatchActivity? to = null)
+    {
+        var result = to ?? new();
+
+        result.AverageWeight = AverageWeight;
+        result.SampleSize = SampleSize;
+        result.UnitOfMeasure = Enum.Parse<UnitOfMeasure>(UnitOfMeasure, ignoreCase: true);
+        result.Date = Utils.ParseIso8601DateTimeString(DateClientIsoString).UtcDateTime;
+        result.Notes = Notes;
+        result.Type = BatchActivityType.WeightMeasurement;
+
+        return result;
+    }
+}
+
 public record NewProductConsumptionDto(
     Guid ProductId,
     decimal Stock,
@@ -74,6 +96,7 @@ public record NewProductConsumptionDto(
 [JsonDerivedType(typeof(MortalityRegistrationActivityDto), "MortalityRecording")]
 [JsonDerivedType(typeof(StatusSwitchActivityDto), "StatusSwitch")]
 [JsonDerivedType(typeof(ProductConsumptionActivityDto), "ProductConsumption")]
+[JsonDerivedType(typeof(WeightMeasurementActivityDto), "WeightMeasurement")]
 public record BatchActivityDto
 {
     // IMPORTANT: Type must be the first property.
@@ -144,6 +167,28 @@ public record ProductConsumptionActivityDto : BatchActivityDto
             ProductId = activity.ProductId,
             ProductName = activity.Product?.Name ?? string.Empty,
             Stock = activity.Stock,
+            UnitOfMeasure = activity.UnitOfMeasure.ToString()
+        };
+    }
+}
+
+public record WeightMeasurementActivityDto : BatchActivityDto
+{
+    public decimal AverageWeight { get; set; }
+    public int SampleSize { get; set; }
+    public string UnitOfMeasure { get; set; } = string.Empty;
+
+    public static WeightMeasurementActivityDto MapFrom(WeightMeasurementBatchActivity activity)
+    {
+        return new WeightMeasurementActivityDto
+        {
+            Id = activity.Id,
+            BatchId = activity.BatchId,
+            Type = activity.Type.ToString(),
+            Date = activity.Date.ToString(Constants.DateTimeFormat),
+            Notes = activity.Notes,
+            AverageWeight = activity.AverageWeight,
+            SampleSize = activity.SampleSize,
             UnitOfMeasure = activity.UnitOfMeasure.ToString()
         };
     }

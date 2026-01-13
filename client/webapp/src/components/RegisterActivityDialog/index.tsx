@@ -6,12 +6,19 @@ import type {
     NewMortalityRegistration,
     NewStatusSwitch,
     NewProductConsumption,
+    NewWeightMeasurement,
     BatchActivityType,
 } from "@/types/batchActivity";
 import RegisterMortalityForm from "./RegisterMortalityForm";
 import StatusSwitchForm from "./StatusSwitchForm";
 import RegisterProductConsumptionForm from "./RegisterProductConsumptionForm";
-import { registerMortality, switchBatchStatus, registerProductConsumption } from "@/api/v1/batches";
+import RegisterWeightMeasurementForm from "./RegisterWeightMeasurementForm";
+import {
+    registerMortality,
+    switchBatchStatus,
+    registerProductConsumption,
+    registerWeightMeasurement,
+} from "@/api/v1/batches";
 
 interface RegisterActivityDialogProps {
     open: boolean;
@@ -53,6 +60,14 @@ export default function RegisterActivityDialog({
         notes: null,
     });
 
+    const [weightMeasurementFormData, setWeightMeasurementFormData] = useState<NewWeightMeasurement>({
+        averageWeight: 0,
+        sampleSize: 0,
+        unitOfMeasure: "Kilogram",
+        dateClientIsoString: moment().toISOString(),
+        notes: null,
+    });
+
     const handleClose = () => {
         if (!loading) {
             // Reset form
@@ -70,6 +85,13 @@ export default function RegisterActivityDialog({
             setProductConsumptionFormData({
                 productId: "",
                 stock: 0,
+                unitOfMeasure: "Kilogram",
+                dateClientIsoString: moment().toISOString(),
+                notes: null,
+            });
+            setWeightMeasurementFormData({
+                averageWeight: 0,
+                sampleSize: 0,
                 unitOfMeasure: "Kilogram",
                 dateClientIsoString: moment().toISOString(),
                 notes: null,
@@ -119,6 +141,17 @@ export default function RegisterActivityDialog({
                 if (onSuccess) {
                     onSuccess();
                 }
+            } else if (activityType === "WeightMeasurement") {
+                await registerWeightMeasurement(batch.id, {
+                    ...weightMeasurementFormData,
+                    dateClientIsoString: moment(weightMeasurementFormData.dateClientIsoString).format(),
+                });
+
+                // Success - close and notify parent
+                handleClose();
+                if (onSuccess) {
+                    onSuccess();
+                }
             }
             // Future activity types can be handled here
         } catch (err: unknown) {
@@ -153,6 +186,8 @@ export default function RegisterActivityDialog({
                 return "Switch Batch Status";
             case "ProductConsumption":
                 return "Register Product Consumption";
+            case "WeightMeasurement":
+                return "Register Weight Measurement";
             case "Feeding":
                 return "Register Feeding";
             default:
@@ -186,6 +221,15 @@ export default function RegisterActivityDialog({
                         batch={batch}
                         formData={productConsumptionFormData}
                         onChange={setProductConsumptionFormData}
+                        errors={fieldErrors}
+                    />
+                );
+            case "WeightMeasurement":
+                return (
+                    <RegisterWeightMeasurementForm
+                        batch={batch}
+                        formData={weightMeasurementFormData}
+                        onChange={setWeightMeasurementFormData}
                         errors={fieldErrors}
                     />
                 );

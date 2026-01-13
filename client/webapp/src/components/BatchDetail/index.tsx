@@ -32,6 +32,7 @@ import {
     SwapHoriz as StatusSwitchIcon,
     Inventory as ProductConsumptionIcon,
     Edit as EditIcon,
+    Scale as WeightMeasurementIcon,
 } from "@mui/icons-material";
 import moment from "moment";
 import type { Batch } from "@/types/batch";
@@ -40,6 +41,7 @@ import type {
     StatusSwitch,
     MortalityRegistration,
     ProductConsumption,
+    WeightMeasurement,
     BatchActivityType,
 } from "@/types/batchActivity";
 import RegisterActivityDialog from "@/components/RegisterActivityDialog";
@@ -108,6 +110,11 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
 
     const canRegisterMortality = (): boolean => {
         // Can only register mortality for active batches
+        return batch.status.toLowerCase() === "active";
+    };
+
+    const canRegisterWeightMeasurement = (): boolean => {
+        // Can only register weight measurements for active batches
         return batch.status.toLowerCase() === "active";
     };
 
@@ -463,6 +470,8 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                                                     <StatusSwitchIcon color="action" />
                                                 ) : activity.type === "ProductConsumption" ? (
                                                     <ProductConsumptionIcon color="primary" />
+                                                ) : activity.type === "WeightMeasurement" ? (
+                                                    <WeightMeasurementIcon color="success" />
                                                 ) : (
                                                     <StatusIcon color="action" />
                                                 )}
@@ -473,7 +482,9 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                                                           ? "Status Switch"
                                                           : activity.type === "ProductConsumption"
                                                             ? "Product Consumption"
-                                                            : activity.type}
+                                                            : activity.type === "WeightMeasurement"
+                                                              ? "Weight Measurement"
+                                                              : activity.type}
                                                 </Typography>
                                             </Box>
                                             <Typography variant="body2" color="text.secondary">
@@ -510,6 +521,20 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                                                 <Typography variant="body2">
                                                     <strong>Stock:</strong> {(activity as ProductConsumption).stock}{" "}
                                                     {(activity as ProductConsumption).unitOfMeasure}
+                                                </Typography>
+                                            </Box>
+                                        )}
+
+                                        {activity.type === "WeightMeasurement" && (
+                                            <Box sx={{ display: "flex", gap: 2, mt: 1 }}>
+                                                <Typography variant="body2">
+                                                    <strong>Average Weight:</strong>{" "}
+                                                    {(activity as WeightMeasurement).averageWeight}{" "}
+                                                    {(activity as WeightMeasurement).unitOfMeasure}
+                                                </Typography>
+                                                <Typography variant="body2">
+                                                    <strong>Sample Size:</strong>{" "}
+                                                    {(activity as WeightMeasurement).sampleSize}
                                                 </Typography>
                                             </Box>
                                         )}
@@ -562,6 +587,15 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                         <ProductConsumptionIcon fontSize="small" />
                     </ListItemIcon>
                     <ListItemText>Register Product Consumption</ListItemText>
+                </MenuItem>
+                <MenuItem
+                    onClick={() => handleSelectActivity("WeightMeasurement")}
+                    disabled={!canRegisterWeightMeasurement()}
+                >
+                    <ListItemIcon>
+                        <WeightMeasurementIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>Register Weight Measurement</ListItemText>
                 </MenuItem>
             </Menu>
 
