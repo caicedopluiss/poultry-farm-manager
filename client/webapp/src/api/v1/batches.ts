@@ -7,6 +7,8 @@ import type {
     NewStatusSwitch,
     ProductConsumption,
     NewProductConsumption,
+    WeightMeasurement,
+    NewWeightMeasurement,
 } from "@/types/batchActivity";
 import apiClient from "@/api/client";
 
@@ -71,6 +73,19 @@ export async function registerProductConsumption(
 ): Promise<RegisterProductConsumptionResponse> {
     const response: RegisterProductConsumptionResponse = await apiClient.post(`${url}/${batchId}/product-consumption`, {
         productConsumption: consumptionData,
+    });
+    return response;
+}
+
+interface RegisterWeightMeasurementResponse {
+    weightMeasurement: WeightMeasurement;
+}
+export async function registerWeightMeasurement(
+    batchId: string,
+    weightData: NewWeightMeasurement,
+): Promise<RegisterWeightMeasurementResponse> {
+    const response: RegisterWeightMeasurementResponse = await apiClient.post(`${url}/${batchId}/weight-measurements`, {
+        weightMeasurement: weightData,
     });
     return response;
 }

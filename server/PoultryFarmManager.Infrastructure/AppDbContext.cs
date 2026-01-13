@@ -12,6 +12,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<MortalityRegistrationBatchActivity> MortalityRegistrationActivities { get; set; }
     public DbSet<StatusSwitchBatchActivity> StatusSwitchActivities { get; set; }
     public DbSet<ProductConsumptionBatchActivity> ProductConsumptionActivities { get; set; }
+    public DbSet<WeightMeasurementBatchActivity> WeightMeasurementActivities { get; set; }
     public DbSet<Asset> Assets { get; set; }
     public DbSet<AssetState> AssetStates { get; set; }
     public DbSet<Product> Products { get; set; }
@@ -101,6 +102,27 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 .WithMany()
                 .HasForeignKey(e => e.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<WeightMeasurementBatchActivity>(entity =>
+        {
+            entity.ToTable(nameof(WeightMeasurementActivities));
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).IsRequired().ValueGeneratedOnAdd();
+            entity.Property(e => e.BatchId).IsRequired();
+            entity.HasIndex(e => e.BatchId);
+            entity.Property(e => e.Type).IsRequired();
+            entity.Property(e => e.Date).IsRequired();
+            entity.Property(e => e.Notes).HasMaxLength(500);
+
+            entity.Property(e => e.AverageWeight).IsRequired().HasPrecision(18, 2);
+            entity.Property(e => e.SampleSize).IsRequired();
+            entity.Property(e => e.UnitOfMeasure).IsRequired();
+
+            entity.HasOne(e => e.Batch)
+                .WithMany()
+                .HasForeignKey(e => e.BatchId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Asset>(entity =>
