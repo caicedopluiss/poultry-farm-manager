@@ -4,6 +4,7 @@ using PoultryFarmManager.Application.Commands.Assets;
 using PoultryFarmManager.Application.Commands.Batches;
 using PoultryFarmManager.Application.Commands.Products;
 using PoultryFarmManager.Application.Commands.ProductVariants;
+using PoultryFarmManager.Application.Commands.Transactions;
 using PoultryFarmManager.Application.Queries.Assets;
 using PoultryFarmManager.Application.Queries.Batches;
 using PoultryFarmManager.Application.Queries.Products;
@@ -44,6 +45,9 @@ public static class ApplicationServices
         // Product Variants
         services.AddScoped<IAppRequestHandler<CreateProductVariantCommand.Args, CreateProductVariantCommand.Result>, CreateProductVariantCommand.Handler>();
         services.AddScoped<IAppRequestHandler<UpdateProductVariantCommand.Args, UpdateProductVariantCommand.Result>, UpdateProductVariantCommand.Handler>();
+
+        // Transactions
+        services.AddScoped<IAppRequestHandler<CreateTransactionCommand.Args, CreateTransactionCommand.Result>, CreateTransactionCommand.Handler>();
     }
 
     private static void AddQueryHandlers(IServiceCollection services)

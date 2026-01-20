@@ -2,6 +2,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using PoultryFarmManager.Core.Models;
 using PoultryFarmManager.Core.Models.BatchActivities;
+using PoultryFarmManager.Core.Models.Finance;
 using PoultryFarmManager.Core.Models.Inventory;
 
 namespace PoultryFarmManager.Infrastructure;
@@ -17,6 +18,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<AssetState> AssetStates { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<ProductVariant> ProductVariants { get; set; }
+    public DbSet<Person> Persons { get; set; }
+    public DbSet<Vendor> Vendors { get; set; }
+    public DbSet<Transaction> Transactions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -183,6 +187,71 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 .WithMany(x => x.Variants)
                 .HasForeignKey(e => e.ProductId)
                 .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        modelBuilder.Entity<Person>(entity =>
+        {
+            entity.ToTable(nameof(Persons));
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).IsRequired().ValueGeneratedOnAdd();
+            entity.Property(e => e.FirstName).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.LastName).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Email).HasMaxLength(200);
+            entity.Property(e => e.PhoneNumber).HasMaxLength(50);
+            entity.Property(e => e.Location).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<Vendor>(entity =>
+        {
+            entity.ToTable(nameof(Vendors));
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).IsRequired().ValueGeneratedOnAdd();
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.HasIndex(e => e.Name).IsUnique();
+            entity.Property(e => e.Location).HasMaxLength(100);
+            entity.Property(e => e.ContactPersonId).IsRequired();
+
+            entity.HasOne(e => e.ContactPerson)
+                .WithMany()
+                .HasForeignKey(e => e.ContactPersonId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Transaction>(entity =>
+        {
+            entity.ToTable(nameof(Transactions));
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).IsRequired().ValueGeneratedOnAdd();
+            entity.Property(e => e.Title).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Date).IsRequired();
+            entity.HasIndex(e => e.Date);
+            entity.Property(e => e.Type).IsRequired();
+            entity.HasIndex(e => e.Type);
+            entity.Property(e => e.UnitPrice).IsRequired().HasPrecision(18, 2);
+            entity.Property(e => e.Quantity);
+            entity.Property(e => e.TransactionAmount).IsRequired().HasPrecision(18, 2);
+            entity.Property(e => e.Notes).HasMaxLength(500);
+
+            // Relationships
+            entity.HasOne(e => e.ProductVariant)
+                .WithMany()
+                .HasForeignKey(e => e.ProductVariantId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Batch)
+                .WithMany()
+                .HasForeignKey(e => e.BatchId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Vendor)
+                .WithMany()
+                .HasForeignKey(e => e.VendorId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Customer)
+                .WithMany()
+                .HasForeignKey(e => e.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }
