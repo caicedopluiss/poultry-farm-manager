@@ -6,8 +6,10 @@ import { useNavigate, useLocation, Routes, Route } from "react-router-dom";
 import { useMemo } from "react";
 import GroupsIcon from "@mui/icons-material/Groups";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
+import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import { BatchListPage, BatchDetailPage, NotFoundPage, AssetDetailPage, ProductDetailPage } from "@/pages";
 import InventoryPage from "@/pages/InventoryPage";
+import PersonListPage from "@/pages/PersonListPage";
 import { BatchesProvider } from "@/contexts/batches";
 
 // Create a basic MUI theme
@@ -34,6 +36,11 @@ const NAVIGATION: Navigation = [
         segment: "inventory",
         title: "Inventory",
         icon: <Inventory2Icon />,
+    },
+    {
+        segment: "finance",
+        title: "Finance",
+        icon: <AccountBalanceIcon />,
     },
 ];
 
@@ -68,6 +75,7 @@ function App() {
                         <Route path="/inventory" element={<InventoryPage />} />
                         <Route path="/inventory/assets/:id" element={<AssetDetailPage />} />
                         <Route path="/inventory/products/:id" element={<ProductDetailPage />} />
+                        <Route path="/finance" element={<PersonListPage />} />
                         <Route path="*" element={<NotFoundPage />} />
                     </Routes>
                 </DashboardLayout>

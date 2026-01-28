@@ -2,11 +2,13 @@ using System;
 using Microsoft.Extensions.DependencyInjection;
 using PoultryFarmManager.Application.Commands.Assets;
 using PoultryFarmManager.Application.Commands.Batches;
+using PoultryFarmManager.Application.Commands.Persons;
 using PoultryFarmManager.Application.Commands.Products;
 using PoultryFarmManager.Application.Commands.ProductVariants;
 using PoultryFarmManager.Application.Commands.Transactions;
 using PoultryFarmManager.Application.Queries.Assets;
 using PoultryFarmManager.Application.Queries.Batches;
+using PoultryFarmManager.Application.Queries.Persons;
 using PoultryFarmManager.Application.Queries.Products;
 using PoultryFarmManager.Application.Queries.ProductVariants;
 using PoultryFarmManager.Application.Shared.CQRS;
@@ -48,6 +50,10 @@ public static class ApplicationServices
 
         // Transactions
         services.AddScoped<IAppRequestHandler<CreateTransactionCommand.Args, CreateTransactionCommand.Result>, CreateTransactionCommand.Handler>();
+
+        // Persons
+        services.AddScoped<IAppRequestHandler<CreatePersonCommand.Args, CreatePersonCommand.Result>, CreatePersonCommand.Handler>();
+        services.AddScoped<IAppRequestHandler<UpdatePersonCommand.Args, UpdatePersonCommand.Result>, UpdatePersonCommand.Handler>();
     }
 
     private static void AddQueryHandlers(IServiceCollection services)
@@ -68,5 +74,9 @@ public static class ApplicationServices
         services.AddScoped<IAppRequestHandler<GetAllProductVariantsQuery.Args, GetAllProductVariantsQuery.Result>, GetAllProductVariantsQuery.Handler>();
         services.AddScoped<IAppRequestHandler<GetProductVariantByIdQuery.Args, GetProductVariantByIdQuery.Result>, GetProductVariantByIdQuery.Handler>();
         services.AddScoped<IAppRequestHandler<GetProductVariantsByProductIdQuery.Args, GetProductVariantsByProductIdQuery.Result>, GetProductVariantsByProductIdQuery.Handler>();
+
+        // Persons
+        services.AddScoped<IAppRequestHandler<GetAllPersonsQuery.Args, GetAllPersonsQuery.Result>, GetAllPersonsQuery.Handler>();
+        services.AddScoped<IAppRequestHandler<GetPersonByIdQuery.Args, GetPersonByIdQuery.Result>, GetPersonByIdQuery.Handler>();
     }
 }
