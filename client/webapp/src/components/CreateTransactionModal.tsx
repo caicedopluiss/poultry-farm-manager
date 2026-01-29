@@ -161,8 +161,9 @@ export default function CreateTransactionModal({
             });
 
             onSuccess();
-        } catch (err: any) {
-            setError(err.response?.data?.message || "Failed to create transaction");
+        } catch (err) {
+            const apiError = err as { response?: { data?: { message?: string } } };
+            setError(apiError.response?.data?.message || "Failed to create transaction");
             console.error("Error creating transaction:", err);
         } finally {
             setLoading(false);
@@ -305,7 +306,12 @@ export default function CreateTransactionModal({
                 <Button
                     onClick={handleSubmit}
                     variant="contained"
-                    disabled={loading || !formData.title || !formData.unitPrice}
+                    disabled={
+                        loading ||
+                        !formData.title ||
+                        !formData.unitPrice ||
+                        (transactionType === "Income" && !formData.customerId)
+                    }
                     startIcon={loading ? <CircularProgress size={20} /> : null}
                     color={transactionType === "Income" ? "success" : "error"}
                 >

@@ -1,40 +1,43 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { getBatchTransactions, createTransaction as apiCreateTransaction } from "@/api/v1/transactions";
 import type { Transaction, NewTransaction } from "@/types/transaction";
+import type { ApiClientError } from "@/api/client";
 
 export default function useTransactions() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchBatchTransactions = async (batchId: string): Promise<Transaction[]> => {
+    const fetchBatchTransactions = useCallback(async (batchId: string): Promise<Transaction[]> => {
         try {
             setLoading(true);
             setError(null);
             const transactions = await getBatchTransactions(batchId);
             return transactions;
-        } catch (err: any) {
-            const errorMessage = err.response?.data?.message || "Failed to fetch transactions";
+        } catch (err) {
+            const apiError = (err as ApiClientError) || {};
+            const errorMessage = apiError.response?.message || "Failed to fetch transactions";
             setError(errorMessage);
             throw err;
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const createTransaction = async (transaction: NewTransaction): Promise<Transaction> => {
+    const createTransaction = useCallback(async (transaction: NewTransaction): Promise<Transaction> => {
         try {
             setLoading(true);
             setError(null);
             const createdTransaction = await apiCreateTransaction(transaction);
             return createdTransaction;
-        } catch (err: any) {
-            const errorMessage = err.response?.data?.message || "Failed to create transaction";
+        } catch (err) {
+            const apiError = (err as ApiClientError) || {};
+            const errorMessage = apiError.response?.message || "Failed to create transaction";
             setError(errorMessage);
             throw err;
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     return {
         loading,
