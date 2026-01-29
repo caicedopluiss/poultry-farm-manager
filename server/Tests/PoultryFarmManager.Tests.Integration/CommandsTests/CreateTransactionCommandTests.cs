@@ -7,7 +7,9 @@ using PoultryFarmManager.Application;
 using PoultryFarmManager.Application.Commands.Transactions;
 using PoultryFarmManager.Application.DTOs;
 using PoultryFarmManager.Application.Shared.CQRS;
+using PoultryFarmManager.Core.Enums;
 using PoultryFarmManager.Core.Models.Finance;
+using PoultryFarmManager.Core.Models.Inventory;
 
 namespace PoultryFarmManager.Tests.Integration.CommandsTests;
 
@@ -276,7 +278,7 @@ public class CreateTransactionCommandTests(TestsFixture fixture) : IClassFixture
         var newTransaction = new NewTransactionDto(
             Title: new string('A', 201), // Invalid: Title exceeds max length (200)
             DateClientIsoString: DateTime.UtcNow.ToString(Constants.DateTimeFormat),
-            Type: "Income",
+            Type: "Expense",
             UnitPrice: 100.00m,
             Quantity: 1,
             TransactionAmount: 100.00m,
@@ -454,7 +456,7 @@ public class CreateTransactionCommandTests(TestsFixture fixture) : IClassFixture
         var newTransaction = new NewTransactionDto(
             Title: "Test Transaction",
             DateClientIsoString: DateTime.UtcNow.ToString(Constants.DateTimeFormat),
-            Type: "Income",
+            Type: "Expense",
             UnitPrice: 100.00m,
             Quantity: 1,
             TransactionAmount: 100.00m,
@@ -626,4 +628,177 @@ public class CreateTransactionCommandTests(TestsFixture fixture) : IClassFixture
         Assert.Contains(result.ValidationErrors, e => e.field == "notes");
         Assert.True(result.ValidationErrors.Count() >= 7);
     }
+
+    [Fact]
+    public async Task CreateTransactionCommand_ShouldReturnValidationError_ForIncomeWithoutCustomerId()
+    {
+        // Arrange
+        var newTransaction = new NewTransactionDto(
+            Title: "Test Income",
+            DateClientIsoString: DateTime.UtcNow.ToString(Constants.DateTimeFormat),
+            Type: "Income",
+            UnitPrice: 100.00m,
+            Quantity: 1,
+            TransactionAmount: 100.00m,
+            Notes: null,
+            ProductVariantId: null,
+            BatchId: null,
+            VendorId: null,
+            CustomerId: null // Invalid: CustomerId is required for income
+        );
+        var request = new AppRequest<CreateTransactionCommand.Args>(new(newTransaction));
+
+        // Act
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.NotNull(result.ValidationErrors);
+        Assert.Contains(result.ValidationErrors, e => e.field == "customerId" && e.error == "Customer is required for income transactions.");
+    }
+
+    [Fact]
+    public async Task CreateTransactionCommand_ShouldReturnValidationError_ForProductVariantOnIncome()
+    {
+        // Arrange
+        // Create a product and variant
+        var product = new Product
+        {
+            Id = Guid.NewGuid(),
+            Name = "Test Product",
+            Description = "Test Description",
+            Manufacturer = "Test Manufacturer",
+            Stock = 100,
+            UnitOfMeasure = UnitOfMeasure.Kilogram
+        };
+        dbContext.Products.Add(product);
+
+        var productVariant = new ProductVariant
+        {
+            Id = Guid.NewGuid(),
+            ProductId = product.Id,
+            Name = "Test Variant",
+            Description = "Test Variant Description",
+            Quantity = 10,
+            Stock = 50,
+            UnitOfMeasure = UnitOfMeasure.Kilogram
+        };
+        dbContext.ProductVariants.Add(productVariant);
+
+        var customer = new Person
+        {
+            Id = Guid.NewGuid(),
+            FirstName = "John",
+            LastName = "Doe",
+            Email = "john.doe@example.com",
+            PhoneNumber = "1234567890",
+            Location = "City"
+        };
+        dbContext.Persons.Add(customer);
+
+        await dbContext.SaveChangesAsync();
+
+        var newTransaction = new NewTransactionDto(
+            Title: "Test Income with Product",
+            DateClientIsoString: DateTime.UtcNow.ToString(Constants.DateTimeFormat),
+            Type: "Income", // Invalid: Income cannot have ProductVariant
+            UnitPrice: 100.00m,
+            Quantity: 1,
+            TransactionAmount: 100.00m,
+            Notes: null,
+            ProductVariantId: productVariant.Id,
+            BatchId: null,
+            VendorId: null,
+            CustomerId: customer.Id
+        );
+        var request = new AppRequest<CreateTransactionCommand.Args>(new(newTransaction));
+
+        // Act
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.NotNull(result.ValidationErrors);
+        Assert.Contains(result.ValidationErrors, e => e.field == "productVariantId" && e.error == "Product variant can only be assigned to expense transactions.");
+
+        // Cleanup
+        dbContext.Transactions.RemoveRange(dbContext.Transactions.Where(t => t.Title == "Test Income with Product"));
+        dbContext.ProductVariants.Remove(productVariant);
+        dbContext.Products.Remove(product);
+        dbContext.Persons.Remove(customer);
+        await dbContext.SaveChangesAsync();
+    }
+
+    [Fact]
+    public async Task CreateTransactionCommand_ShouldReturnValidationError_ForProductVariantWithCustomerId()
+    {
+        // Arrange
+        // Create a product and variant
+        var product = new Product
+        {
+            Id = Guid.NewGuid(),
+            Name = "Test Product",
+            Description = "Test Description",
+            Manufacturer = "Test Manufacturer",
+            Stock = 100,
+            UnitOfMeasure = UnitOfMeasure.Kilogram
+        };
+        dbContext.Products.Add(product);
+
+        var productVariant = new ProductVariant
+        {
+            Id = Guid.NewGuid(),
+            ProductId = product.Id,
+            Name = "Test Variant",
+            Description = "Test Variant Description",
+            Quantity = 10,
+            Stock = 50,
+            UnitOfMeasure = UnitOfMeasure.Kilogram
+        };
+        dbContext.ProductVariants.Add(productVariant);
+
+        var customer = new Person
+        {
+            Id = Guid.NewGuid(),
+            FirstName = "John",
+            LastName = "Doe",
+            Email = "john.doe@example.com",
+            PhoneNumber = "1234567890",
+            Location = "City"
+        };
+        dbContext.Persons.Add(customer);
+
+        await dbContext.SaveChangesAsync();
+
+        var newTransaction = new NewTransactionDto(
+            Title: "Test Expense",
+            DateClientIsoString: DateTime.UtcNow.ToString(Constants.DateTimeFormat),
+            Type: "Expense",
+            UnitPrice: 100.00m,
+            Quantity: 1,
+            TransactionAmount: 100.00m,
+            Notes: null,
+            ProductVariantId: productVariant.Id, // Invalid: Cannot have both ProductVariant and Customer
+            BatchId: null,
+            VendorId: null,
+            CustomerId: customer.Id
+        );
+        var request = new AppRequest<CreateTransactionCommand.Args>(new(newTransaction));
+
+        // Act
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.NotNull(result.ValidationErrors);
+        Assert.Contains(result.ValidationErrors, e => e.field == "customerId" && e.error == "Customer cannot be specified when product variant is assigned.");
+
+        // Cleanup
+        dbContext.Transactions.RemoveRange(dbContext.Transactions.Where(t => t.Title == "Test Expense"));
+        dbContext.ProductVariants.Remove(productVariant);
+        dbContext.Products.Remove(product);
+        dbContext.Persons.Remove(customer);
+        await dbContext.SaveChangesAsync();
+    }
 }
+

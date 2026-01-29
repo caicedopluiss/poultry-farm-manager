@@ -10,6 +10,7 @@ import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import { BatchListPage, BatchDetailPage, NotFoundPage, AssetDetailPage, ProductDetailPage } from "@/pages";
 import InventoryPage from "@/pages/InventoryPage";
 import FinancePage from "@/pages/FinancePage";
+import BatchFinancePage from "@/pages/BatchFinancePage";
 import { BatchesProvider } from "@/contexts/batches";
 
 // Create a basic MUI theme
@@ -72,6 +73,7 @@ function App() {
                         <Route path="/" element={<BatchListPage />} />
                         <Route path="/batches" element={<BatchListPage />} />
                         <Route path="/batches/:id" element={<BatchDetailPage />} />
+                        <Route path="/batches/:id/finance" element={<BatchFinancePage />} />
                         <Route path="/inventory" element={<InventoryPage />} />
                         <Route path="/inventory/assets/:id" element={<AssetDetailPage />} />
                         <Route path="/inventory/products/:id" element={<ProductDetailPage />} />

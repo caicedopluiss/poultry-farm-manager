@@ -119,6 +119,7 @@ public class Program
 
         // Transaction endpoints
         app.MapEndpoint<CreateTransactionEndpoint>(apiPrefix);
+        app.MapEndpoint<GetBatchTransactionsEndpoint>(apiPrefix);
 
         // Person endpoints
         app.MapEndpoint<CreatePersonEndpoint>(apiPrefix);

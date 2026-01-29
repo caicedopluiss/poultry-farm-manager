@@ -125,6 +125,35 @@ public sealed class CreateTransactionCommand
                 }
             }
 
+            // Business rule: If ProductVariantId has a value, transaction must be an expense and cannot have CustomerId
+            if (args.NewTransaction.ProductVariantId.HasValue && args.NewTransaction.ProductVariantId.Value != Guid.Empty)
+            {
+                if (Enum.TryParse<TransactionType>(args.NewTransaction.Type, ignoreCase: true, out var transactionType))
+                {
+                    if (transactionType != TransactionType.Expense)
+                    {
+                        errors.Add(("productVariantId", "Product variant can only be assigned to expense transactions."));
+                    }
+                }
+
+                if (args.NewTransaction.CustomerId.HasValue && args.NewTransaction.CustomerId.Value != Guid.Empty)
+                {
+                    errors.Add(("customerId", "Customer cannot be specified when product variant is assigned."));
+                }
+            }
+
+            // Business rule: CustomerId must not be null for income transactions
+            if (Enum.TryParse<TransactionType>(args.NewTransaction.Type, ignoreCase: true, out var type))
+            {
+                if (type == TransactionType.Income)
+                {
+                    if (!args.NewTransaction.CustomerId.HasValue || args.NewTransaction.CustomerId.Value == Guid.Empty)
+                    {
+                        errors.Add(("customerId", "Customer is required for income transactions."));
+                    }
+                }
+            }
+
             return errors;
         }
     }

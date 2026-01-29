@@ -7,6 +7,7 @@ using PoultryFarmManager.Application.Commands.Products;
 using PoultryFarmManager.Application.Commands.ProductVariants;
 using PoultryFarmManager.Application.Commands.Transactions;
 using PoultryFarmManager.Application.Commands.Vendors;
+using PoultryFarmManager.Application.Queries.Transactions;
 using PoultryFarmManager.Application.Queries.Assets;
 using PoultryFarmManager.Application.Queries.Batches;
 using PoultryFarmManager.Application.Queries.Persons;
@@ -52,6 +53,7 @@ public static class ApplicationServices
 
         // Transactions
         services.AddScoped<IAppRequestHandler<CreateTransactionCommand.Args, CreateTransactionCommand.Result>, CreateTransactionCommand.Handler>();
+        services.AddScoped<IAppRequestHandler<GetBatchTransactionsQuery.Args, GetBatchTransactionsQuery.Result>, GetBatchTransactionsQuery.Handler>();
 
         // Persons
         services.AddScoped<IAppRequestHandler<CreatePersonCommand.Args, CreatePersonCommand.Result>, CreatePersonCommand.Handler>();

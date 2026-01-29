@@ -21,4 +21,6 @@ export interface NewBatch {
     unsexedCount: number;
     breed?: string | null;
     shed?: string | null;
+    vendorId: string;
+    initialCost: number;
 }
