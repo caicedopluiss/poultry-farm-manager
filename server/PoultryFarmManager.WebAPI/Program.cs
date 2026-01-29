@@ -15,6 +15,7 @@ using PoultryFarmManager.WebAPI.Endpoints.v1.Persons;
 using PoultryFarmManager.WebAPI.Endpoints.v1.Products;
 using PoultryFarmManager.WebAPI.Endpoints.v1.ProductVariants;
 using PoultryFarmManager.WebAPI.Endpoints.v1.Transactions;
+using PoultryFarmManager.WebAPI.Endpoints.v1.Vendors;
 
 namespace PoultryFarmManager.WebAPI;
 
@@ -124,6 +125,12 @@ public class Program
         app.MapEndpoint<GetAllPersonsEndpoint>(apiPrefix);
         app.MapEndpoint<GetPersonByIdEndpoint>(apiPrefix);
         app.MapEndpoint<UpdatePersonEndpoint>(apiPrefix);
+
+        // Vendor endpoints
+        app.MapEndpoint<CreateVendorEndpoint>(apiPrefix);
+        app.MapEndpoint<GetAllVendorsEndpoint>(apiPrefix);
+        app.MapEndpoint<GetVendorByIdEndpoint>(apiPrefix);
+        app.MapEndpoint<UpdateVendorEndpoint>(apiPrefix);
 
         app.UseCors("AllowAllOrigins");
 

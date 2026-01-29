@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import {
     Box,
-    Container,
     Typography,
     Button,
     Paper,
@@ -116,7 +115,7 @@ export default function PersonListPage() {
     };
 
     return (
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
                 <Typography variant="h4" component="h1">
                     Persons
@@ -234,6 +233,6 @@ export default function PersonListPage() {
                     </Button>
                 </DialogActions>
             </Dialog>
-        </Container>
+        </>
     );
 }

@@ -6,11 +6,13 @@ using PoultryFarmManager.Application.Commands.Persons;
 using PoultryFarmManager.Application.Commands.Products;
 using PoultryFarmManager.Application.Commands.ProductVariants;
 using PoultryFarmManager.Application.Commands.Transactions;
+using PoultryFarmManager.Application.Commands.Vendors;
 using PoultryFarmManager.Application.Queries.Assets;
 using PoultryFarmManager.Application.Queries.Batches;
 using PoultryFarmManager.Application.Queries.Persons;
 using PoultryFarmManager.Application.Queries.Products;
 using PoultryFarmManager.Application.Queries.ProductVariants;
+using PoultryFarmManager.Application.Queries.Vendors;
 using PoultryFarmManager.Application.Shared.CQRS;
 
 namespace PoultryFarmManager.Application;
@@ -54,6 +56,10 @@ public static class ApplicationServices
         // Persons
         services.AddScoped<IAppRequestHandler<CreatePersonCommand.Args, CreatePersonCommand.Result>, CreatePersonCommand.Handler>();
         services.AddScoped<IAppRequestHandler<UpdatePersonCommand.Args, UpdatePersonCommand.Result>, UpdatePersonCommand.Handler>();
+
+        // Vendors
+        services.AddScoped<IAppRequestHandler<CreateVendorCommand.Args, CreateVendorCommand.Result>, CreateVendorCommand.Handler>();
+        services.AddScoped<IAppRequestHandler<UpdateVendorCommand.Args, UpdateVendorCommand.Result>, UpdateVendorCommand.Handler>();
     }
 
     private static void AddQueryHandlers(IServiceCollection services)
@@ -78,5 +84,9 @@ public static class ApplicationServices
         // Persons
         services.AddScoped<IAppRequestHandler<GetAllPersonsQuery.Args, GetAllPersonsQuery.Result>, GetAllPersonsQuery.Handler>();
         services.AddScoped<IAppRequestHandler<GetPersonByIdQuery.Args, GetPersonByIdQuery.Result>, GetPersonByIdQuery.Handler>();
+
+        // Vendors
+        services.AddScoped<IAppRequestHandler<GetAllVendorsQuery.Args, GetAllVendorsQuery.Result>, GetAllVendorsQuery.Handler>();
+        services.AddScoped<IAppRequestHandler<GetVendorByIdQuery.Args, GetVendorByIdQuery.Result>, GetVendorByIdQuery.Handler>();
     }
 }
