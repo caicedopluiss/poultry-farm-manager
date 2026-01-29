@@ -8,10 +8,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using PoultryFarmManager.Application;
 using PoultryFarmManager.Infrastructure;
+using PoultryFarmManager.WebAPI.Endpoints.v1;
 using PoultryFarmManager.WebAPI.Endpoints.v1.Assets;
 using PoultryFarmManager.WebAPI.Endpoints.v1.Batches;
+using PoultryFarmManager.WebAPI.Endpoints.v1.Persons;
 using PoultryFarmManager.WebAPI.Endpoints.v1.Products;
 using PoultryFarmManager.WebAPI.Endpoints.v1.ProductVariants;
+using PoultryFarmManager.WebAPI.Endpoints.v1.Transactions;
+using PoultryFarmManager.WebAPI.Endpoints.v1.Vendors;
 
 namespace PoultryFarmManager.WebAPI;
 
@@ -112,6 +116,22 @@ public class Program
         app.MapEndpoint<GetProductVariantByIdEndpoint>(apiPrefix);
         app.MapEndpoint<GetProductVariantsByProductIdEndpoint>(apiPrefix);
         app.MapEndpoint<UpdateProductVariantEndpoint>(apiPrefix);
+
+        // Transaction endpoints
+        app.MapEndpoint<CreateTransactionEndpoint>(apiPrefix);
+        app.MapEndpoint<GetBatchTransactionsEndpoint>(apiPrefix);
+
+        // Person endpoints
+        app.MapEndpoint<CreatePersonEndpoint>(apiPrefix);
+        app.MapEndpoint<GetAllPersonsEndpoint>(apiPrefix);
+        app.MapEndpoint<GetPersonByIdEndpoint>(apiPrefix);
+        app.MapEndpoint<UpdatePersonEndpoint>(apiPrefix);
+
+        // Vendor endpoints
+        app.MapEndpoint<CreateVendorEndpoint>(apiPrefix);
+        app.MapEndpoint<GetAllVendorsEndpoint>(apiPrefix);
+        app.MapEndpoint<GetVendorByIdEndpoint>(apiPrefix);
+        app.MapEndpoint<UpdateVendorEndpoint>(apiPrefix);
 
         app.UseCors("AllowAllOrigins");
 

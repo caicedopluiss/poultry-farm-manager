@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using PoultryFarmManager.Application.DTOs;
 using PoultryFarmManager.Application.Shared.CQRS;
 using PoultryFarmManager.Core.Enums;
+using PoultryFarmManager.Core.Models.Finance;
 
 namespace PoultryFarmManager.Application.Commands.Batches;
 
@@ -22,6 +23,25 @@ public sealed class CreateBatchCommand
             batch.Status = BatchStatus.Active;
 
             var createdBatch = await unitOfWork.Batches.CreateAsync(batch, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+
+            // Create a transaction for the batch (vendor and initial cost are mandatory)
+            var transaction = new Transaction
+            {
+                Title = $"Initial cost for batch: {createdBatch.Name}",
+                Date = createdBatch.StartDate,
+                Type = TransactionType.Expense,
+                UnitPrice = args.NewBatch.InitialCost,
+                Quantity = null,
+                TransactionAmount = args.NewBatch.InitialCost,
+                BatchId = createdBatch.Id,
+                VendorId = args.NewBatch.VendorId,
+                ProductVariantId = null,
+                CustomerId = null,
+                Notes = "Automatically created during batch registration"
+            };
+
+            await unitOfWork.Transactions.CreateAsync(transaction, cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             var batchDto = new BatchDto().Map(createdBatch);
@@ -84,6 +104,27 @@ public sealed class CreateBatchCommand
             if (args.NewBatch.MaleCount + args.NewBatch.FemaleCount + args.NewBatch.UnsexedCount <= 0)
             {
                 errors.Add(("population", "Batch population must be greater than zero."));
+            }
+
+            // Validate vendor is provided (mandatory)
+            if (args.NewBatch.VendorId == Guid.Empty)
+            {
+                errors.Add(("vendorId", "Vendor is required."));
+            }
+            else
+            {
+                // Validate vendor exists
+                var vendor = await unitOfWork.Vendors.GetByIdAsync(args.NewBatch.VendorId, track: false, cancellationToken);
+                if (vendor == null)
+                {
+                    errors.Add(("vendorId", "The specified vendor does not exist."));
+                }
+            }
+
+            // Validate initial cost is provided and greater than zero (mandatory)
+            if (args.NewBatch.InitialCost <= 0)
+            {
+                errors.Add(("initialCost", "Initial cost is required and must be greater than zero."));
             }
 
             return errors;

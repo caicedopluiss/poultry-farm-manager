@@ -10,7 +10,9 @@ public record NewBatchDto(
     int FemaleCount,
     int UnsexedCount,
     string? Breed,
-    string? Shed)
+    string? Shed,
+    Guid VendorId,
+    decimal InitialCost)
 {
     public Batch Map(Batch? to = null)
     {
@@ -54,7 +56,7 @@ public record BatchDto(
     public BatchDto Map(Batch from, BatchDto? to = null, DateTime? firstStatusChangeDate = null)
     {
         var firstStatusChangeDateString = firstStatusChangeDate?.ToString(Constants.DateTimeFormat);
-        
+
         return to is not null ? to with
         {
             Id = from.Id,

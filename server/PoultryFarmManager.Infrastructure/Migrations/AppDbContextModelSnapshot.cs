@@ -202,6 +202,128 @@ namespace PoultryFarmManager.Infrastructure.Migrations
                     b.ToTable("WeightMeasurementActivities", (string)null);
                 });
 
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.Finance.Person", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Persons", (string)null);
+                });
+
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.Finance.Transaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("BatchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CustomerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid?>("ProductVariantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<decimal>("TransactionAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<byte>("Type")
+                        .HasColumnType("smallint");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid?>("VendorId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BatchId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("Date");
+
+                    b.HasIndex("ProductVariantId");
+
+                    b.HasIndex("Type");
+
+                    b.HasIndex("VendorId");
+
+                    b.ToTable("Transactions", (string)null);
+                });
+
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.Finance.Vendor", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ContactPersonId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContactPersonId");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Vendors", (string)null);
+                });
+
             modelBuilder.Entity("PoultryFarmManager.Core.Models.Inventory.Asset", b =>
                 {
                     b.Property<Guid>("Id")
@@ -378,6 +500,48 @@ namespace PoultryFarmManager.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Batch");
+                });
+
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.Finance.Transaction", b =>
+                {
+                    b.HasOne("PoultryFarmManager.Core.Models.Batch", "Batch")
+                        .WithMany()
+                        .HasForeignKey("BatchId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("PoultryFarmManager.Core.Models.Finance.Person", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("PoultryFarmManager.Core.Models.Inventory.ProductVariant", "ProductVariant")
+                        .WithMany()
+                        .HasForeignKey("ProductVariantId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("PoultryFarmManager.Core.Models.Finance.Vendor", "Vendor")
+                        .WithMany()
+                        .HasForeignKey("VendorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Batch");
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("ProductVariant");
+
+                    b.Navigation("Vendor");
+                });
+
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.Finance.Vendor", b =>
+                {
+                    b.HasOne("PoultryFarmManager.Core.Models.Finance.Person", "ContactPerson")
+                        .WithMany()
+                        .HasForeignKey("ContactPersonId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ContactPerson");
                 });
 
             modelBuilder.Entity("PoultryFarmManager.Core.Models.Inventory.AssetState", b =>
