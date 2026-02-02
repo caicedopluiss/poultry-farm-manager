@@ -6,7 +6,7 @@ interface GetBatchTransactionsResponse {
 }
 
 export async function getBatchTransactions(batchId: string): Promise<Transaction[]> {
-    const response: GetBatchTransactionsResponse = await apiClient.get(`/v1/batches/${batchId}/transactions`);
+    const response: GetBatchTransactionsResponse = await apiClient.get(`v1/batches/${batchId}/transactions`);
     return response.transactions;
 }
 
@@ -15,7 +15,7 @@ interface CreateTransactionResponse {
 }
 
 export async function createTransaction(transaction: NewTransaction): Promise<Transaction> {
-    const response: CreateTransactionResponse = await apiClient.post("/v1/transactions", {
+    const response: CreateTransactionResponse = await apiClient.post("v1/transactions", {
         transaction,
     });
     return response.transaction;

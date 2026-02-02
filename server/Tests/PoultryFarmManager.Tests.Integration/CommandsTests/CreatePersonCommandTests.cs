@@ -129,7 +129,7 @@ public class CreatePersonCommandTests(TestsFixture fixture) : IClassFixture<Test
     public async Task CreatePersonCommand_ShouldFail_WhenFirstNameExceeds50Characters()
     {
         // Arrange
-        var longFirstName = new string('A', 51);
+        var longFirstName = new string('A', 101);
         var newPerson = new NewPersonDto(
             FirstName: longFirstName,
             LastName: "Doe",
@@ -144,7 +144,7 @@ public class CreatePersonCommandTests(TestsFixture fixture) : IClassFixture<Test
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains(result.ValidationErrors, e => e.field == "firstName" && e.error == "First name cannot exceed 50 characters.");
+        Assert.Contains(result.ValidationErrors, e => e.field == "firstName" && e.error == "First name cannot exceed 100 characters.");
     }
 
     [Fact]
@@ -193,7 +193,7 @@ public class CreatePersonCommandTests(TestsFixture fixture) : IClassFixture<Test
     public async Task CreatePersonCommand_ShouldFail_WhenLastNameExceeds50Characters()
     {
         // Arrange
-        var longLastName = new string('B', 51);
+        var longLastName = new string('B', 101);
         var newPerson = new NewPersonDto(
             FirstName: "John",
             LastName: longLastName,
@@ -208,7 +208,7 @@ public class CreatePersonCommandTests(TestsFixture fixture) : IClassFixture<Test
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains(result.ValidationErrors, e => e.field == "lastName" && e.error == "Last name cannot exceed 50 characters.");
+        Assert.Contains(result.ValidationErrors, e => e.field == "lastName" && e.error == "Last name cannot exceed 100 characters.");
     }
 
     [Fact]
@@ -236,7 +236,7 @@ public class CreatePersonCommandTests(TestsFixture fixture) : IClassFixture<Test
     public async Task CreatePersonCommand_ShouldFail_WhenEmailExceeds100Characters()
     {
         // Arrange
-        var longEmail = new string('a', 91) + "@email.com"; // Total 101 chars
+        var longEmail = new string('a', 191) + "@email.com"; // Total 201 chars
         var newPerson = new NewPersonDto(
             FirstName: "John",
             LastName: "Doe",
@@ -251,14 +251,14 @@ public class CreatePersonCommandTests(TestsFixture fixture) : IClassFixture<Test
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains(result.ValidationErrors, e => e.field == "email" && e.error == "Email cannot exceed 100 characters.");
+        Assert.Contains(result.ValidationErrors, e => e.field == "email" && e.error == "Email cannot exceed 200 characters.");
     }
 
     [Fact]
     public async Task CreatePersonCommand_ShouldFail_WhenPhoneNumberExceeds20Characters()
     {
         // Arrange
-        var longPhoneNumber = new string('1', 21);
+        var longPhoneNumber = new string('1', 51);
         var newPerson = new NewPersonDto(
             FirstName: "John",
             LastName: "Doe",
@@ -273,7 +273,7 @@ public class CreatePersonCommandTests(TestsFixture fixture) : IClassFixture<Test
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains(result.ValidationErrors, e => e.field == "phoneNumber" && e.error == "Phone number cannot exceed 20 characters.");
+        Assert.Contains(result.ValidationErrors, e => e.field == "phoneNumber" && e.error == "Phone number cannot exceed 50 characters.");
     }
 
     [Fact]
@@ -327,7 +327,7 @@ public class CreatePersonCommandTests(TestsFixture fixture) : IClassFixture<Test
             FirstName: "",
             LastName: "",
             Email: "bad-email",
-            PhoneNumber: new string('9', 21),
+            PhoneNumber: new string('9', 51),
             Location: new string('Y', 101)
         );
         var request = new AppRequest<CreatePersonCommand.Args>(new(newPerson));

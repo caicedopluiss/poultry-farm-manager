@@ -45,12 +45,9 @@ public sealed class CreateVendorCommand
             }
 
             // Validate Location (optional but validate length if provided)
-            if (!string.IsNullOrWhiteSpace(args.NewVendor.Location))
+            if (!string.IsNullOrWhiteSpace(args.NewVendor.Location) && args.NewVendor.Location.Length > 100)
             {
-                if (args.NewVendor.Location.Length > 100)
-                {
-                    errors.Add(("location", "Location cannot exceed 100 characters."));
-                }
+                errors.Add(("location", "Location cannot exceed 100 characters."));
             }
 
             // Validate ContactPersonId

@@ -290,7 +290,7 @@ public class UpdatePersonCommandTests(TestsFixture fixture) : IClassFixture<Test
         var updateData = new UpdatePersonDto(
             FirstName: null,
             LastName: null,
-            Email: new string('A', 101),
+            Email: new string('A', 201),
             PhoneNumber: null,
             Location: null);
 
@@ -302,7 +302,7 @@ public class UpdatePersonCommandTests(TestsFixture fixture) : IClassFixture<Test
         // Assert
         Assert.NotNull(result);
         Assert.False(result.IsSuccess);
-        Assert.Contains(result.ValidationErrors, e => e.field == "email" && e.error.Contains("cannot exceed 100 characters"));
+        Assert.Contains(result.ValidationErrors, e => e.field == "email" && e.error.Contains("cannot exceed 200 characters"));
     }
 
     [Fact]
@@ -317,7 +317,7 @@ public class UpdatePersonCommandTests(TestsFixture fixture) : IClassFixture<Test
             FirstName: null,
             LastName: null,
             Email: null,
-            PhoneNumber: new string('1', 21),
+            PhoneNumber: new string('1', 51),
             Location: null);
 
         var request = new AppRequest<UpdatePersonCommand.Args>(new(person.Id, updateData));
@@ -328,7 +328,7 @@ public class UpdatePersonCommandTests(TestsFixture fixture) : IClassFixture<Test
         // Assert
         Assert.NotNull(result);
         Assert.False(result.IsSuccess);
-        Assert.Contains(result.ValidationErrors, e => e.field == "phoneNumber" && e.error.Contains("cannot exceed 20 characters"));
+        Assert.Contains(result.ValidationErrors, e => e.field == "phoneNumber" && e.error.Contains("cannot exceed 50 characters"));
     }
 
     [Fact]

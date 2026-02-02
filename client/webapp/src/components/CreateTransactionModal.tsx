@@ -50,8 +50,8 @@ export default function CreateTransactionModal({
         unitPrice: "",
         quantity: "",
         notes: "",
-        vendorId: "",
-        customerId: "",
+        vendorId: null as string | null,
+        customerId: null as string | null,
     });
 
     const [vendors, setVendors] = useState<Vendor[]>([]);
@@ -108,8 +108,8 @@ export default function CreateTransactionModal({
                 unitPrice: "",
                 quantity: "",
                 notes: "",
-                vendorId: "",
-                customerId: "",
+                vendorId: null,
+                customerId: null,
             });
             setError(null);
         }
@@ -235,8 +235,10 @@ export default function CreateTransactionModal({
                             <FormControl fullWidth disabled={loading || vendorsLoading}>
                                 <InputLabel>Vendor (Optional)</InputLabel>
                                 <Select
-                                    value={formData.vendorId}
-                                    onChange={(e) => setFormData((prev) => ({ ...prev, vendorId: e.target.value }))}
+                                    value={formData.vendorId ?? ""}
+                                    onChange={(e) =>
+                                        setFormData((prev) => ({ ...prev, vendorId: e.target.value || null }))
+                                    }
                                     label="Vendor (Optional)"
                                 >
                                     <MenuItem value="">
@@ -255,8 +257,10 @@ export default function CreateTransactionModal({
                             <FormControl fullWidth required disabled={loading || personsLoading}>
                                 <InputLabel>Customer *</InputLabel>
                                 <Select
-                                    value={formData.customerId}
-                                    onChange={(e) => setFormData((prev) => ({ ...prev, customerId: e.target.value }))}
+                                    value={formData.customerId ?? ""}
+                                    onChange={(e) =>
+                                        setFormData((prev) => ({ ...prev, customerId: e.target.value || null }))
+                                    }
                                     label="Customer *"
                                 >
                                     <MenuItem value="">

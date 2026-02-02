@@ -54,7 +54,7 @@ public class UpdatePersonEndpoint : IEndpoint
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
         {
-            return Results.NotFound(new { error = ex.Message });
+            return Results.NotFound(new ErrorResponse(StatusCodes.Status404NotFound, ex.Message));
         }
     }
 }

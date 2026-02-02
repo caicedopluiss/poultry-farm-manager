@@ -212,7 +212,6 @@ public class UpdateVendorCommandTests(TestsFixture fixture) : IClassFixture<Test
     public async Task UpdateVendorCommand_ShouldFail_WhenNameIsEmpty()
     {
         // Arrange
-        var testId = Guid.NewGuid().ToString("N")[..8];
         var contactPerson = new Person
         {
             Id = Guid.NewGuid(),

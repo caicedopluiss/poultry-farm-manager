@@ -37,9 +37,9 @@ public sealed class CreatePersonCommand
             {
                 errors.Add(("firstName", "First name is required."));
             }
-            else if (args.NewPerson.FirstName.Length > 50)
+            else if (args.NewPerson.FirstName.Length > 100)
             {
-                errors.Add(("firstName", "First name cannot exceed 50 characters."));
+                errors.Add(("firstName", "First name cannot exceed 100 characters."));
             }
 
             // Validate LastName
@@ -47,17 +47,17 @@ public sealed class CreatePersonCommand
             {
                 errors.Add(("lastName", "Last name is required."));
             }
-            else if (args.NewPerson.LastName.Length > 50)
+            else if (args.NewPerson.LastName.Length > 100)
             {
-                errors.Add(("lastName", "Last name cannot exceed 50 characters."));
+                errors.Add(("lastName", "Last name cannot exceed 100 characters."));
             }
 
             // Validate Email (optional but must be valid if provided)
             if (!string.IsNullOrWhiteSpace(args.NewPerson.Email))
             {
-                if (args.NewPerson.Email.Length > 100)
+                if (args.NewPerson.Email.Length > 200)
                 {
-                    errors.Add(("email", "Email cannot exceed 100 characters."));
+                    errors.Add(("email", "Email cannot exceed 200 characters."));
                 }
                 else if (!IsValidEmail(args.NewPerson.Email))
                 {
@@ -66,21 +66,15 @@ public sealed class CreatePersonCommand
             }
 
             // Validate PhoneNumber (optional but validate length if provided)
-            if (!string.IsNullOrWhiteSpace(args.NewPerson.PhoneNumber))
+            if (!string.IsNullOrWhiteSpace(args.NewPerson.PhoneNumber) && args.NewPerson.PhoneNumber.Length > 50)
             {
-                if (args.NewPerson.PhoneNumber.Length > 20)
-                {
-                    errors.Add(("phoneNumber", "Phone number cannot exceed 20 characters."));
-                }
+                errors.Add(("phoneNumber", "Phone number cannot exceed 50 characters."));
             }
 
             // Validate Location (optional but validate length if provided)
-            if (!string.IsNullOrWhiteSpace(args.NewPerson.Location))
+            if (!string.IsNullOrWhiteSpace(args.NewPerson.Location) && args.NewPerson.Location.Length > 100)
             {
-                if (args.NewPerson.Location.Length > 100)
-                {
-                    errors.Add(("location", "Location cannot exceed 100 characters."));
-                }
+                errors.Add(("location", "Location cannot exceed 100 characters."));
             }
 
             await Task.CompletedTask;

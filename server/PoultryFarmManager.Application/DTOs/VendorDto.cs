@@ -58,7 +58,7 @@ public record UpdateVendorDto(
             vendor.Name = Name;
 
         if (Location is not null)
-            vendor.Location = Location;
+            vendor.Location = string.IsNullOrWhiteSpace(Location) ? null : Location;
 
         if (ContactPersonId is not null)
             vendor.ContactPersonId = ContactPersonId.Value;

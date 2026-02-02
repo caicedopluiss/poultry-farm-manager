@@ -27,10 +27,10 @@ public record NewTransactionDto(
         result.Quantity = Quantity;
         result.TransactionAmount = TransactionAmount;
         result.Notes = Notes;
-        result.ProductVariantId = ProductVariantId;
-        result.BatchId = BatchId;
-        result.VendorId = VendorId;
-        result.CustomerId = CustomerId;
+        result.ProductVariantId = ProductVariantId == Guid.Empty ? null : ProductVariantId;
+        result.BatchId = BatchId == Guid.Empty ? null : BatchId;
+        result.VendorId = VendorId == Guid.Empty ? null : VendorId;
+        result.CustomerId = CustomerId == Guid.Empty ? null : CustomerId;
 
         return result;
     }

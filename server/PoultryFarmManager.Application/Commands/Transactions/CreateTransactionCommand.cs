@@ -86,7 +86,7 @@ public sealed class CreateTransactionCommand
             }
 
             // Validate ProductVariantId existence
-            if (args.NewTransaction.ProductVariantId.HasValue && args.NewTransaction.ProductVariantId.Value != Guid.Empty)
+            if (args.NewTransaction.ProductVariantId.HasValue)
             {
                 var productVariant = await unitOfWork.ProductVariants.GetByIdAsync(args.NewTransaction.ProductVariantId.Value, track: false, cancellationToken);
                 if (productVariant == null)
@@ -96,7 +96,7 @@ public sealed class CreateTransactionCommand
             }
 
             // Validate BatchId existence
-            if (args.NewTransaction.BatchId.HasValue && args.NewTransaction.BatchId.Value != Guid.Empty)
+            if (args.NewTransaction.BatchId.HasValue)
             {
                 var batch = await unitOfWork.Batches.GetByIdAsync(args.NewTransaction.BatchId.Value, track: false, cancellationToken);
                 if (batch == null)
@@ -106,7 +106,7 @@ public sealed class CreateTransactionCommand
             }
 
             // Validate VendorId existence
-            if (args.NewTransaction.VendorId.HasValue && args.NewTransaction.VendorId.Value != Guid.Empty)
+            if (args.NewTransaction.VendorId.HasValue)
             {
                 var vendor = await unitOfWork.Vendors.GetByIdAsync(args.NewTransaction.VendorId.Value, track: false, cancellationToken);
                 if (vendor == null)
@@ -116,7 +116,7 @@ public sealed class CreateTransactionCommand
             }
 
             // Validate CustomerId existence
-            if (args.NewTransaction.CustomerId.HasValue && args.NewTransaction.CustomerId.Value != Guid.Empty)
+            if (args.NewTransaction.CustomerId.HasValue)
             {
                 var customer = await unitOfWork.Persons.GetByIdAsync(args.NewTransaction.CustomerId.Value, track: false, cancellationToken);
                 if (customer == null)
@@ -126,14 +126,11 @@ public sealed class CreateTransactionCommand
             }
 
             // Business rule: If ProductVariantId has a value, transaction must be an expense and cannot have CustomerId
-            if (args.NewTransaction.ProductVariantId.HasValue && args.NewTransaction.ProductVariantId.Value != Guid.Empty)
+            if (args.NewTransaction.ProductVariantId.HasValue)
             {
-                if (Enum.TryParse<TransactionType>(args.NewTransaction.Type, ignoreCase: true, out var transactionType))
+                if (Enum.TryParse<TransactionType>(args.NewTransaction.Type, ignoreCase: true, out var transactionType) && transactionType != TransactionType.Expense)
                 {
-                    if (transactionType != TransactionType.Expense)
-                    {
-                        errors.Add(("productVariantId", "Product variant can only be assigned to expense transactions."));
-                    }
+                    errors.Add(("productVariantId", "Product variant can only be assigned to expense transactions."));
                 }
 
                 if (args.NewTransaction.CustomerId.HasValue && args.NewTransaction.CustomerId.Value != Guid.Empty)
@@ -143,15 +140,11 @@ public sealed class CreateTransactionCommand
             }
 
             // Business rule: CustomerId must not be null for income transactions
-            if (Enum.TryParse<TransactionType>(args.NewTransaction.Type, ignoreCase: true, out var type))
+            if (Enum.TryParse<TransactionType>(args.NewTransaction.Type, ignoreCase: true, out var type) &&
+                type == TransactionType.Income &&
+                (!args.NewTransaction.CustomerId.HasValue || args.NewTransaction.CustomerId.Value == Guid.Empty))
             {
-                if (type == TransactionType.Income)
-                {
-                    if (!args.NewTransaction.CustomerId.HasValue || args.NewTransaction.CustomerId.Value == Guid.Empty)
-                    {
-                        errors.Add(("customerId", "Customer is required for income transactions."));
-                    }
-                }
+                errors.Add(("customerId", "Customer is required for income transactions."));
             }
 
             return errors;

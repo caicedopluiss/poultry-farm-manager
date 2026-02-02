@@ -23,7 +23,6 @@ public sealed class CreateBatchCommand
             batch.Status = BatchStatus.Active;
 
             var createdBatch = await unitOfWork.Batches.CreateAsync(batch, cancellationToken);
-            await unitOfWork.SaveChangesAsync(cancellationToken);
 
             // Create a transaction for the batch (vendor and initial cost are mandatory)
             var transaction = new Transaction
@@ -42,6 +41,8 @@ public sealed class CreateBatchCommand
             };
 
             await unitOfWork.Transactions.CreateAsync(transaction, cancellationToken);
+
+            // Save both batch and transaction atomically in a single database transaction
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             var batchDto = new BatchDto().Map(createdBatch);

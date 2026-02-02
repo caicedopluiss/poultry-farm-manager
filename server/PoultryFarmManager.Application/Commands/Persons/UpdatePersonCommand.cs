@@ -24,29 +24,23 @@ public static class UpdatePersonCommand
             var errors = new List<(string field, string error)>();
 
             // Validate first name (if provided)
-            if (!string.IsNullOrWhiteSpace(args.UpdateData.FirstName))
+            if (!string.IsNullOrWhiteSpace(args.UpdateData.FirstName) && args.UpdateData.FirstName.Length > 100)
             {
-                if (args.UpdateData.FirstName.Length > 100)
-                {
-                    errors.Add(("firstName", "First name cannot exceed 100 characters."));
-                }
+                errors.Add(("firstName", "First name cannot exceed 100 characters."));
             }
 
             // Validate last name (if provided)
-            if (!string.IsNullOrWhiteSpace(args.UpdateData.LastName))
+            if (!string.IsNullOrWhiteSpace(args.UpdateData.LastName) && args.UpdateData.LastName.Length > 100)
             {
-                if (args.UpdateData.LastName.Length > 100)
-                {
-                    errors.Add(("lastName", "Last name cannot exceed 100 characters."));
-                }
+                errors.Add(("lastName", "Last name cannot exceed 100 characters."));
             }
 
             // Validate email (if provided)
             if (args.UpdateData.Email != null && !string.IsNullOrWhiteSpace(args.UpdateData.Email))
             {
-                if (args.UpdateData.Email.Length > 100)
+                if (args.UpdateData.Email.Length > 200)
                 {
-                    errors.Add(("email", "Email cannot exceed 100 characters."));
+                    errors.Add(("email", "Email cannot exceed 200 characters."));
                 }
                 else if (!IsValidEmail(args.UpdateData.Email))
                 {
@@ -55,21 +49,15 @@ public static class UpdatePersonCommand
             }
 
             // Validate phone number (if provided)
-            if (args.UpdateData.PhoneNumber != null && !string.IsNullOrWhiteSpace(args.UpdateData.PhoneNumber))
+            if (args.UpdateData.PhoneNumber != null && !string.IsNullOrWhiteSpace(args.UpdateData.PhoneNumber) && args.UpdateData.PhoneNumber.Length > 50)
             {
-                if (args.UpdateData.PhoneNumber.Length > 20)
-                {
-                    errors.Add(("phoneNumber", "Phone number cannot exceed 20 characters."));
-                }
+                errors.Add(("phoneNumber", "Phone number cannot exceed 50 characters."));
             }
 
             // Validate location (if provided)
-            if (args.UpdateData.Location != null && !string.IsNullOrWhiteSpace(args.UpdateData.Location))
+            if (args.UpdateData.Location != null && !string.IsNullOrWhiteSpace(args.UpdateData.Location) && args.UpdateData.Location.Length > 100)
             {
-                if (args.UpdateData.Location.Length > 100)
-                {
-                    errors.Add(("location", "Location cannot exceed 100 characters."));
-                }
+                errors.Add(("location", "Location cannot exceed 100 characters."));
             }
 
             await Task.CompletedTask;

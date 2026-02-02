@@ -53,7 +53,6 @@ public static class ApplicationServices
 
         // Transactions
         services.AddScoped<IAppRequestHandler<CreateTransactionCommand.Args, CreateTransactionCommand.Result>, CreateTransactionCommand.Handler>();
-        services.AddScoped<IAppRequestHandler<GetBatchTransactionsQuery.Args, GetBatchTransactionsQuery.Result>, GetBatchTransactionsQuery.Handler>();
 
         // Persons
         services.AddScoped<IAppRequestHandler<CreatePersonCommand.Args, CreatePersonCommand.Result>, CreatePersonCommand.Handler>();
@@ -69,6 +68,9 @@ public static class ApplicationServices
         // Batches
         services.AddScoped<IAppRequestHandler<GetBatchesListQuery.Args, GetBatchesListQuery.Result>, GetBatchesListQuery.Handler>();
         services.AddScoped<IAppRequestHandler<GetBatchByIdQuery.Args, GetBatchByIdQuery.Result>, GetBatchByIdQuery.Handler>();
+
+        // Transactions
+        services.AddScoped<IAppRequestHandler<GetBatchTransactionsQuery.Args, GetBatchTransactionsQuery.Result>, GetBatchTransactionsQuery.Handler>();
 
         // Assets
         services.AddScoped<IAppRequestHandler<GetAllAssetsQuery.Args, GetAllAssetsQuery.Result>, GetAllAssetsQuery.Handler>();

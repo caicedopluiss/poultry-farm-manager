@@ -131,7 +131,7 @@ public class CreatePersonEndpointTests(TestsFixture fixture) : IClassFixture<Tes
     public async Task POST_Person_FirstNameTooLong_ShouldReturnBadRequest()
     {
         // Arrange
-        var longFirstName = new string('A', 51);
+        var longFirstName = new string('A', 101);
         var newPerson = new NewPersonDto(
             FirstName: longFirstName,
             LastName: "Doe",
@@ -147,14 +147,14 @@ public class CreatePersonEndpointTests(TestsFixture fixture) : IClassFixture<Tes
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Contains(errorResponse!.ValidationErrors, e => e.FieldName == "firstName" && e.Errors.Contains("First name cannot exceed 50 characters."));
+        Assert.Contains(errorResponse!.ValidationErrors, e => e.FieldName == "firstName" && e.Errors.Contains("First name cannot exceed 100 characters."));
     }
 
     [Fact]
     public async Task POST_Person_LastNameTooLong_ShouldReturnBadRequest()
     {
         // Arrange
-        var longLastName = new string('B', 51);
+        var longLastName = new string('B', 101);
         var newPerson = new NewPersonDto(
             FirstName: "John",
             LastName: longLastName,
@@ -170,7 +170,7 @@ public class CreatePersonEndpointTests(TestsFixture fixture) : IClassFixture<Tes
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Contains(errorResponse!.ValidationErrors, e => e.FieldName == "lastName" && e.Errors.Contains("Last name cannot exceed 50 characters."));
+        Assert.Contains(errorResponse!.ValidationErrors, e => e.FieldName == "lastName" && e.Errors.Contains("Last name cannot exceed 100 characters."));
     }
 
     [Fact]
@@ -199,7 +199,7 @@ public class CreatePersonEndpointTests(TestsFixture fixture) : IClassFixture<Tes
     public async Task POST_Person_EmailTooLong_ShouldReturnBadRequest()
     {
         // Arrange
-        var longEmail = new string('a', 91) + "@email.com"; // Total 101 chars
+        var longEmail = new string('a', 191) + "@email.com"; // Total 201 chars
         var newPerson = new NewPersonDto(
             FirstName: "John",
             LastName: "Doe",
@@ -215,14 +215,14 @@ public class CreatePersonEndpointTests(TestsFixture fixture) : IClassFixture<Tes
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Contains(errorResponse!.ValidationErrors, e => e.FieldName == "email" && e.Errors.Contains("Email cannot exceed 100 characters."));
+        Assert.Contains(errorResponse!.ValidationErrors, e => e.FieldName == "email" && e.Errors.Contains("Email cannot exceed 200 characters."));
     }
 
     [Fact]
     public async Task POST_Person_PhoneNumberTooLong_ShouldReturnBadRequest()
     {
         // Arrange
-        var longPhoneNumber = new string('1', 21);
+        var longPhoneNumber = new string('1', 51);
         var newPerson = new NewPersonDto(
             FirstName: "John",
             LastName: "Doe",
@@ -238,7 +238,7 @@ public class CreatePersonEndpointTests(TestsFixture fixture) : IClassFixture<Tes
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Contains(errorResponse!.ValidationErrors, e => e.FieldName == "phoneNumber" && e.Errors.Contains("Phone number cannot exceed 20 characters."));
+        Assert.Contains(errorResponse!.ValidationErrors, e => e.FieldName == "phoneNumber" && e.Errors.Contains("Phone number cannot exceed 50 characters."));
     }
 
     [Fact]
@@ -272,7 +272,7 @@ public class CreatePersonEndpointTests(TestsFixture fixture) : IClassFixture<Tes
             FirstName: "",
             LastName: "",
             Email: "bad-email",
-            PhoneNumber: new string('9', 21),
+            PhoneNumber: new string('9', 51),
             Location: new string('Y', 101)
         );
         var body = new { person = newPerson };

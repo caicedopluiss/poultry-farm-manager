@@ -30,16 +30,14 @@ public class GetBatchTransactionsQuery
 
         protected override async Task<Result> ExecuteAsync(Args args, CancellationToken cancellationToken = default)
         {
-            var allTransactions = await transactionsRepository.GetAllAsync(cancellationToken);
+            var batchTransactions = await transactionsRepository.GetByBatchIdAsync(args.BatchId, cancellationToken);
 
             var mapper = new TransactionDto();
-            var batchTransactions = allTransactions
-                .Where(t => t.BatchId == args.BatchId)
-                .OrderByDescending(t => t.Date)
+            var transactionDtos = batchTransactions
                 .Select(t => mapper.Map(t))
                 .ToList();
 
-            return new Result(batchTransactions);
+            return new Result(transactionDtos);
         }
     }
 }

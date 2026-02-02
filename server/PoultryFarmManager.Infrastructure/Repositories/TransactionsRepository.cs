@@ -17,19 +17,6 @@ public sealed class TransactionsRepository(AppDbContext context) : ITransactions
         return Task.FromResult(createdTransaction);
     }
 
-    public async Task<IReadOnlyCollection<Transaction>> GetAllAsync(CancellationToken cancellationToken = default)
-    {
-        var transactions = await context.Transactions
-            .Include(t => t.ProductVariant)
-            .Include(t => t.Batch)
-            .Include(t => t.Vendor)
-            .Include(t => t.Customer)
-            .AsNoTracking()
-            .OrderByDescending(t => t.Date)
-            .ToListAsync(cancellationToken);
-        return transactions;
-    }
-
     public async Task<Transaction?> GetByIdAsync(Guid id, bool track = false, CancellationToken cancellationToken = default)
     {
         var query = context.Transactions
@@ -46,6 +33,20 @@ public sealed class TransactionsRepository(AppDbContext context) : ITransactions
 
         var transaction = await query.FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
         return transaction;
+    }
+
+    public async Task<IReadOnlyCollection<Transaction>> GetByBatchIdAsync(Guid batchId, CancellationToken cancellationToken = default)
+    {
+        var transactions = await context.Transactions
+            .Where(t => t.BatchId == batchId)
+            .Include(t => t.ProductVariant)
+            .Include(t => t.Batch)
+            .Include(t => t.Vendor)
+            .Include(t => t.Customer)
+            .AsNoTracking()
+            .OrderByDescending(t => t.Date)
+            .ToListAsync(cancellationToken);
+        return transactions;
     }
 
     public Task<Transaction> UpdateAsync(Transaction transaction, CancellationToken cancellationToken = default)
