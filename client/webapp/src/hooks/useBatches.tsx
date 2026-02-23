@@ -17,7 +17,7 @@ export default function useBatches(): UseBatches {
     const fetchBatches = useCallback(async (): Promise<Batch[]> => {
         setLoading(true);
         try {
-            const response = await getBatches();
+            const response = await getBatches({ sortBy: "name", sortOrder: "desc" });
             return response.batches;
         } catch (err) {
             console.error("Failed to fetch batches:", err);
@@ -29,7 +29,7 @@ export default function useBatches(): UseBatches {
 
     const fetchBatchById = useCallback(
         async (
-            id: string
+            id: string,
         ): Promise<{
             batch: Batch | null;
             activities: BatchActivity[];
@@ -52,7 +52,7 @@ export default function useBatches(): UseBatches {
                 setLoading(false);
             }
         },
-        []
+        [],
     );
 
     const createBatch = useCallback(async (batchData: NewBatch): Promise<Batch | null> => {

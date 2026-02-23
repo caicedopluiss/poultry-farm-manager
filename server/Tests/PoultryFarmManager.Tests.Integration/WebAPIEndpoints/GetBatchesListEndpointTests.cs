@@ -186,4 +186,120 @@ public class GetBatchesListEndpointTests(TestsFixture fixture) : IClassFixture<T
         Assert.Null(batchWithoutActivityDto.FirstStatusChangeDate);
     }
 
+    [Fact]
+    public async Task GET_Batches_ShouldReturnBatchesSortedByNameDescending_WhenSortByNameAndSortOrderDesc()
+    {
+        // Arrange - Add batches with specific names
+        var batch1 = fixture.CreateRandomEntity<Core.Models.Batch>();
+        batch1.Name = "Alpha";
+        var batch2 = fixture.CreateRandomEntity<Core.Models.Batch>();
+        batch2.Name = "Bravo";
+        var batch3 = fixture.CreateRandomEntity<Core.Models.Batch>();
+        batch3.Name = "Charlie";
+        dbContext.Batches.AddRange(batch1, batch2, batch3);
+        await dbContext.SaveChangesAsync();
+
+        // Act - Real HTTP GET request with sorting query parameters
+        var response = await fixture.Client.GetAsync("/api/v1/batches?sortBy=name&sortOrder=desc");
+        var responseBody = await response.Content.ReadFromJsonAsync<GetBatchesListEndpoint.GetBatchesListResponseBody>();
+
+        // Assert
+        Assert.True(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(responseBody);
+        Assert.NotNull(responseBody.Batches);
+        var batchesList = responseBody.Batches.ToList();
+        Assert.Equal(3, batchesList.Count);
+        Assert.Equal("Charlie", batchesList[0].Name);
+        Assert.Equal("Bravo", batchesList[1].Name);
+        Assert.Equal("Alpha", batchesList[2].Name);
+    }
+
+    [Fact]
+    public async Task GET_Batches_ShouldReturnBatchesSortedByNameAscending_WhenSortByNameAndSortOrderAsc()
+    {
+        // Arrange - Add batches with specific names
+        var batch1 = fixture.CreateRandomEntity<Core.Models.Batch>();
+        batch1.Name = "Charlie";
+        var batch2 = fixture.CreateRandomEntity<Core.Models.Batch>();
+        batch2.Name = "Alpha";
+        var batch3 = fixture.CreateRandomEntity<Core.Models.Batch>();
+        batch3.Name = "Bravo";
+        dbContext.Batches.AddRange(batch1, batch2, batch3);
+        await dbContext.SaveChangesAsync();
+
+        // Act - Real HTTP GET request with sorting query parameters
+        var response = await fixture.Client.GetAsync("/api/v1/batches?sortBy=name&sortOrder=asc");
+        var responseBody = await response.Content.ReadFromJsonAsync<GetBatchesListEndpoint.GetBatchesListResponseBody>();
+
+        // Assert
+        Assert.True(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(responseBody);
+        Assert.NotNull(responseBody.Batches);
+        var batchesList = responseBody.Batches.ToList();
+        Assert.Equal(3, batchesList.Count);
+        Assert.Equal("Alpha", batchesList[0].Name);
+        Assert.Equal("Bravo", batchesList[1].Name);
+        Assert.Equal("Charlie", batchesList[2].Name);
+    }
+
+    [Fact]
+    public async Task GET_Batches_ShouldReturnBatchesSortedByStatusDescending_WhenSortByStatusAndSortOrderDesc()
+    {
+        // Arrange - Add batches with different statuses
+        var batch1 = fixture.CreateRandomEntity<Core.Models.Batch>();
+        batch1.Status = BatchStatus.Active;
+        var batch2 = fixture.CreateRandomEntity<Core.Models.Batch>();
+        batch2.Status = BatchStatus.Processed;
+        var batch3 = fixture.CreateRandomEntity<Core.Models.Batch>();
+        batch3.Status = BatchStatus.Canceled;
+        dbContext.Batches.AddRange(batch1, batch2, batch3);
+        await dbContext.SaveChangesAsync();
+
+        // Act - Real HTTP GET request with sorting query parameters
+        var response = await fixture.Client.GetAsync("/api/v1/batches?sortBy=status&sortOrder=desc");
+        var responseBody = await response.Content.ReadFromJsonAsync<GetBatchesListEndpoint.GetBatchesListResponseBody>();
+
+        // Assert
+        Assert.True(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(responseBody);
+        Assert.NotNull(responseBody.Batches);
+        var batchesList = responseBody.Batches.ToList();
+        Assert.Equal(3, batchesList.Count);
+        Assert.Equal(BatchStatus.Canceled.ToString(), batchesList[0].Status); // 4
+        Assert.Equal(BatchStatus.Processed.ToString(), batchesList[1].Status); // 1
+        Assert.Equal(BatchStatus.Active.ToString(), batchesList[2].Status); // 0
+    }
+
+    [Fact]
+    public async Task GET_Batches_ShouldReturnBatchesInDefaultOrder_WhenNoSortingParametersProvided()
+    {
+        // Arrange - Add batches with different start dates
+        var batch1 = fixture.CreateRandomEntity<Core.Models.Batch>();
+        batch1.StartDate = System.DateTime.UtcNow.AddDays(-5);
+        var batch2 = fixture.CreateRandomEntity<Core.Models.Batch>();
+        batch2.StartDate = System.DateTime.UtcNow.AddDays(-10);
+        var batch3 = fixture.CreateRandomEntity<Core.Models.Batch>();
+        batch3.StartDate = System.DateTime.UtcNow.AddDays(-1);
+        dbContext.Batches.AddRange(batch1, batch2, batch3);
+        await dbContext.SaveChangesAsync();
+
+        // Act - Real HTTP GET request without sorting parameters
+        var response = await fixture.Client.GetAsync("/api/v1/batches");
+        var responseBody = await response.Content.ReadFromJsonAsync<GetBatchesListEndpoint.GetBatchesListResponseBody>();
+
+        // Assert - Should be sorted by StartDate descending (default)
+        Assert.True(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(responseBody);
+        Assert.NotNull(responseBody.Batches);
+        var batchesList = responseBody.Batches.ToList();
+        Assert.Equal(3, batchesList.Count);
+        Assert.Equal(batch3.Id, batchesList[0].Id); // Most recent
+        Assert.Equal(batch1.Id, batchesList[1].Id);
+        Assert.Equal(batch2.Id, batchesList[2].Id); // Oldest
+    }
+
 }

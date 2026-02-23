@@ -26,10 +26,12 @@ public class GetBatchesListEndpoint : IEndpoint
     }
 
     private static async Task<IResult> GetAsync(
-        [FromServices] IAppRequestsMediator mediator
+        [FromServices] IAppRequestsMediator mediator,
+        [FromQuery] string? sortBy = null,
+        [FromQuery] string? sortOrder = null
     )
     {
-        var request = new AppRequest<GetBatchesListQuery.Args>(new());
+        var request = new AppRequest<GetBatchesListQuery.Args>(new(sortBy, sortOrder));
         var result = await mediator.SendAsync<GetBatchesListQuery.Args, GetBatchesListQuery.Result>(request);
 
         return !result.IsSuccess
