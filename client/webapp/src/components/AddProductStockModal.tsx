@@ -16,6 +16,7 @@ import {
     Box,
 } from "@mui/material";
 import type { ProductVariant } from "@/types/inventory";
+import type { ApiClientError } from "@/api/client";
 
 interface AddProductStockModalProps {
     open: boolean;
@@ -63,9 +64,10 @@ export default function AddProductStockModal({
             setLoading(true);
             await onSubmit(selectedVariantId, quantity);
             onClose();
-        } catch (err: any) {
+        } catch (err) {
             console.error("Failed to add stock:", err);
-            setError(err?.response?.detail || "Failed to add stock. Please try again.");
+            const apiError = (err as ApiClientError) || {};
+            setError(apiError?.response?.message || "Failed to add stock. Please try again.");
         } finally {
             setLoading(false);
         }

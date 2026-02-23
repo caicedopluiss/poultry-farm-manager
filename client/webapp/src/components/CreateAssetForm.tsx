@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Box,
     Button,
@@ -13,8 +13,11 @@ import {
     DialogActions,
     useTheme,
     useMediaQuery,
+    MenuItem,
 } from "@mui/material";
+import { getVendors } from "@/api/v1/vendors";
 import type { NewAsset } from "@/types/inventory";
+import type { Vendor } from "@/types/vendor";
 
 interface CreateAssetFormProps {
     open: boolean;
@@ -34,21 +37,53 @@ export default function CreateAssetForm({ open, onSubmit, onClose, loading, erro
         description: "",
         initialQuantity: 1,
         notes: "",
+        vendorId: "",
+        unitPrice: "",
     });
 
-    React.useEffect(() => {
+    const [vendors, setVendors] = useState<Vendor[]>([]);
+    const [vendorsLoading, setVendorsLoading] = useState(false);
+
+    useEffect(() => {
         if (open) {
             setFormData({
                 name: "",
                 description: "",
                 initialQuantity: 1,
                 notes: "",
+                vendorId: "",
+                unitPrice: "",
             });
+            loadVendors();
         }
     }, [open]);
 
+    const loadVendors = async () => {
+        try {
+            setVendorsLoading(true);
+            const response = await getVendors();
+            setVendors(response.vendors);
+        } catch (error) {
+            console.error("Failed to load vendors:", error);
+        } finally {
+            setVendorsLoading(false);
+        }
+    };
+
     const handleInputChange = (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
-        const value = event.target.type === "number" ? parseInt(event.target.value) || 0 : event.target.value;
+        let value: string | number = event.target.value;
+
+        if (event.target.type === "number") {
+            value =
+                field === "unitPrice"
+                    ? event.target.value
+                        ? parseFloat(event.target.value)
+                        : ""
+                    : event.target.value
+                      ? parseInt(event.target.value)
+                      : 0;
+        }
+
         setFormData((prev) => ({
             ...prev,
             [field]: value,
@@ -63,6 +98,12 @@ export default function CreateAssetForm({ open, onSubmit, onClose, loading, erro
             description: formData.description || null,
             initialQuantity: formData.initialQuantity,
             notes: formData.notes || null,
+            vendorId: formData.vendorId || null,
+            unitPrice: formData.unitPrice
+                ? typeof formData.unitPrice === "string"
+                    ? parseFloat(formData.unitPrice)
+                    : formData.unitPrice
+                : null,
         };
 
         await onSubmit(newAsset);
@@ -125,6 +166,34 @@ export default function CreateAssetForm({ open, onSubmit, onClose, loading, erro
                             required
                             disabled={loading}
                             inputProps={{ min: 1 }}
+                        />
+
+                        <TextField
+                            select
+                            fullWidth
+                            label="Vendor (Optional)"
+                            value={formData.vendorId}
+                            onChange={handleInputChange("vendorId")}
+                            disabled={loading || vendorsLoading}
+                        >
+                            <MenuItem value="">
+                                <em>None</em>
+                            </MenuItem>
+                            {vendors.map((vendor) => (
+                                <MenuItem key={vendor.id} value={vendor.id}>
+                                    {vendor.name}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+
+                        <TextField
+                            fullWidth
+                            label="Unit Price (Optional)"
+                            type="number"
+                            value={formData.unitPrice}
+                            onChange={handleInputChange("unitPrice")}
+                            disabled={loading}
+                            inputProps={{ min: 0, step: 0.01 }}
                         />
 
                         <TextField

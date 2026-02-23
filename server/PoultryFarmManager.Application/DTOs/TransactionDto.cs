@@ -12,6 +12,7 @@ public record NewTransactionDto(
     decimal TransactionAmount,
     string? Notes,
     Guid? ProductVariantId,
+    Guid? AssetId,
     Guid? BatchId,
     Guid? VendorId,
     Guid? CustomerId)
@@ -28,6 +29,7 @@ public record NewTransactionDto(
         result.TransactionAmount = TransactionAmount;
         result.Notes = Notes;
         result.ProductVariantId = ProductVariantId == Guid.Empty ? null : ProductVariantId;
+        result.AssetId = AssetId == Guid.Empty ? null : AssetId;
         result.BatchId = BatchId == Guid.Empty ? null : BatchId;
         result.VendorId = VendorId == Guid.Empty ? null : VendorId;
         result.CustomerId = CustomerId == Guid.Empty ? null : CustomerId;
@@ -48,6 +50,8 @@ public record TransactionDto(
     string? Notes,
     Guid? ProductVariantId,
     string? ProductVariantName,
+    Guid? AssetId,
+    string? AssetName,
     Guid? BatchId,
     string? BatchName,
     Guid? VendorId,
@@ -76,6 +80,8 @@ public record TransactionDto(
         null,
         null,
         null,
+        null,
+        null,
         null)
     {
     }
@@ -95,6 +101,8 @@ public record TransactionDto(
             Notes = from.Notes,
             ProductVariantId = from.ProductVariantId,
             ProductVariantName = from.ProductVariant?.Name,
+            AssetId = from.AssetId,
+            AssetName = from.Asset?.Name,
             BatchId = from.BatchId,
             BatchName = from.Batch?.Name,
             VendorId = from.VendorId,
@@ -113,6 +121,8 @@ public record TransactionDto(
             from.Notes,
             from.ProductVariantId,
             from.ProductVariant?.Name,
+            from.AssetId,
+            from.Asset?.Name,
             from.BatchId,
             from.Batch?.Name,
             from.VendorId,

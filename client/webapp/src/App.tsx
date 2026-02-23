@@ -13,6 +13,7 @@ import {
     BatchFinancePage,
     NotFoundPage,
     AssetDetailPage,
+    AssetFinancePage,
     ProductDetailPage,
     ProductVariantFinancePage,
     InventoryPage,
@@ -83,6 +84,7 @@ function App() {
                         <Route path="/batches/:id/finance" element={<BatchFinancePage />} />
                         <Route path="/inventory" element={<InventoryPage />} />
                         <Route path="/inventory/assets/:id" element={<AssetDetailPage />} />
+                        <Route path="/assets/:id/finance" element={<AssetFinancePage />} />
                         <Route path="/inventory/products/:id" element={<ProductDetailPage />} />
                         <Route path="/product-variants/:id/finance" element={<ProductVariantFinancePage />} />
                         <Route path="/finance" element={<FinancePage />} />

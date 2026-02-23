@@ -12,6 +12,8 @@ export interface Transaction {
     notes: string | null;
     productVariantId: string | null;
     productVariantName: string | null;
+    assetId: string | null;
+    assetName: string | null;
     batchId: string | null;
     batchName: string | null;
     vendorId: string | null;
@@ -29,6 +31,7 @@ export interface NewTransaction {
     transactionAmount: number;
     notes: string | null;
     productVariantId: string | null;
+    assetId: string | null;
     batchId: string | null;
     vendorId: string | null;
     customerId: string | null;

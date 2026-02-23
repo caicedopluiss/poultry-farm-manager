@@ -54,6 +54,7 @@ public class CreateTransactionEndpointTests(TestsFixture fixture) : IClassFixtur
             TransactionAmount: 775.00m,
             Notes: "Sold to local market",
             ProductVariantId: null,
+            AssetId: null,
             BatchId: batch.Id,
             VendorId: null,
             CustomerId: customer.Id
@@ -118,6 +119,7 @@ public class CreateTransactionEndpointTests(TestsFixture fixture) : IClassFixtur
             TransactionAmount: 900.00m,
             Notes: "Monthly feed stock",
             ProductVariantId: null,
+            AssetId: null,
             BatchId: null,
             VendorId: vendor.Id,
             CustomerId: null
@@ -168,6 +170,7 @@ public class CreateTransactionEndpointTests(TestsFixture fixture) : IClassFixtur
             TransactionAmount: 300.00m,
             Notes: null,
             ProductVariantId: productVariant.Id,
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: null
@@ -197,6 +200,7 @@ public class CreateTransactionEndpointTests(TestsFixture fixture) : IClassFixtur
             TransactionAmount: 150.00m,
             Notes: "Monthly health check",
             ProductVariantId: null,
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: null
@@ -226,6 +230,7 @@ public class CreateTransactionEndpointTests(TestsFixture fixture) : IClassFixtur
             TransactionAmount: 100.00m,
             Notes: null,
             ProductVariantId: null,
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: null
@@ -253,6 +258,7 @@ public class CreateTransactionEndpointTests(TestsFixture fixture) : IClassFixtur
             TransactionAmount: 100.00m,
             Notes: null,
             ProductVariantId: null,
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: null
@@ -280,6 +286,7 @@ public class CreateTransactionEndpointTests(TestsFixture fixture) : IClassFixtur
             TransactionAmount: 100.00m,
             Notes: null,
             ProductVariantId: null,
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: null
@@ -307,6 +314,7 @@ public class CreateTransactionEndpointTests(TestsFixture fixture) : IClassFixtur
             TransactionAmount: 100.00m,
             Notes: null,
             ProductVariantId: null,
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: null
@@ -336,6 +344,7 @@ public class CreateTransactionEndpointTests(TestsFixture fixture) : IClassFixtur
             TransactionAmount: 100.00m,
             Notes: null,
             ProductVariantId: null,
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: null
@@ -365,6 +374,7 @@ public class CreateTransactionEndpointTests(TestsFixture fixture) : IClassFixtur
             TransactionAmount: 100.00m,
             Notes: null,
             ProductVariantId: null,
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: null
@@ -394,6 +404,7 @@ public class CreateTransactionEndpointTests(TestsFixture fixture) : IClassFixtur
             TransactionAmount: amount,
             Notes: null,
             ProductVariantId: null,
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: null
@@ -421,6 +432,7 @@ public class CreateTransactionEndpointTests(TestsFixture fixture) : IClassFixtur
             TransactionAmount: 100.00m,
             Notes: new string('N', 1001), // Exceeds 1000 character limit
             ProductVariantId: null,
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: null
@@ -449,6 +461,7 @@ public class CreateTransactionEndpointTests(TestsFixture fixture) : IClassFixtur
             TransactionAmount: 100.00m,
             Notes: null,
             ProductVariantId: nonExistentProductVariantId,
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: null
@@ -477,6 +490,7 @@ public class CreateTransactionEndpointTests(TestsFixture fixture) : IClassFixtur
             TransactionAmount: 100.00m,
             Notes: null,
             ProductVariantId: null,
+            AssetId: null,
             BatchId: nonExistentBatchId,
             VendorId: null,
             CustomerId: null
@@ -505,6 +519,7 @@ public class CreateTransactionEndpointTests(TestsFixture fixture) : IClassFixtur
             TransactionAmount: 100.00m,
             Notes: null,
             ProductVariantId: null,
+            AssetId: null,
             BatchId: null,
             VendorId: nonExistentVendorId,
             CustomerId: null
@@ -533,6 +548,7 @@ public class CreateTransactionEndpointTests(TestsFixture fixture) : IClassFixtur
             TransactionAmount: 100.00m,
             Notes: null,
             ProductVariantId: null,
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: nonExistentCustomerId

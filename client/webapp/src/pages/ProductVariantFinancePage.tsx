@@ -9,7 +9,6 @@ import {
     Typography,
     Card,
     CardContent,
-    Grid,
     Tabs,
     Tab,
     Paper,
@@ -156,8 +155,8 @@ export default function ProductVariantFinancePage() {
             </Typography>
 
             {/* Summary Cards */}
-            <Grid container spacing={3} sx={{ mb: 4 }}>
-                <Grid item xs={12} md={4}>
+            <Box sx={{ display: "flex", gap: 3, mb: 4, flexWrap: "wrap" }}>
+                <Box sx={{ flex: "1 1 300px", minWidth: 250 }}>
                     <Card>
                         <CardContent>
                             <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
@@ -174,9 +173,9 @@ export default function ProductVariantFinancePage() {
                             </Typography>
                         </CardContent>
                     </Card>
-                </Grid>
+                </Box>
 
-                <Grid item xs={12} md={4}>
+                <Box sx={{ flex: "1 1 300px", minWidth: 250 }}>
                     <Card>
                         <CardContent>
                             <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
@@ -193,9 +192,9 @@ export default function ProductVariantFinancePage() {
                             </Typography>
                         </CardContent>
                     </Card>
-                </Grid>
+                </Box>
 
-                <Grid item xs={12} md={4}>
+                <Box sx={{ flex: "1 1 300px", minWidth: 250 }}>
                     <Card>
                         <CardContent>
                             <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
@@ -212,8 +211,8 @@ export default function ProductVariantFinancePage() {
                             </Typography>
                         </CardContent>
                     </Card>
-                </Grid>
-            </Grid>
+                </Box>
+            </Box>
 
             {/* Tabs */}
             <Paper sx={{ mb: 3 }}>

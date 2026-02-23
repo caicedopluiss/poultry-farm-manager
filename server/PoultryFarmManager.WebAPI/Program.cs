@@ -102,6 +102,8 @@ public class Program
         app.MapEndpoint<CreateAssetEndpoint>(apiPrefix);
         app.MapEndpoint<GetAllAssetsEndpoint>(apiPrefix);
         app.MapEndpoint<GetAssetByIdEndpoint>(apiPrefix);
+        app.MapEndpoint<GetAssetTransactionsEndpoint>(apiPrefix);
+        app.MapEndpoint<GetAssetPricingByVendorEndpoint>(apiPrefix);
         app.MapEndpoint<UpdateAssetEndpoint>(apiPrefix);
 
         // Product endpoints

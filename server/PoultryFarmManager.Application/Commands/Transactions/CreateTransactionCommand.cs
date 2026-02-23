@@ -95,6 +95,16 @@ public sealed class CreateTransactionCommand
                 }
             }
 
+            // Validate AssetId existence
+            if (args.NewTransaction.AssetId.HasValue)
+            {
+                var asset = await unitOfWork.Assets.GetByIdAsync(args.NewTransaction.AssetId.Value, track: false, cancellationToken);
+                if (asset == null)
+                {
+                    errors.Add(("assetId", $"Asset with ID '{args.NewTransaction.AssetId.Value}' not found."));
+                }
+            }
+
             // Validate BatchId existence
             if (args.NewTransaction.BatchId.HasValue)
             {
@@ -125,7 +135,7 @@ public sealed class CreateTransactionCommand
                 }
             }
 
-            // Business rule: If ProductVariantId has a value, transaction must be an expense and cannot have CustomerId
+            // Business rule: If ProductVariantId or AssetId has a value, transaction must be an expense and cannot have CustomerId
             if (args.NewTransaction.ProductVariantId.HasValue)
             {
                 if (Enum.TryParse<TransactionType>(args.NewTransaction.Type, ignoreCase: true, out var transactionType) && transactionType != TransactionType.Expense)
@@ -136,6 +146,19 @@ public sealed class CreateTransactionCommand
                 if (args.NewTransaction.CustomerId.HasValue && args.NewTransaction.CustomerId.Value != Guid.Empty)
                 {
                     errors.Add(("customerId", "Customer cannot be specified when product variant is assigned."));
+                }
+            }
+
+            if (args.NewTransaction.AssetId.HasValue)
+            {
+                if (Enum.TryParse<TransactionType>(args.NewTransaction.Type, ignoreCase: true, out var transactionType) && transactionType != TransactionType.Expense)
+                {
+                    errors.Add(("assetId", "Asset can only be assigned to expense transactions."));
+                }
+
+                if (args.NewTransaction.CustomerId.HasValue && args.NewTransaction.CustomerId.Value != Guid.Empty)
+                {
+                    errors.Add(("customerId", "Customer cannot be specified when asset is assigned."));
                 }
             }
 

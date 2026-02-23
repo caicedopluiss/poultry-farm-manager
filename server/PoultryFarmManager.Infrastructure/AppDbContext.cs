@@ -238,6 +238,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 .HasForeignKey(e => e.ProductVariantId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            entity.HasOne(e => e.Asset)
+                .WithMany()
+                .HasForeignKey(e => e.AssetId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             entity.HasOne(e => e.Batch)
                 .WithMany()
                 .HasForeignKey(e => e.BatchId)

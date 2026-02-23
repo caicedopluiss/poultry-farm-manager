@@ -76,6 +76,8 @@ public static class ApplicationServices
         // Assets
         services.AddScoped<IAppRequestHandler<GetAllAssetsQuery.Args, GetAllAssetsQuery.Result>, GetAllAssetsQuery.Handler>();
         services.AddScoped<IAppRequestHandler<GetAssetByIdQuery.Args, GetAssetByIdQuery.Result>, GetAssetByIdQuery.Handler>();
+        services.AddScoped<IAppRequestHandler<GetAssetTransactionsQuery.Args, GetAssetTransactionsQuery.Result>, GetAssetTransactionsQuery.Handler>();
+        services.AddScoped<IAppRequestHandler<GetAssetPricingByVendorQuery.Args, GetAssetPricingByVendorQuery.Result>, GetAssetPricingByVendorQuery.Handler>();
 
         // Products
         services.AddScoped<IAppRequestHandler<GetAllProductsQuery.Args, GetAllProductsQuery.Result>, GetAllProductsQuery.Handler>();

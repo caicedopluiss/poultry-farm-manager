@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using PoultryFarmManager.Application.DTOs;
 using PoultryFarmManager.Application.Shared.CQRS;
 using PoultryFarmManager.Core.Enums;
+using PoultryFarmManager.Core.Models.Finance;
 
 namespace PoultryFarmManager.Application.Commands.Assets;
 
@@ -30,6 +32,29 @@ public sealed class CreateAssetCommand
             ];
 
             var createdAsset = await unitOfWork.Assets.CreateAsync(asset, cancellationToken);
+
+            // Create a transaction for the asset purchase only if vendor and unit price are provided
+            if (args.NewAsset.VendorId.HasValue && args.NewAsset.UnitPrice.HasValue)
+            {
+                var transaction = new Transaction
+                {
+                    Title = $"Purchase of asset: {createdAsset.Name}",
+                    Date = DateTime.UtcNow,
+                    Type = TransactionType.Expense,
+                    UnitPrice = args.NewAsset.UnitPrice.Value,
+                    Quantity = args.NewAsset.InitialQuantity,
+                    TransactionAmount = args.NewAsset.UnitPrice.Value * args.NewAsset.InitialQuantity,
+                    AssetId = createdAsset.Id,
+                    VendorId = args.NewAsset.VendorId.Value,
+                    BatchId = null,
+                    ProductVariantId = null,
+                    CustomerId = null,
+                    Notes = "Automatically created during asset registration"
+                };
+
+                await unitOfWork.Transactions.CreateAsync(transaction, cancellationToken);
+            }
+
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             var assetDto = new AssetDto().Map(createdAsset);
@@ -38,7 +63,7 @@ public sealed class CreateAssetCommand
             return result;
         }
 
-        protected override Task<IEnumerable<(string field, string error)>> ValidateAsync(Args args, CancellationToken cancellationToken = default)
+        protected override async Task<IEnumerable<(string field, string error)>> ValidateAsync(Args args, CancellationToken cancellationToken = default)
         {
             var errors = new List<(string field, string error)>();
 
@@ -66,7 +91,34 @@ public sealed class CreateAssetCommand
                 errors.Add(("notes", "Notes cannot exceed 500 characters."));
             }
 
-            return Task.FromResult<IEnumerable<(string field, string error)>>(errors);
+            // Vendor is optional, but if provided must exist
+            if (args.NewAsset.VendorId.HasValue)
+            {
+                var vendor = await unitOfWork.Vendors.GetByIdAsync(args.NewAsset.VendorId.Value, cancellationToken: cancellationToken);
+                if (vendor == null)
+                {
+                    errors.Add(("vendorId", "Vendor not found."));
+                }
+            }
+
+            // Unit price is optional, but if provided must be greater than zero
+            if (args.NewAsset.UnitPrice.HasValue && args.NewAsset.UnitPrice.Value <= 0)
+            {
+                errors.Add(("unitPrice", "Unit price must be greater than zero when provided."));
+            }
+
+            // If vendor is provided, unit price should also be provided and vice versa
+            if (args.NewAsset.VendorId.HasValue && !args.NewAsset.UnitPrice.HasValue)
+            {
+                errors.Add(("unitPrice", "Unit price is required when vendor is specified."));
+            }
+
+            if (args.NewAsset.UnitPrice.HasValue && !args.NewAsset.VendorId.HasValue)
+            {
+                errors.Add(("vendorId", "Vendor is required when unit price is specified."));
+            }
+
+            return errors;
         }
     }
 }

@@ -20,6 +20,8 @@ export interface NewAsset {
     description?: string | null;
     initialQuantity: number;
     notes?: string | null;
+    vendorId?: string | null;
+    unitPrice?: number | null;
 }
 
 export interface UpdateAsset {
@@ -75,8 +77,8 @@ export interface NewProductVariant {
     stock: number;
     quantity: number;
     description?: string | null;
-    vendorId: string;
-    unitPrice: number;
+    vendorId?: string | null;
+    unitPrice?: number | null;
 }
 
 export interface UpdateProductVariant {

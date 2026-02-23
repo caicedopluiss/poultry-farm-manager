@@ -58,6 +58,7 @@ public class CreateTransactionCommandTests(TestsFixture fixture) : IClassFixture
             TransactionAmount: 775.00m,
             Notes: "Sold to local market",
             ProductVariantId: null,
+            AssetId: null,
             BatchId: batch.Id,
             VendorId: null,
             CustomerId: customer.Id
@@ -122,6 +123,7 @@ public class CreateTransactionCommandTests(TestsFixture fixture) : IClassFixture
             TransactionAmount: 900.00m,
             Notes: "Monthly feed stock",
             ProductVariantId: null,
+            AssetId: null,
             BatchId: null,
             VendorId: vendor.Id,
             CustomerId: null
@@ -171,6 +173,7 @@ public class CreateTransactionCommandTests(TestsFixture fixture) : IClassFixture
             TransactionAmount: 300.00m,
             Notes: null,
             ProductVariantId: productVariant.Id,
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: null
@@ -199,6 +202,7 @@ public class CreateTransactionCommandTests(TestsFixture fixture) : IClassFixture
             TransactionAmount: 150.00m,
             Notes: "Monthly health check",
             ProductVariantId: null,
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: null
@@ -228,6 +232,7 @@ public class CreateTransactionCommandTests(TestsFixture fixture) : IClassFixture
             TransactionAmount: 500.00m, // Might differ from total due to discount
             Notes: "4 feeders with 10% discount",
             ProductVariantId: null,
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: null
@@ -256,6 +261,7 @@ public class CreateTransactionCommandTests(TestsFixture fixture) : IClassFixture
             TransactionAmount: 100.00m,
             Notes: null,
             ProductVariantId: null,
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: null
@@ -284,6 +290,7 @@ public class CreateTransactionCommandTests(TestsFixture fixture) : IClassFixture
             TransactionAmount: 100.00m,
             Notes: null,
             ProductVariantId: null,
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: null
@@ -313,6 +320,7 @@ public class CreateTransactionCommandTests(TestsFixture fixture) : IClassFixture
             TransactionAmount: 100.00m,
             Notes: null,
             ProductVariantId: null,
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: null
@@ -341,6 +349,7 @@ public class CreateTransactionCommandTests(TestsFixture fixture) : IClassFixture
             TransactionAmount: 100.00m,
             Notes: null,
             ProductVariantId: null,
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: null
@@ -372,6 +381,7 @@ public class CreateTransactionCommandTests(TestsFixture fixture) : IClassFixture
             TransactionAmount: 100.00m,
             Notes: null,
             ProductVariantId: null,
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: null
@@ -403,6 +413,7 @@ public class CreateTransactionCommandTests(TestsFixture fixture) : IClassFixture
             TransactionAmount: 100.00m,
             Notes: null,
             ProductVariantId: null,
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: null
@@ -434,6 +445,7 @@ public class CreateTransactionCommandTests(TestsFixture fixture) : IClassFixture
             TransactionAmount: amount, // Invalid: TransactionAmount must be greater than zero
             Notes: null,
             ProductVariantId: null,
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: null
@@ -462,6 +474,7 @@ public class CreateTransactionCommandTests(TestsFixture fixture) : IClassFixture
             TransactionAmount: 100.00m,
             Notes: new string('N', 1001), // Invalid: Notes exceed max length (1000)
             ProductVariantId: null,
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: null
@@ -492,6 +505,7 @@ public class CreateTransactionCommandTests(TestsFixture fixture) : IClassFixture
             TransactionAmount: 100.00m,
             Notes: null,
             ProductVariantId: nonExistentProductVariantId, // Non-existent product variant
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: null
@@ -521,6 +535,7 @@ public class CreateTransactionCommandTests(TestsFixture fixture) : IClassFixture
             TransactionAmount: 100.00m,
             Notes: null,
             ProductVariantId: null,
+            AssetId: null,
             BatchId: nonExistentBatchId, // Non-existent batch
             VendorId: null,
             CustomerId: null
@@ -550,6 +565,7 @@ public class CreateTransactionCommandTests(TestsFixture fixture) : IClassFixture
             TransactionAmount: 100.00m,
             Notes: null,
             ProductVariantId: null,
+            AssetId: null,
             BatchId: null,
             VendorId: nonExistentVendorId, // Non-existent vendor
             CustomerId: null
@@ -579,6 +595,7 @@ public class CreateTransactionCommandTests(TestsFixture fixture) : IClassFixture
             TransactionAmount: 100.00m,
             Notes: null,
             ProductVariantId: null,
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: nonExistentCustomerId // Non-existent customer
@@ -607,6 +624,7 @@ public class CreateTransactionCommandTests(TestsFixture fixture) : IClassFixture
             TransactionAmount: -100, // Invalid: must be > 0
             Notes: new string('N', 1001), // Invalid: exceeds max length
             ProductVariantId: null,
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: null
@@ -642,6 +660,7 @@ public class CreateTransactionCommandTests(TestsFixture fixture) : IClassFixture
             TransactionAmount: 100.00m,
             Notes: null,
             ProductVariantId: null,
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: null // Invalid: CustomerId is required for income
@@ -707,6 +726,7 @@ public class CreateTransactionCommandTests(TestsFixture fixture) : IClassFixture
             TransactionAmount: 100.00m,
             Notes: null,
             ProductVariantId: productVariant.Id,
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: customer.Id
@@ -779,6 +799,7 @@ public class CreateTransactionCommandTests(TestsFixture fixture) : IClassFixture
             TransactionAmount: 100.00m,
             Notes: null,
             ProductVariantId: productVariant.Id, // Invalid: Cannot have both ProductVariant and Customer
+            AssetId: null,
             BatchId: null,
             VendorId: null,
             CustomerId: customer.Id
@@ -800,5 +821,153 @@ public class CreateTransactionCommandTests(TestsFixture fixture) : IClassFixture
         dbContext.Persons.Remove(customer);
         await dbContext.SaveChangesAsync();
     }
-}
 
+    [Fact]
+    public async Task CreateTransactionCommand_ShouldCreateTransaction_WithValidAssetId()
+    {
+        // Arrange
+        var vendor = await dbContext.CreateVendorAsync();
+        var asset = await dbContext.CreateAssetAsync(vendorId: vendor.Id, unitPrice: 150m);
+
+        var newTransaction = new NewTransactionDto(
+            Title: "Asset maintenance expense",
+            DateClientIsoString: DateTime.UtcNow.ToString(Constants.DateTimeFormat),
+            Type: "Expense",
+            UnitPrice: 50.00m,
+            Quantity: 1,
+            TransactionAmount: 50.00m,
+            Notes: "Routine maintenance",
+            ProductVariantId: null,
+            AssetId: asset.Id,
+            BatchId: null,
+            VendorId: vendor.Id,
+            CustomerId: null
+        );
+        var request = new AppRequest<CreateTransactionCommand.Args>(new(newTransaction));
+
+        // Act
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Equal(asset.Id, result.Value!.CreatedTransaction.AssetId);
+        Assert.Equal(asset.Name, result.Value!.CreatedTransaction.AssetName);
+        Assert.Equal("Expense", result.Value!.CreatedTransaction.Type);
+    }
+
+    [Fact]
+    public async Task CreateTransactionCommand_ShouldReturnValidationError_ForInvalidAssetId()
+    {
+        // Arrange
+        var invalidAssetId = Guid.NewGuid(); // Asset doesn't exist
+
+        var newTransaction = new NewTransactionDto(
+            Title: "Transaction with invalid asset",
+            DateClientIsoString: DateTime.UtcNow.ToString(Constants.DateTimeFormat),
+            Type: "Expense",
+            UnitPrice: 100.00m,
+            Quantity: 1,
+            TransactionAmount: 100.00m,
+            Notes: null,
+            ProductVariantId: null,
+            AssetId: invalidAssetId,
+            BatchId: null,
+            VendorId: null,
+            CustomerId: null
+        );
+        var request = new AppRequest<CreateTransactionCommand.Args>(new(newTransaction));
+
+        // Act
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.NotNull(result.ValidationErrors);
+        Assert.Contains(result.ValidationErrors, e => e.field == "assetId" && e.error.Contains("not found"));
+    }
+
+    [Fact]
+    public async Task CreateTransactionCommand_ShouldReturnValidationError_ForAssetIdWithIncomeType()
+    {
+        // Arrange
+        var vendor = await dbContext.CreateVendorAsync();
+        var asset = await dbContext.CreateAssetAsync(vendorId: vendor.Id, unitPrice: 200m);
+
+        var customer = new Person
+        {
+            FirstName = "John",
+            LastName = "Doe",
+            Email = "john.doe@example.com",
+            PhoneNumber = "555-0100"
+        };
+        dbContext.Persons.Add(customer);
+        await dbContext.SaveChangesAsync();
+
+        var newTransaction = new NewTransactionDto(
+            Title: "Test Income with Asset",
+            DateClientIsoString: DateTime.UtcNow.ToString(Constants.DateTimeFormat),
+            Type: "Income", // Invalid: Income cannot have Asset
+            UnitPrice: 100.00m,
+            Quantity: 1,
+            TransactionAmount: 100.00m,
+            Notes: null,
+            ProductVariantId: null,
+            AssetId: asset.Id,
+            BatchId: null,
+            VendorId: null,
+            CustomerId: customer.Id
+        );
+        var request = new AppRequest<CreateTransactionCommand.Args>(new(newTransaction));
+
+        // Act
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.NotNull(result.ValidationErrors);
+        Assert.Contains(result.ValidationErrors, e => e.field == "assetId" && e.error == "Asset can only be assigned to expense transactions.");
+    }
+
+    [Fact]
+    public async Task CreateTransactionCommand_ShouldReturnValidationError_ForAssetIdWithCustomerId()
+    {
+        // Arrange
+        var vendor = await dbContext.CreateVendorAsync();
+        var asset = await dbContext.CreateAssetAsync(vendorId: vendor.Id, unitPrice: 300m);
+
+        var customer = new Person
+        {
+            FirstName = "Jane",
+            LastName = "Smith",
+            Email = "jane.smith@example.com",
+            PhoneNumber = "555-0200"
+        };
+        dbContext.Persons.Add(customer);
+        await dbContext.SaveChangesAsync();
+
+        var newTransaction = new NewTransactionDto(
+            Title: "Test Expense with Asset and Customer",
+            DateClientIsoString: DateTime.UtcNow.ToString(Constants.DateTimeFormat),
+            Type: "Expense",
+            UnitPrice: 100.00m,
+            Quantity: 1,
+            TransactionAmount: 100.00m,
+            Notes: null,
+            ProductVariantId: null,
+            AssetId: asset.Id, // Invalid: Cannot have both Asset and Customer
+            BatchId: null,
+            VendorId: null,
+            CustomerId: customer.Id
+        );
+        var request = new AppRequest<CreateTransactionCommand.Args>(new(newTransaction));
+
+        // Act
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.NotNull(result.ValidationErrors);
+        Assert.Contains(result.ValidationErrors, e => e.field == "customerId" && e.error == "Customer cannot be specified when asset is assigned.");
+    }
+}

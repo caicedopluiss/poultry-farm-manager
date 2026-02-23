@@ -3,6 +3,7 @@ export { default as BatchDetailPage } from "./BatchDetailPage";
 export { default as BatchFinancePage } from "./BatchFinancePage";
 export { default as InventoryPage } from "./InventoryPage";
 export { default as AssetDetailPage } from "./AssetDetailPage";
+export { default as AssetFinancePage } from "./AssetFinancePage";
 export { default as ProductDetailPage } from "./ProductDetailPage";
 export { default as ProductVariantFinancePage } from "./ProductVariantFinancePage";
 export { default as PersonListPage } from "./PersonListPage";

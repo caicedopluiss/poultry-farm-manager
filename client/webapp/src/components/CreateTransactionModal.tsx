@@ -25,6 +25,7 @@ import { getPersons } from "@/api/v1/persons";
 import type { TransactionType } from "@/types/transaction";
 import type { Vendor } from "@/types/vendor";
 import type { Person } from "@/types/person";
+import type { ApiClientError } from "@/api/client";
 
 interface CreateTransactionModalProps {
     open: boolean;
@@ -155,6 +156,7 @@ export default function CreateTransactionModal({
                 transactionAmount,
                 notes: formData.notes || null,
                 productVariantId: null,
+                assetId: null,
                 batchId,
                 vendorId: formData.vendorId || null,
                 customerId: formData.customerId || null,
@@ -162,9 +164,9 @@ export default function CreateTransactionModal({
 
             onSuccess();
         } catch (err) {
-            const apiError = err as { response?: { data?: { message?: string } } };
-            setError(apiError.response?.data?.message || "Failed to create transaction");
             console.error("Error creating transaction:", err);
+            const apiError = (err as ApiClientError) || {};
+            setError(apiError?.response?.message || "Failed to create transaction");
         } finally {
             setLoading(false);
         }

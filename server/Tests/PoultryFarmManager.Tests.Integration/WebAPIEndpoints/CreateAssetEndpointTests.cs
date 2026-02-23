@@ -23,13 +23,16 @@ public class CreateAssetEndpointTests(TestsFixture fixture) : IClassFixture<Test
     public async Task POST_Assets_ValidRequest_ShouldReturnCreated()
     {
         // Arrange
-        var newAsset = new NewAssetDto
-        {
-            Name = "Test Incubator from API",
-            Description = "Automatic incubator for testing",
-            InitialQuantity = 10,
-            Notes = "API test asset"
-        };
+        var vendor = await dbContext.CreateVendorAsync();
+
+        var newAsset = new NewAssetDto(
+            Name: "Test Incubator from API",
+            Description: "Automatic incubator for testing",
+            InitialQuantity: 10,
+            Notes: "API test asset",
+            VendorId: vendor.Id,
+            UnitPrice: 500m
+        );
         var body = new { newAsset };
 
         // Act

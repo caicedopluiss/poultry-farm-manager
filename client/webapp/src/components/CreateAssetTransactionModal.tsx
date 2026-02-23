@@ -24,21 +24,21 @@ import { createTransaction } from "@/api/v1/transactions";
 import type { Vendor } from "@/types/vendor";
 import type { ApiClientError } from "@/api/client";
 
-interface CreateProductVariantTransactionModalProps {
+interface CreateAssetTransactionModalProps {
     open: boolean;
     onClose: () => void;
     onSuccess: () => void;
-    productVariantId: string;
-    productVariantName: string;
+    assetId: string;
+    assetName: string;
 }
 
-export default function CreateProductVariantTransactionModal({
+export default function CreateAssetTransactionModal({
     open,
     onClose,
     onSuccess,
-    productVariantId,
-    productVariantName,
-}: CreateProductVariantTransactionModalProps) {
+    assetId,
+    assetName,
+}: CreateAssetTransactionModalProps) {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -78,7 +78,7 @@ export default function CreateProductVariantTransactionModal({
     useEffect(() => {
         if (open) {
             setFormData({
-                title: `Purchase: ${productVariantName}`,
+                title: `Purchase: ${assetName}`,
                 date: moment().format("YYYY-MM-DD"),
                 unitPrice: "",
                 quantity: "",
@@ -87,7 +87,7 @@ export default function CreateProductVariantTransactionModal({
             });
             setError(null);
         }
-    }, [open, productVariantName]);
+    }, [open, assetName]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -131,8 +131,8 @@ export default function CreateProductVariantTransactionModal({
                 transactionAmount,
                 notes: formData.notes.trim() || null,
                 vendorId: formData.vendorId,
-                productVariantId,
-                assetId: null,
+                assetId,
+                productVariantId: null,
                 batchId: null,
                 customerId: null,
             });
@@ -164,7 +164,7 @@ export default function CreateProductVariantTransactionModal({
                         Add Purchase Transaction
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                        {productVariantName}
+                        {assetName}
                     </Typography>
                 </DialogTitle>
 

@@ -21,6 +21,7 @@ public sealed class TransactionsRepository(AppDbContext context) : ITransactions
     {
         var query = context.Transactions
             .Include(t => t.ProductVariant)
+            .Include(t => t.Asset)
             .Include(t => t.Batch)
             .Include(t => t.Vendor)
             .Include(t => t.Customer)
@@ -40,6 +41,7 @@ public sealed class TransactionsRepository(AppDbContext context) : ITransactions
         var transactions = await context.Transactions
             .Where(t => t.BatchId == batchId)
             .Include(t => t.ProductVariant)
+            .Include(t => t.Asset)
             .Include(t => t.Batch)
             .Include(t => t.Vendor)
             .Include(t => t.Customer)
@@ -54,6 +56,21 @@ public sealed class TransactionsRepository(AppDbContext context) : ITransactions
         var transactions = await context.Transactions
             .Where(t => t.ProductVariantId == productVariantId)
             .Include(t => t.ProductVariant)
+            .Include(t => t.Batch)
+            .Include(t => t.Vendor)
+                .ThenInclude(v => v!.ContactPerson)
+            .Include(t => t.Customer)
+            .AsNoTracking()
+            .OrderByDescending(t => t.Date)
+            .ToListAsync(cancellationToken);
+        return transactions;
+    }
+
+    public async Task<IReadOnlyCollection<Transaction>> GetByAssetIdAsync(Guid assetId, CancellationToken cancellationToken = default)
+    {
+        var transactions = await context.Transactions
+            .Where(t => t.AssetId == assetId)
+            .Include(t => t.Asset)
             .Include(t => t.Batch)
             .Include(t => t.Vendor)
                 .ThenInclude(v => v!.ContactPerson)

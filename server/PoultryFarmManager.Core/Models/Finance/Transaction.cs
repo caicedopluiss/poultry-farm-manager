@@ -17,6 +17,10 @@ public class Transaction : DbEntity
     public Guid? ProductVariantId { get; set; }
     public ProductVariant? ProductVariant { get; set; }
 
+    // Relationship with Asset
+    public Guid? AssetId { get; set; }
+    public Asset? Asset { get; set; }
+
     // Relationship with batch (if applicable)
     public Guid? BatchId { get; set; }
     public Batch? Batch { get; set; }

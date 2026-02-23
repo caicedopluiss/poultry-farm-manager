@@ -10,9 +10,11 @@ public record NewAssetDto(
     string Name,
     string? Description,
     int InitialQuantity,
-    string? Notes)
+    string? Notes,
+    Guid? VendorId,
+    decimal? UnitPrice)
 {
-    public NewAssetDto() : this(string.Empty, null, 1, null)
+    public NewAssetDto() : this(string.Empty, null, 1, null, null, null)
     {
     }
 
