@@ -38,6 +38,7 @@ public static class ApplicationServices
         services.AddScoped<IAppRequestHandler<RegisterProductConsumptionCommand.Args, RegisterProductConsumptionCommand.Result>, RegisterProductConsumptionCommand.Handler>();
         services.AddScoped<IAppRequestHandler<RegisterWeightMeasurementCommand.Args, RegisterWeightMeasurementCommand.Result>, RegisterWeightMeasurementCommand.Handler>();
         services.AddScoped<IAppRequestHandler<UpdateBatchNameCommand.Args, UpdateBatchNameCommand.Result>, UpdateBatchNameCommand.Handler>();
+        services.AddScoped<IAppRequestHandler<UpdateBatchNotesCommand.Args, UpdateBatchNotesCommand.Result>, UpdateBatchNotesCommand.Handler>();
 
         // Assets
         services.AddScoped<IAppRequestHandler<CreateAssetCommand.Args, CreateAssetCommand.Result>, CreateAssetCommand.Handler>();

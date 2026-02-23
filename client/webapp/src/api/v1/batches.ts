@@ -99,3 +99,13 @@ export async function updateBatchName(batchId: string, name: string): Promise<Up
     });
     return response;
 }
+
+interface UpdateBatchNotesResponse {
+    success: boolean;
+}
+export async function updateBatchNotes(batchId: string, notes: string | null): Promise<UpdateBatchNotesResponse> {
+    const response: UpdateBatchNotesResponse = await apiClient.put(`${url}/${batchId}/notes`, {
+        notes,
+    });
+    return response;
+}

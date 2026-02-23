@@ -97,6 +97,7 @@ public class Program
         app.MapEndpoint<RegisterProductConsumptionEndpoint>(apiPrefix);
         app.MapEndpoint<RegisterWeightMeasurementEndpoint>(apiPrefix);
         app.MapEndpoint<UpdateBatchNameEndpoint>(apiPrefix);
+        app.MapEndpoint<UpdateBatchNotesEndpoint>(apiPrefix);
 
         // Asset endpoints
         app.MapEndpoint<CreateAssetEndpoint>(apiPrefix);

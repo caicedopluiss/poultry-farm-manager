@@ -41,6 +41,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(e => e.UnsexedCount);
             entity.Property(e => e.InitialPopulation);
             entity.Property(e => e.Status);
+            entity.Property(e => e.Notes).HasMaxLength(500);
         });
 
         modelBuilder.Entity<MortalityRegistrationBatchActivity>(entity =>
