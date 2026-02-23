@@ -10,14 +10,14 @@ namespace PoultryFarmManager.Application.Queries.Batches;
 
 public class GetBatchesListQuery
 {
-    public record Args();
+    public record Args(string? SortBy = null, string? SortOrder = null);
     public record Result(IEnumerable<BatchDto> Batches);
 
     public class Handler(IBatchesRepository batchesRepository, IBatchActivitiesRepository activitiesRepository) : AppRequestHandler<Args, Result>
     {
         protected override async Task<Result> ExecuteAsync(Args args, CancellationToken cancellationToken = default)
         {
-            var batches = await batchesRepository.GetAllAsync(cancellationToken);
+            var batches = await batchesRepository.GetAllAsync(args.SortBy, args.SortOrder, cancellationToken);
 
             // Fetch first status switch dates for all batches in a single query
             var batchIds = batches.Select(b => b.Id);
