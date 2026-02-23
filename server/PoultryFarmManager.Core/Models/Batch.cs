@@ -15,5 +15,6 @@ namespace PoultryFarmManager.Core.Models
         public int UnsexedCount { get; set; }
         public int Population => MaleCount + FemaleCount + UnsexedCount;
         public string? Shed { get; set; }
+        public string? Notes { get; set; }
     }
 }

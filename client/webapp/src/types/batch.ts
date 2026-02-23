@@ -11,6 +11,7 @@ export interface Batch {
     breed?: string | null;
     shed?: string | null; // Optional shed/location field
     firstStatusChangeDate?: string | null;
+    notes?: string | null;
 }
 
 export interface NewBatch {
