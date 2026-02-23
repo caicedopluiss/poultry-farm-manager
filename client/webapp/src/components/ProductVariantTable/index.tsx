@@ -39,9 +39,6 @@ const ProductVariantTable: React.FC<ProductVariantTableProps> = ({ variants, onV
                     <TableRow sx={{ bgcolor: "primary.main" }}>
                         <TableCell sx={{ color: "white", fontWeight: "bold" }}>Name</TableCell>
                         <TableCell sx={{ color: "white", fontWeight: "bold" }} align="right">
-                            Quantity
-                        </TableCell>
-                        <TableCell sx={{ color: "white", fontWeight: "bold" }} align="right">
                             Stock
                         </TableCell>
                         <TableCell sx={{ color: "white", fontWeight: "bold" }}>Unit</TableCell>
@@ -64,9 +61,6 @@ const ProductVariantTable: React.FC<ProductVariantTableProps> = ({ variants, onV
                                 <Typography variant="body2" fontWeight={500}>
                                     {variant.name}
                                 </Typography>
-                            </TableCell>
-                            <TableCell align="right">
-                                <Typography variant="body2">{variant.quantity}</Typography>
                             </TableCell>
                             <TableCell align="right">
                                 <Typography variant="body2">{variant.stock}</Typography>

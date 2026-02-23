@@ -1,6 +1,8 @@
 using System;
+using System.Threading.Tasks;
 using PoultryFarmManager.Core.Models;
 using PoultryFarmManager.Core.Models.Inventory;
+using PoultryFarmManager.Core.Models.Finance;
 using PoultryFarmManager.Core.Enums;
 using PoultryFarmManager.Core;
 
@@ -24,6 +26,107 @@ internal static class TestEntityFactory
             return (IEntityFactory<T>)new ProductVariantFactory();
 
         throw new NotSupportedException($"No factory registered for type {typeof(T).Name}");
+    }
+
+    /// <summary>
+    /// Creates and persists a Vendor with a contact Person
+    /// </summary>
+    internal static async Task<Vendor> CreateVendorAsync(this TestsDbContext context)
+    {
+        var contactPerson = new Person
+        {
+            FirstName = $"Contact_{Guid.NewGuid().ToString()[..8]}",
+            LastName = "Person",
+            Email = $"contact_{Guid.NewGuid().ToString()[..8]}@vendor.com",
+            PhoneNumber = "555-0100"
+        };
+        context.Persons.Add(contactPerson);
+        await context.SaveChangesAsync();
+
+        var vendor = new Vendor
+        {
+            Name = $"Vendor_{Guid.NewGuid().ToString()[..8]}",
+            Location = "Test Location",
+            ContactPersonId = contactPerson.Id
+        };
+        context.Vendors.Add(vendor);
+        await context.SaveChangesAsync();
+
+        return vendor;
+    }
+
+    /// <summary>
+    /// Creates and persists an Asset with optional vendor and unit price
+    /// </summary>
+    internal static async Task<Asset> CreateAssetAsync(
+        this TestsDbContext context,
+        Guid? vendorId = null,
+        decimal unitPrice = 100m,
+        int quantity = 1)
+    {
+        var asset = new Asset
+        {
+            Name = $"Asset_{Guid.NewGuid().ToString()[..8]}",
+            Description = "Test asset",
+            States = [
+                new AssetState
+                {
+                    Status = AssetStatus.Available,
+                    Quantity = quantity,
+                    Location = "Test Location"
+                }
+            ]
+        };
+        context.Assets.Add(asset);
+        await context.SaveChangesAsync();
+
+        // Create initial transaction if vendor is provided
+        if (vendorId.HasValue)
+        {
+            var transaction = new Transaction
+            {
+                Title = $"Initial purchase of {asset.Name}",
+                Date = DateTime.UtcNow,
+                Type = TransactionType.Expense,
+                UnitPrice = unitPrice,
+                Quantity = quantity,
+                TransactionAmount = unitPrice * quantity,
+                AssetId = asset.Id,
+                VendorId = vendorId
+            };
+            context.Transactions.Add(transaction);
+            await context.SaveChangesAsync();
+        }
+
+        return asset;
+    }
+
+    /// <summary>
+    /// Creates and persists a Transaction for an Asset
+    /// </summary>
+    internal static async Task<Transaction> CreateTransactionAsync(
+        this TestsDbContext context,
+        Guid? assetId = null,
+        Guid? vendorId = null,
+        decimal unitPrice = 100m,
+        DateTime? date = null,
+        int quantity = 1)
+    {
+        var transaction = new Transaction
+        {
+            Title = $"Transaction_{Guid.NewGuid().ToString()[..8]}",
+            Date = date ?? DateTime.UtcNow,
+            Type = TransactionType.Expense,
+            UnitPrice = unitPrice,
+            Quantity = quantity,
+            TransactionAmount = unitPrice * quantity,
+            AssetId = assetId,
+            VendorId = vendorId
+        };
+        context.Transactions.Add(transaction);
+        await context.SaveChangesAsync();
+
+        return transaction;
     }
 }
 

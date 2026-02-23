@@ -36,6 +36,9 @@ public static class InfrastructureServices
         services.AddScoped<IAssetsRepository, AssetsRepository>();
         services.AddScoped<IProductsRepository, ProductsRepository>();
         services.AddScoped<IProductVariantsRepository, ProductVariantsRepository>();
+        services.AddScoped<ITransactionsRepository, TransactionsRepository>();
+        services.AddScoped<IVendorsRepository, VendorsRepository>();
+        services.AddScoped<IPersonsRepository, PersonsRepository>();
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
     }

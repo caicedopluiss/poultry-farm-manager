@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Batch, NewBatch } from "@/types/batch";
+import type { Vendor } from "@/types/vendor";
 import BatchList from "@/components/BatchList";
 import CreateBatchForm from "@/components/CreateBatchForm";
 import { useBatchesContext } from "@/hooks/useBatchesContext";
 import useBatches from "@/hooks/useBatches";
+import { getVendors } from "@/api/v1/vendors";
 
 export default function BatchListPage() {
     const navigate = useNavigate();
@@ -12,11 +14,29 @@ export default function BatchListPage() {
     const { createBatch, loading: createLoading } = useBatches();
     const [createModalOpen, setCreateModalOpen] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [vendors, setVendors] = useState<Vendor[]>([]);
+    const [vendorsLoading, setVendorsLoading] = useState(false);
 
     // Fetch batches on component mount
     useEffect(() => {
         refreshBatches();
     }, [refreshBatches]);
+
+    // Fetch vendors for the create form
+    useEffect(() => {
+        const loadVendors = async () => {
+            setVendorsLoading(true);
+            try {
+                const response = await getVendors();
+                setVendors(response.vendors);
+            } catch (error) {
+                console.error("Failed to load vendors:", error);
+            } finally {
+                setVendorsLoading(false);
+            }
+        };
+        loadVendors();
+    }, []);
 
     const handleBatchClick = (batch: Batch) => {
         navigate(`/batches/${batch.id}`);
@@ -60,6 +80,8 @@ export default function BatchListPage() {
                 onClose={handleCloseModal}
                 loading={createLoading}
                 error={error}
+                vendors={vendors}
+                vendorsLoading={vendorsLoading}
             />
         </>
     );

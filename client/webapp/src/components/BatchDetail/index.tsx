@@ -33,6 +33,7 @@ import {
     Inventory as ProductConsumptionIcon,
     Edit as EditIcon,
     Scale as WeightMeasurementIcon,
+    AttachMoney as FinanceIcon,
 } from "@mui/icons-material";
 import moment from "moment";
 import type { Batch } from "@/types/batch";
@@ -152,9 +153,28 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
         <Container maxWidth="lg" sx={{ py: 3 }}>
             {/* Header */}
             <Box sx={{ mb: 4 }}>
-                <Button variant="outlined" startIcon={<BackIcon />} onClick={() => navigate("/")} sx={{ mb: 2 }}>
-                    Back to Batches
-                </Button>
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        mb: 2,
+                        flexWrap: "wrap",
+                        gap: 2,
+                    }}
+                >
+                    <Button variant="outlined" startIcon={<BackIcon />} onClick={() => navigate("/")}>
+                        Back to Batches
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="success"
+                        startIcon={<FinanceIcon />}
+                        onClick={() => navigate(`/batches/${batch.id}/finance`)}
+                    >
+                        View Finance
+                    </Button>
+                </Box>
 
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2, flexWrap: "wrap" }}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>

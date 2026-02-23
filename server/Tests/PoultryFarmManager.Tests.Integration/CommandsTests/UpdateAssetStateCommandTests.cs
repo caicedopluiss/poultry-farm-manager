@@ -30,11 +30,15 @@ public class UpdateAssetStateCommandTests(TestsFixture fixture) : IClassFixture<
     public async Task UpdateAsset_ShouldAllowAddingNewAssetState()
     {
         // Arrange - Create asset with initial Available state
+        var vendor = await dbContext.CreateVendorAsync();
+
         var newAssetDto = new NewAssetDto(
             Name: "Test Equipment",
             Description: "Equipment for testing",
             InitialQuantity: 10,
-            Notes: null
+            Notes: null,
+            VendorId: vendor.Id,
+            UnitPrice: 100m
         );
         var createRequest = new AppRequest<CreateAssetCommand.Args>(new(newAssetDto));
         var createResult = await createHandler.HandleAsync(createRequest, CancellationToken.None);
@@ -68,11 +72,15 @@ public class UpdateAssetStateCommandTests(TestsFixture fixture) : IClassFixture<
     public async Task UpdateAsset_ShouldAllowUpdatingExistingAssetStateQuantity()
     {
         // Arrange - Create asset with initial state
+        var vendor = await dbContext.CreateVendorAsync();
+
         var newAssetDto = new NewAssetDto(
             Name: "Test Equipment",
             Description: "Equipment for testing",
             InitialQuantity: 10,
-            Notes: null
+            Notes: null,
+            VendorId: vendor.Id,
+            UnitPrice: 100m
         );
         var createRequest = new AppRequest<CreateAssetCommand.Args>(new(newAssetDto));
         var createResult = await createHandler.HandleAsync(createRequest, CancellationToken.None);
@@ -102,11 +110,15 @@ public class UpdateAssetStateCommandTests(TestsFixture fixture) : IClassFixture<
     public async Task UpdateAsset_ShouldAllowMovingQuantityBetweenStates()
     {
         // Arrange - Create asset with multiple states
+        var vendor = await dbContext.CreateVendorAsync();
+
         var newAssetDto = new NewAssetDto(
             Name: "Test Equipment",
             Description: "Equipment for testing",
             InitialQuantity: 10,
-            Notes: null
+            Notes: null,
+            VendorId: vendor.Id,
+            UnitPrice: 100m
         );
         var createRequest = new AppRequest<CreateAssetCommand.Args>(new(newAssetDto));
         var createResult = await createHandler.HandleAsync(createRequest, CancellationToken.None);
@@ -156,11 +168,15 @@ public class UpdateAssetStateCommandTests(TestsFixture fixture) : IClassFixture<
     public async Task UpdateAsset_ShouldHandleMultipleStates()
     {
         // Arrange - Create asset
+        var vendor = await dbContext.CreateVendorAsync();
+
         var newAssetDto = new NewAssetDto(
             Name: "Test Equipment",
             Description: "Equipment for testing",
             InitialQuantity: 20,
-            Notes: null
+            Notes: null,
+            VendorId: vendor.Id,
+            UnitPrice: 100m
         );
         var createRequest = new AppRequest<CreateAssetCommand.Args>(new(newAssetDto));
         var createResult = await createHandler.HandleAsync(createRequest, CancellationToken.None);
@@ -198,11 +214,15 @@ public class UpdateAssetStateCommandTests(TestsFixture fixture) : IClassFixture<
     public async Task UpdateAsset_ShouldPreventDuplicateStatusStates()
     {
         // Arrange - Create asset
+        var vendor = await dbContext.CreateVendorAsync();
+
         var newAssetDto = new NewAssetDto(
             Name: "Test Equipment",
             Description: "Equipment for testing",
             InitialQuantity: 10,
-            Notes: null
+            Notes: null,
+            VendorId: vendor.Id,
+            UnitPrice: 100m
         );
         var createRequest = new AppRequest<CreateAssetCommand.Args>(new(newAssetDto));
         var createResult = await createHandler.HandleAsync(createRequest, CancellationToken.None);
@@ -234,11 +254,15 @@ public class UpdateAssetStateCommandTests(TestsFixture fixture) : IClassFixture<
     public async Task UpdateAsset_ShouldAllowRemovingAssetState()
     {
         // Arrange - Create asset with initial state
+        var vendor = await dbContext.CreateVendorAsync();
+
         var newAssetDto = new NewAssetDto(
             Name: "Test Equipment",
             Description: "Equipment for testing",
             InitialQuantity: 10,
-            Notes: null
+            Notes: null,
+            VendorId: vendor.Id,
+            UnitPrice: 100m
         );
         var createRequest = new AppRequest<CreateAssetCommand.Args>(new(newAssetDto));
         var createResult = await createHandler.HandleAsync(createRequest, CancellationToken.None);
@@ -282,11 +306,15 @@ public class UpdateAssetStateCommandTests(TestsFixture fixture) : IClassFixture<
     public async Task DeleteAsset_ShouldCascadeDeleteAllAssetStates()
     {
         // Arrange - Create asset with multiple states
+        var vendor = await dbContext.CreateVendorAsync();
+
         var newAssetDto = new NewAssetDto(
             Name: "Test Equipment",
             Description: "Equipment for testing",
             InitialQuantity: 10,
-            Notes: null
+            Notes: null,
+            VendorId: vendor.Id,
+            UnitPrice: 100m
         );
         var createRequest = new AppRequest<CreateAssetCommand.Args>(new(newAssetDto));
         var createResult = await createHandler.HandleAsync(createRequest, CancellationToken.None);
@@ -303,6 +331,10 @@ public class UpdateAssetStateCommandTests(TestsFixture fixture) : IClassFixture<
         var stateIds = asset.States.Select(s => s.Id).ToList();
 
         // Act - Delete the asset
+        // First delete any transactions that reference this asset (created by CreateAssetAsync)
+        var transactions = await dbContext.Transactions.Where(t => t.AssetId == assetId).ToListAsync();
+        dbContext.Transactions.RemoveRange(transactions);
+
         dbContext.Assets.Remove(asset);
         await dbContext.SaveChangesAsync();
 

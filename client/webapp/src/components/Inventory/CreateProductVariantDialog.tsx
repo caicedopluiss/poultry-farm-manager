@@ -37,6 +37,8 @@ export default function CreateProductVariantDialog({
         stock: 0,
         quantity: 0,
         unitOfMeasure: UnitOfMeasure.Unit,
+        vendorId: null,
+        unitPrice: null,
     });
 
     const handleChange = (field: keyof NewProductVariant) => (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,6 +70,8 @@ export default function CreateProductVariantDialog({
             stock: 0,
             quantity: 0,
             unitOfMeasure: UnitOfMeasure.Unit,
+            vendorId: null,
+            unitPrice: null,
         });
     };
 

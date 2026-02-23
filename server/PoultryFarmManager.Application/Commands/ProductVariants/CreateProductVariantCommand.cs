@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using PoultryFarmManager.Application.DTOs;
 using PoultryFarmManager.Application.Shared.CQRS;
 using PoultryFarmManager.Core.Enums;
+using PoultryFarmManager.Core.Models.Finance;
 
 namespace PoultryFarmManager.Application.Commands.ProductVariants;
 
@@ -26,21 +27,30 @@ public sealed class CreateProductVariantCommand
             var totalVariantStock = productVariant.Stock + (productVariant.Stock * productVariant.Quantity);
             productVariant.Stock = totalVariantStock;
 
-            // Update product stock by adding the variant's total quantity
-            // If the variant has a different unit of measure, convert it first
-            if (productVariant.UnitOfMeasure.TryConvert(product.UnitOfMeasure, totalVariantStock, out var convertedStock))
-            {
-                product.Stock += convertedStock;
-            }
-            else
-            {
-                throw new InvalidOperationException($"Cannot convert quantity from {productVariant.UnitOfMeasure} to {product.UnitOfMeasure}.");
-            }
-
             var createdProductVariant = await unitOfWork.ProductVariants.CreateAsync(productVariant, cancellationToken);
-            // // Update the product to ensure the stock change is tracked
+
+            // Create a transaction for the product variant purchase
+            var transaction = new Transaction
+            {
+                Title = $"Purchase of product variant: {createdProductVariant.Name}",
+                Date = DateTime.UtcNow,
+                Type = TransactionType.Expense,
+                UnitPrice = args.NewProductVariant.UnitPrice,
+                Quantity = productVariant.Quantity,
+                TransactionAmount = args.NewProductVariant.UnitPrice * productVariant.Quantity,
+                ProductVariantId = createdProductVariant.Id,
+                VendorId = args.NewProductVariant.VendorId,
+                BatchId = null,
+                CustomerId = null,
+                Notes = "Automatically created during product variant registration"
+            };
+
+            await unitOfWork.Transactions.CreateAsync(transaction, cancellationToken);
+
+            // Update the product to ensure the stock change is tracked
             await unitOfWork.Products.UpdateAsync(product, cancellationToken);
 
+            // Save product variant and transaction atomically in a single database transaction
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             var productVariantDto = new ProductVariantDto().Map(createdProductVariant);
@@ -49,7 +59,7 @@ public sealed class CreateProductVariantCommand
             return result;
         }
 
-        protected override Task<IEnumerable<(string field, string error)>> ValidateAsync(Args args, CancellationToken cancellationToken = default)
+        protected override async Task<IEnumerable<(string field, string error)>> ValidateAsync(Args args, CancellationToken cancellationToken = default)
         {
             var errors = new List<(string field, string error)>();
 
@@ -86,7 +96,25 @@ public sealed class CreateProductVariantCommand
                 errors.Add(("unitOfMeasure", "Invalid unit of measure."));
             }
 
-            return Task.FromResult<IEnumerable<(string field, string error)>>(errors);
+            if (args.NewProductVariant.VendorId == Guid.Empty)
+            {
+                errors.Add(("vendorId", "Vendor is required."));
+            }
+            else
+            {
+                var vendor = await unitOfWork.Vendors.GetByIdAsync(args.NewProductVariant.VendorId, cancellationToken: cancellationToken);
+                if (vendor == null)
+                {
+                    errors.Add(("vendorId", "Vendor not found."));
+                }
+            }
+
+            if (args.NewProductVariant.UnitPrice <= 0)
+            {
+                errors.Add(("unitPrice", "Unit price must be greater than zero."));
+            }
+
+            return errors;
         }
     }
 }
