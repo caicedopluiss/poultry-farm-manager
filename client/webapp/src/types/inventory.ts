@@ -75,6 +75,8 @@ export interface NewProductVariant {
     stock: number;
     quantity: number;
     description?: string | null;
+    vendorId: string;
+    unitPrice: number;
 }
 
 export interface UpdateProductVariant {

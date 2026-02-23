@@ -7,10 +7,17 @@ import { useMemo } from "react";
 import GroupsIcon from "@mui/icons-material/Groups";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
-import { BatchListPage, BatchDetailPage, NotFoundPage, AssetDetailPage, ProductDetailPage } from "@/pages";
-import InventoryPage from "@/pages/InventoryPage";
-import FinancePage from "@/pages/FinancePage";
-import BatchFinancePage from "@/pages/BatchFinancePage";
+import {
+    BatchListPage,
+    BatchDetailPage,
+    BatchFinancePage,
+    NotFoundPage,
+    AssetDetailPage,
+    ProductDetailPage,
+    ProductVariantFinancePage,
+    InventoryPage,
+    FinancePage,
+} from "@/pages";
 import { BatchesProvider } from "@/contexts/batches";
 
 // Create a basic MUI theme
@@ -77,6 +84,7 @@ function App() {
                         <Route path="/inventory" element={<InventoryPage />} />
                         <Route path="/inventory/assets/:id" element={<AssetDetailPage />} />
                         <Route path="/inventory/products/:id" element={<ProductDetailPage />} />
+                        <Route path="/product-variants/:id/finance" element={<ProductVariantFinancePage />} />
                         <Route path="/finance" element={<FinancePage />} />
                         <Route path="*" element={<NotFoundPage />} />
                     </Routes>

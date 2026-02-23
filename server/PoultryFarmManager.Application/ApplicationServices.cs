@@ -45,6 +45,7 @@ public static class ApplicationServices
 
         // Products
         services.AddScoped<IAppRequestHandler<CreateProductCommand.Args, CreateProductCommand.Result>, CreateProductCommand.Handler>();
+        services.AddScoped<IAppRequestHandler<AddProductStockCommand.Args, AddProductStockCommand.Result>, AddProductStockCommand.Handler>();
         services.AddScoped<IAppRequestHandler<UpdateProductCommand.Args, UpdateProductCommand.Result>, UpdateProductCommand.Handler>();
 
         // Product Variants
@@ -84,6 +85,8 @@ public static class ApplicationServices
         services.AddScoped<IAppRequestHandler<GetAllProductVariantsQuery.Args, GetAllProductVariantsQuery.Result>, GetAllProductVariantsQuery.Handler>();
         services.AddScoped<IAppRequestHandler<GetProductVariantByIdQuery.Args, GetProductVariantByIdQuery.Result>, GetProductVariantByIdQuery.Handler>();
         services.AddScoped<IAppRequestHandler<GetProductVariantsByProductIdQuery.Args, GetProductVariantsByProductIdQuery.Result>, GetProductVariantsByProductIdQuery.Handler>();
+        services.AddScoped<IAppRequestHandler<GetProductVariantTransactionsQuery.Args, GetProductVariantTransactionsQuery.Result>, GetProductVariantTransactionsQuery.Handler>();
+        services.AddScoped<IAppRequestHandler<GetProductVariantPricingByVendorQuery.Args, GetProductVariantPricingByVendorQuery.Result>, GetProductVariantPricingByVendorQuery.Handler>();
 
         // Persons
         services.AddScoped<IAppRequestHandler<GetAllPersonsQuery.Args, GetAllPersonsQuery.Result>, GetAllPersonsQuery.Handler>();

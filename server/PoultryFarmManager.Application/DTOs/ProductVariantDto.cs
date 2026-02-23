@@ -10,7 +10,9 @@ public record NewProductVariantDto(
     string UnitOfMeasure,
     decimal Stock,
     int Quantity,
-    string? Description)
+    string? Description,
+    Guid VendorId,
+    decimal UnitPrice)
 {
     public ProductVariant Map(ProductVariant? to = null)
     {

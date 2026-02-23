@@ -38,3 +38,19 @@ export async function updateProduct(id: string, productData: UpdateProduct): Pro
     const response: UpdateProductResponse = await apiClient.put(`${url}/${id}`, { updateProduct: productData });
     return response;
 }
+
+interface AddProductStockResponse {
+    updatedProduct: Product;
+}
+
+export async function addProductStock(
+    productId: string,
+    productVariantId: string,
+    quantity: number,
+): Promise<AddProductStockResponse> {
+    const response: AddProductStockResponse = await apiClient.post(`${url}/${productId}/add-stock`, {
+        productVariantId,
+        quantity,
+    });
+    return response;
+}

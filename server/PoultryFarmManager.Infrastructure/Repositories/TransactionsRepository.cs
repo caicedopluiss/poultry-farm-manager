@@ -49,6 +49,21 @@ public sealed class TransactionsRepository(AppDbContext context) : ITransactions
         return transactions;
     }
 
+    public async Task<IReadOnlyCollection<Transaction>> GetByProductVariantIdAsync(Guid productVariantId, CancellationToken cancellationToken = default)
+    {
+        var transactions = await context.Transactions
+            .Where(t => t.ProductVariantId == productVariantId)
+            .Include(t => t.ProductVariant)
+            .Include(t => t.Batch)
+            .Include(t => t.Vendor)
+                .ThenInclude(v => v!.ContactPerson)
+            .Include(t => t.Customer)
+            .AsNoTracking()
+            .OrderByDescending(t => t.Date)
+            .ToListAsync(cancellationToken);
+        return transactions;
+    }
+
     public Task<Transaction> UpdateAsync(Transaction transaction, CancellationToken cancellationToken = default)
     {
         var updatedTransaction = context.Transactions.Update(transaction).Entity;

@@ -1,4 +1,6 @@
 import type { ProductVariant, NewProductVariant, UpdateProductVariant } from "@/types/inventory";
+import type { Transaction } from "@/types/transaction";
+import type { Vendor } from "@/types/vendor";
 import apiClient from "@/api/client";
 
 const url = "v1/product-variants";
@@ -50,5 +52,34 @@ export async function updateProductVariant(
     const response: UpdateProductVariantResponse = await apiClient.put(`${url}/${id}`, {
         updateProductVariant: variantData,
     });
+    return response;
+}
+
+interface GetProductVariantTransactionsResponse {
+    transactions: Transaction[];
+}
+
+export async function getProductVariantTransactions(variantId: string): Promise<GetProductVariantTransactionsResponse> {
+    const response: GetProductVariantTransactionsResponse = await apiClient.get(`${url}/${variantId}/transactions`);
+    return response;
+}
+
+export interface VendorPricing {
+    vendor: Vendor;
+    lastUnitPrice: number;
+    lastPurchaseDate: string;
+    totalPurchases: number;
+}
+
+interface GetProductVariantPricingByVendorResponse {
+    vendorPricings: VendorPricing[];
+}
+
+export async function getProductVariantPricingByVendor(
+    variantId: string,
+): Promise<GetProductVariantPricingByVendorResponse> {
+    const response: GetProductVariantPricingByVendorResponse = await apiClient.get(
+        `${url}/${variantId}/pricing-by-vendor`,
+    );
     return response;
 }

@@ -108,6 +108,7 @@ public class Program
         app.MapEndpoint<CreateProductEndpoint>(apiPrefix);
         app.MapEndpoint<GetAllProductsEndpoint>(apiPrefix);
         app.MapEndpoint<GetProductByIdEndpoint>(apiPrefix);
+        app.MapEndpoint<AddProductStockEndpoint>(apiPrefix);
         app.MapEndpoint<UpdateProductEndpoint>(apiPrefix);
 
         // ProductVariant endpoints
@@ -115,6 +116,8 @@ public class Program
         app.MapEndpoint<GetAllProductVariantsEndpoint>(apiPrefix);
         app.MapEndpoint<GetProductVariantByIdEndpoint>(apiPrefix);
         app.MapEndpoint<GetProductVariantsByProductIdEndpoint>(apiPrefix);
+        app.MapEndpoint<GetProductVariantTransactionsEndpoint>(apiPrefix);
+        app.MapEndpoint<GetProductVariantPricingByVendorEndpoint>(apiPrefix);
         app.MapEndpoint<UpdateProductVariantEndpoint>(apiPrefix);
 
         // Transaction endpoints
