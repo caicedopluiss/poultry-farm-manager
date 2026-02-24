@@ -4,6 +4,8 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using PoultryFarmManager.Core.Enums;
+using PoultryFarmManager.Core.Models;
+using PoultryFarmManager.Core.Models.Finance;
 using PoultryFarmManager.Core.Models.Inventory;
 using PoultryFarmManager.WebAPI.Endpoints.v1.ProductVariants;
 
@@ -20,7 +22,22 @@ public class CreateProductVariantEndpointTests(TestsFixture fixture) : IClassFix
     [Fact]
     public async Task POST_ProductVariants_ValidRequest_ShouldReturnCreated()
     {
-        // Arrange - Create a product first
+        // Arrange - Create a product and vendor first
+        var person = new Person
+        {
+            FirstName = "John",
+            LastName = "Supplier",
+            Email = "john@supplier.com"
+        };
+        dbContext.Persons.Add(person);
+
+        var vendor = new Vendor
+        {
+            Name = "Test Supplier",
+            ContactPersonId = person.Id
+        };
+        dbContext.Vendors.Add(vendor);
+
         var product = new Product
         {
             Name = "Test Feed",
@@ -38,7 +55,9 @@ public class CreateProductVariantEndpointTests(TestsFixture fixture) : IClassFix
             UnitOfMeasure = nameof(UnitOfMeasure.Kilogram),
             Stock = 100m,
             Quantity = 25,
-            Description = "25 kilogram bag"
+            Description = "25 kilogram bag",
+            VendorId = vendor.Id,
+            UnitPrice = 15.50m
         };
         var body = new { newProductVariant };
 
@@ -77,7 +96,9 @@ public class CreateProductVariantEndpointTests(TestsFixture fixture) : IClassFix
             UnitOfMeasure = nameof(UnitOfMeasure.Kilogram),
             Stock = 100m,
             Quantity = 25,
-            Description = "Test"
+            Description = "Test",
+            VendorId = Guid.NewGuid(),
+            UnitPrice = 15.00m
         };
         var body = new { newProductVariant };
 

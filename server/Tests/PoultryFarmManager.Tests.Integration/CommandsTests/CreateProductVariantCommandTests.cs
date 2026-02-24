@@ -7,6 +7,8 @@ using PoultryFarmManager.Application.Commands.ProductVariants;
 using PoultryFarmManager.Application.DTOs;
 using PoultryFarmManager.Application.Shared.CQRS;
 using PoultryFarmManager.Core.Enums;
+using PoultryFarmManager.Core.Models;
+using PoultryFarmManager.Core.Models.Finance;
 using PoultryFarmManager.Core.Models.Inventory;
 
 namespace PoultryFarmManager.Tests.Integration.CommandsTests;
@@ -23,7 +25,22 @@ public class CreateProductVariantCommandTests(TestsFixture fixture) : IClassFixt
     [Fact]
     public async Task CreateProductVariantCommand_ShouldCreateVariant_WithValidData()
     {
-        // Arrange - Create a product first
+        // Arrange - Create a product and vendor first
+        var person = new Person
+        {
+            FirstName = "John",
+            LastName = "Supplier",
+            Email = "john@supplier.com"
+        };
+        dbContext.Persons.Add(person);
+
+        var vendor = new Vendor
+        {
+            Name = "Test Vendor",
+            ContactPersonId = person.Id
+        };
+        dbContext.Vendors.Add(vendor);
+
         var product = new Product
         {
             Name = "Test Feed",
@@ -40,7 +57,9 @@ public class CreateProductVariantCommandTests(TestsFixture fixture) : IClassFixt
             UnitOfMeasure: nameof(UnitOfMeasure.Kilogram),
             Stock: 100m,
             Quantity: 25,
-            Description: "25 kilogram bag"
+            Description: "25 kilogram bag",
+            VendorId: vendor.Id,
+            UnitPrice: 15.50m
         );
         var request = new AppRequest<CreateProductVariantCommand.Args>(new(newVariantDto));
 
@@ -61,6 +80,15 @@ public class CreateProductVariantCommandTests(TestsFixture fixture) : IClassFixt
         var variantInDb = await dbContext.ProductVariants.FindAsync(result.Value!.CreatedProductVariant.Id);
         Assert.NotNull(variantInDb);
         Assert.Equal("25kg Bag", variantInDb.Name);
+
+        // Verify transaction was created
+        var transaction = dbContext.Transactions
+            .FirstOrDefault(t => t.ProductVariantId == variantInDb.Id);
+        Assert.NotNull(transaction);
+        Assert.Equal(vendor.Id, transaction.VendorId);
+        Assert.Equal(15.50m, transaction.UnitPrice);
+        Assert.Equal(25, transaction.Quantity);
+        Assert.Equal(387.50m, transaction.TransactionAmount); // 15.50 * 25
     }
 
     [Fact]
@@ -83,7 +111,9 @@ public class CreateProductVariantCommandTests(TestsFixture fixture) : IClassFixt
             UnitOfMeasure: nameof(UnitOfMeasure.Kilogram),
             Stock: 100m,
             Quantity: 25,
-            Description: "Test"
+            Description: "Test",
+            VendorId: Guid.NewGuid(),
+            UnitPrice: 15.00m
         );
         var request = new AppRequest<CreateProductVariantCommand.Args>(new(newVariantDto));
 
@@ -106,14 +136,20 @@ public class CreateProductVariantCommandTests(TestsFixture fixture) : IClassFixt
             UnitOfMeasure: nameof(UnitOfMeasure.Kilogram),
             Stock: 100m,
             Quantity: 25,
-            Description: "Test"
+            Description: "Test",
+            VendorId: Guid.NewGuid(),
+            UnitPrice: 15.00m
         );
         var request = new AppRequest<CreateProductVariantCommand.Args>(new(newVariantDto));
 
-        // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await handler.HandleAsync(request, CancellationToken.None)
-        );
+        // Act
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.False(result.IsSuccess);
+        Assert.NotNull(result.ValidationErrors);
+        Assert.Contains(result.ValidationErrors, e => e.field == "vendorId");
     }
 
     [Fact]
@@ -136,7 +172,9 @@ public class CreateProductVariantCommandTests(TestsFixture fixture) : IClassFixt
             UnitOfMeasure: nameof(UnitOfMeasure.Kilogram),
             Stock: -10m,
             Quantity: 25,
-            Description: "Test"
+            Description: "Test",
+            VendorId: Guid.NewGuid(),
+            UnitPrice: 15.00m
         );
         var request = new AppRequest<CreateProductVariantCommand.Args>(new(newVariantDto));
 
@@ -169,7 +207,9 @@ public class CreateProductVariantCommandTests(TestsFixture fixture) : IClassFixt
             UnitOfMeasure: nameof(UnitOfMeasure.Kilogram),
             Stock: 100m,
             Quantity: 25,
-            Description: "Valid description"
+            Description: "Valid description",
+            VendorId: Guid.NewGuid(),
+            UnitPrice: 15.00m
         );
         var request = new AppRequest<CreateProductVariantCommand.Args>(new(newVariantDto));
 
@@ -181,7 +221,7 @@ public class CreateProductVariantCommandTests(TestsFixture fixture) : IClassFixt
         Assert.False(result.IsSuccess);
         Assert.NotNull(result.ValidationErrors);
         Assert.Contains(result.ValidationErrors, e => e.field == "name");
-        Assert.Single(result.ValidationErrors);
+        Assert.Contains(result.ValidationErrors, e => e.field == "vendorId");
     }
 
     [Fact]
@@ -204,7 +244,9 @@ public class CreateProductVariantCommandTests(TestsFixture fixture) : IClassFixt
             UnitOfMeasure: nameof(UnitOfMeasure.Kilogram),
             Stock: 100m,
             Quantity: 25,
-            Description: new string('B', 501) // 501 characters - exceeds max length of 500
+            Description: new string('B', 501), // 501 characters - exceeds max length of 500
+            VendorId: Guid.NewGuid(),
+            UnitPrice: 15.00m
         );
         var request = new AppRequest<CreateProductVariantCommand.Args>(new(newVariantDto));
 
@@ -216,7 +258,7 @@ public class CreateProductVariantCommandTests(TestsFixture fixture) : IClassFixt
         Assert.False(result.IsSuccess);
         Assert.NotNull(result.ValidationErrors);
         Assert.Contains(result.ValidationErrors, e => e.field == "description");
-        Assert.Single(result.ValidationErrors);
+        Assert.Contains(result.ValidationErrors, e => e.field == "vendorId");
     }
 
     [Fact]
@@ -239,7 +281,9 @@ public class CreateProductVariantCommandTests(TestsFixture fixture) : IClassFixt
             UnitOfMeasure: nameof(UnitOfMeasure.Kilogram),
             Stock: 100m,
             Quantity: 0, // Zero quantity - should be greater than zero
-            Description: "Valid description"
+            Description: "Valid description",
+            VendorId: Guid.NewGuid(),
+            UnitPrice: 15.00m
         );
         var request = new AppRequest<CreateProductVariantCommand.Args>(new(newVariantDto));
 
@@ -251,7 +295,7 @@ public class CreateProductVariantCommandTests(TestsFixture fixture) : IClassFixt
         Assert.False(result.IsSuccess);
         Assert.NotNull(result.ValidationErrors);
         Assert.Contains(result.ValidationErrors, e => e.field == "quantity");
-        Assert.Single(result.ValidationErrors);
+        Assert.Contains(result.ValidationErrors, e => e.field == "vendorId");
     }
 
     [Fact]
@@ -274,7 +318,9 @@ public class CreateProductVariantCommandTests(TestsFixture fixture) : IClassFixt
             UnitOfMeasure: nameof(UnitOfMeasure.Kilogram),
             Stock: 100m,
             Quantity: -5, // Negative quantity - should be greater than zero
-            Description: "Valid description"
+            Description: "Valid description",
+            VendorId: Guid.NewGuid(),
+            UnitPrice: 15.00m
         );
         var request = new AppRequest<CreateProductVariantCommand.Args>(new(newVariantDto));
 
@@ -286,7 +332,7 @@ public class CreateProductVariantCommandTests(TestsFixture fixture) : IClassFixt
         Assert.False(result.IsSuccess);
         Assert.NotNull(result.ValidationErrors);
         Assert.Contains(result.ValidationErrors, e => e.field == "quantity");
-        Assert.Single(result.ValidationErrors);
+        Assert.Contains(result.ValidationErrors, e => e.field == "vendorId");
     }
 
     [Fact]
@@ -309,7 +355,9 @@ public class CreateProductVariantCommandTests(TestsFixture fixture) : IClassFixt
             UnitOfMeasure: "InvalidUnit",
             Stock: 100m,
             Quantity: 25,
-            Description: "Valid description"
+            Description: "Valid description",
+            VendorId: Guid.NewGuid(),
+            UnitPrice: 15.00m
         );
         var request = new AppRequest<CreateProductVariantCommand.Args>(new(newVariantDto));
 
@@ -321,7 +369,6 @@ public class CreateProductVariantCommandTests(TestsFixture fixture) : IClassFixt
         Assert.False(result.IsSuccess);
         Assert.NotNull(result.ValidationErrors);
         Assert.Contains(result.ValidationErrors, e => e.field == "unitOfMeasure");
-        Assert.Single(result.ValidationErrors);
     }
 
     [Fact]
@@ -344,7 +391,9 @@ public class CreateProductVariantCommandTests(TestsFixture fixture) : IClassFixt
             UnitOfMeasure: "", // Empty unit of measure
             Stock: 100m,
             Quantity: 25,
-            Description: "Valid description"
+            Description: "Valid description",
+            VendorId: Guid.NewGuid(),
+            UnitPrice: 15.00m
         );
         var request = new AppRequest<CreateProductVariantCommand.Args>(new(newVariantDto));
 
@@ -378,7 +427,9 @@ public class CreateProductVariantCommandTests(TestsFixture fixture) : IClassFixt
             UnitOfMeasure: "InvalidUnit", // Invalid unit
             Stock: -50m, // Negative stock
             Quantity: 0, // Zero quantity
-            Description: new string('B', 501) // Description too long
+            Description: new string('B', 501), // Description too long
+            VendorId: Guid.Empty,
+            UnitPrice: -10.00m
         );
         var request = new AppRequest<CreateProductVariantCommand.Args>(new(newVariantDto));
 
@@ -394,6 +445,156 @@ public class CreateProductVariantCommandTests(TestsFixture fixture) : IClassFixt
         Assert.Contains(result.ValidationErrors, e => e.field == "stock");
         Assert.Contains(result.ValidationErrors, e => e.field == "quantity");
         Assert.Contains(result.ValidationErrors, e => e.field == "description");
-        Assert.Equal(5, result.ValidationErrors.Count());
+        Assert.Contains(result.ValidationErrors, e => e.field == "vendorId");
+        Assert.Contains(result.ValidationErrors, e => e.field == "unitPrice");
+        Assert.Equal(7, result.ValidationErrors.Count());
+    }
+
+    [Fact]
+    public async Task CreateProductVariantCommand_ShouldFail_WithEmptyVendorId()
+    {
+        // Arrange - Create a product first
+        var product = new Product
+        {
+            Name = "Test Feed",
+            Manufacturer = "Test Manufacturer",
+            UnitOfMeasure = UnitOfMeasure.Kilogram,
+            Stock = 1000m
+        };
+        dbContext.Products.Add(product);
+        await dbContext.SaveChangesAsync();
+
+        var newVariantDto = new NewProductVariantDto(
+            ProductId: product.Id,
+            Name: "Valid Name",
+            UnitOfMeasure: nameof(UnitOfMeasure.Kilogram),
+            Stock: 100m,
+            Quantity: 25,
+            Description: "Valid description",
+            VendorId: Guid.Empty, // Empty vendor ID
+            UnitPrice: 15.00m
+        );
+        var request = new AppRequest<CreateProductVariantCommand.Args>(new(newVariantDto));
+
+        // Act
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.False(result.IsSuccess);
+        Assert.NotNull(result.ValidationErrors);
+        Assert.Contains(result.ValidationErrors, e => e.field == "vendorId");
+        Assert.Single(result.ValidationErrors);
+    }
+
+    [Fact]
+    public async Task CreateProductVariantCommand_ShouldFail_WithInvalidVendorId()
+    {
+        // Arrange - Create a product first
+        var product = new Product
+        {
+            Name = "Test Feed",
+            Manufacturer = "Test Manufacturer",
+            UnitOfMeasure = UnitOfMeasure.Kilogram,
+            Stock = 1000m
+        };
+        dbContext.Products.Add(product);
+        await dbContext.SaveChangesAsync();
+
+        var newVariantDto = new NewProductVariantDto(
+            ProductId: product.Id,
+            Name: "Valid Name",
+            UnitOfMeasure: nameof(UnitOfMeasure.Kilogram),
+            Stock: 100m,
+            Quantity: 25,
+            Description: "Valid description",
+            VendorId: Guid.NewGuid(), // Vendor doesn't exist in database
+            UnitPrice: 15.00m
+        );
+        var request = new AppRequest<CreateProductVariantCommand.Args>(new(newVariantDto));
+
+        // Act
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.False(result.IsSuccess);
+        Assert.NotNull(result.ValidationErrors);
+        Assert.Contains(result.ValidationErrors, e => e.field == "vendorId" && e.error.Contains("not found"));
+        Assert.Single(result.ValidationErrors);
+    }
+
+    [Fact]
+    public async Task CreateProductVariantCommand_ShouldFail_WithZeroUnitPrice()
+    {
+        // Arrange - Create a product first
+        var product = new Product
+        {
+            Name = "Test Feed",
+            Manufacturer = "Test Manufacturer",
+            UnitOfMeasure = UnitOfMeasure.Kilogram,
+            Stock = 1000m
+        };
+        dbContext.Products.Add(product);
+        await dbContext.SaveChangesAsync();
+
+        var newVariantDto = new NewProductVariantDto(
+            ProductId: product.Id,
+            Name: "Valid Name",
+            UnitOfMeasure: nameof(UnitOfMeasure.Kilogram),
+            Stock: 100m,
+            Quantity: 25,
+            Description: "Valid description",
+            VendorId: Guid.NewGuid(),
+            UnitPrice: 0m // Zero unit price
+        );
+        var request = new AppRequest<CreateProductVariantCommand.Args>(new(newVariantDto));
+
+        // Act
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.False(result.IsSuccess);
+        Assert.NotNull(result.ValidationErrors);
+        Assert.Contains(result.ValidationErrors, e => e.field == "unitPrice");
+        Assert.True(result.ValidationErrors.Count() >= 1); // May also have vendor validation error
+    }
+
+    [Fact]
+    public async Task CreateProductVariantCommand_ShouldFail_WithNegativeUnitPrice()
+    {
+        // Arrange - Create a product first
+        var product = new Product
+        {
+            Name = "Test Feed",
+            Manufacturer = "Test Manufacturer",
+            UnitOfMeasure = UnitOfMeasure.Kilogram,
+            Stock = 1000m
+        };
+        dbContext.Products.Add(product);
+        await dbContext.SaveChangesAsync();
+
+        var newVariantDto = new NewProductVariantDto(
+            ProductId: product.Id,
+            Name: "Valid Name",
+            UnitOfMeasure: nameof(UnitOfMeasure.Kilogram),
+            Stock: 100m,
+            Quantity: 25,
+            Description: "Valid description",
+            VendorId: Guid.NewGuid(),
+            UnitPrice: -10.50m // Negative unit price
+        );
+        var request = new AppRequest<CreateProductVariantCommand.Args>(new(newVariantDto));
+
+        // Act
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.False(result.IsSuccess);
+        Assert.NotNull(result.ValidationErrors);
+        Assert.Contains(result.ValidationErrors, e => e.field == "unitPrice");
+        Assert.True(result.ValidationErrors.Count() >= 1); // May also have vendor validation error
     }
 }

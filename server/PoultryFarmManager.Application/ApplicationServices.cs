@@ -2,12 +2,18 @@ using System;
 using Microsoft.Extensions.DependencyInjection;
 using PoultryFarmManager.Application.Commands.Assets;
 using PoultryFarmManager.Application.Commands.Batches;
+using PoultryFarmManager.Application.Commands.Persons;
 using PoultryFarmManager.Application.Commands.Products;
 using PoultryFarmManager.Application.Commands.ProductVariants;
+using PoultryFarmManager.Application.Commands.Transactions;
+using PoultryFarmManager.Application.Commands.Vendors;
+using PoultryFarmManager.Application.Queries.Transactions;
 using PoultryFarmManager.Application.Queries.Assets;
 using PoultryFarmManager.Application.Queries.Batches;
+using PoultryFarmManager.Application.Queries.Persons;
 using PoultryFarmManager.Application.Queries.Products;
 using PoultryFarmManager.Application.Queries.ProductVariants;
+using PoultryFarmManager.Application.Queries.Vendors;
 using PoultryFarmManager.Application.Shared.CQRS;
 
 namespace PoultryFarmManager.Application;
@@ -32,6 +38,7 @@ public static class ApplicationServices
         services.AddScoped<IAppRequestHandler<RegisterProductConsumptionCommand.Args, RegisterProductConsumptionCommand.Result>, RegisterProductConsumptionCommand.Handler>();
         services.AddScoped<IAppRequestHandler<RegisterWeightMeasurementCommand.Args, RegisterWeightMeasurementCommand.Result>, RegisterWeightMeasurementCommand.Handler>();
         services.AddScoped<IAppRequestHandler<UpdateBatchNameCommand.Args, UpdateBatchNameCommand.Result>, UpdateBatchNameCommand.Handler>();
+        services.AddScoped<IAppRequestHandler<UpdateBatchNotesCommand.Args, UpdateBatchNotesCommand.Result>, UpdateBatchNotesCommand.Handler>();
 
         // Assets
         services.AddScoped<IAppRequestHandler<CreateAssetCommand.Args, CreateAssetCommand.Result>, CreateAssetCommand.Handler>();
@@ -39,11 +46,23 @@ public static class ApplicationServices
 
         // Products
         services.AddScoped<IAppRequestHandler<CreateProductCommand.Args, CreateProductCommand.Result>, CreateProductCommand.Handler>();
+        services.AddScoped<IAppRequestHandler<AddProductStockCommand.Args, AddProductStockCommand.Result>, AddProductStockCommand.Handler>();
         services.AddScoped<IAppRequestHandler<UpdateProductCommand.Args, UpdateProductCommand.Result>, UpdateProductCommand.Handler>();
 
         // Product Variants
         services.AddScoped<IAppRequestHandler<CreateProductVariantCommand.Args, CreateProductVariantCommand.Result>, CreateProductVariantCommand.Handler>();
         services.AddScoped<IAppRequestHandler<UpdateProductVariantCommand.Args, UpdateProductVariantCommand.Result>, UpdateProductVariantCommand.Handler>();
+
+        // Transactions
+        services.AddScoped<IAppRequestHandler<CreateTransactionCommand.Args, CreateTransactionCommand.Result>, CreateTransactionCommand.Handler>();
+
+        // Persons
+        services.AddScoped<IAppRequestHandler<CreatePersonCommand.Args, CreatePersonCommand.Result>, CreatePersonCommand.Handler>();
+        services.AddScoped<IAppRequestHandler<UpdatePersonCommand.Args, UpdatePersonCommand.Result>, UpdatePersonCommand.Handler>();
+
+        // Vendors
+        services.AddScoped<IAppRequestHandler<CreateVendorCommand.Args, CreateVendorCommand.Result>, CreateVendorCommand.Handler>();
+        services.AddScoped<IAppRequestHandler<UpdateVendorCommand.Args, UpdateVendorCommand.Result>, UpdateVendorCommand.Handler>();
     }
 
     private static void AddQueryHandlers(IServiceCollection services)
@@ -52,9 +71,14 @@ public static class ApplicationServices
         services.AddScoped<IAppRequestHandler<GetBatchesListQuery.Args, GetBatchesListQuery.Result>, GetBatchesListQuery.Handler>();
         services.AddScoped<IAppRequestHandler<GetBatchByIdQuery.Args, GetBatchByIdQuery.Result>, GetBatchByIdQuery.Handler>();
 
+        // Transactions
+        services.AddScoped<IAppRequestHandler<GetBatchTransactionsQuery.Args, GetBatchTransactionsQuery.Result>, GetBatchTransactionsQuery.Handler>();
+
         // Assets
         services.AddScoped<IAppRequestHandler<GetAllAssetsQuery.Args, GetAllAssetsQuery.Result>, GetAllAssetsQuery.Handler>();
         services.AddScoped<IAppRequestHandler<GetAssetByIdQuery.Args, GetAssetByIdQuery.Result>, GetAssetByIdQuery.Handler>();
+        services.AddScoped<IAppRequestHandler<GetAssetTransactionsQuery.Args, GetAssetTransactionsQuery.Result>, GetAssetTransactionsQuery.Handler>();
+        services.AddScoped<IAppRequestHandler<GetAssetPricingByVendorQuery.Args, GetAssetPricingByVendorQuery.Result>, GetAssetPricingByVendorQuery.Handler>();
 
         // Products
         services.AddScoped<IAppRequestHandler<GetAllProductsQuery.Args, GetAllProductsQuery.Result>, GetAllProductsQuery.Handler>();
@@ -64,5 +88,15 @@ public static class ApplicationServices
         services.AddScoped<IAppRequestHandler<GetAllProductVariantsQuery.Args, GetAllProductVariantsQuery.Result>, GetAllProductVariantsQuery.Handler>();
         services.AddScoped<IAppRequestHandler<GetProductVariantByIdQuery.Args, GetProductVariantByIdQuery.Result>, GetProductVariantByIdQuery.Handler>();
         services.AddScoped<IAppRequestHandler<GetProductVariantsByProductIdQuery.Args, GetProductVariantsByProductIdQuery.Result>, GetProductVariantsByProductIdQuery.Handler>();
+        services.AddScoped<IAppRequestHandler<GetProductVariantTransactionsQuery.Args, GetProductVariantTransactionsQuery.Result>, GetProductVariantTransactionsQuery.Handler>();
+        services.AddScoped<IAppRequestHandler<GetProductVariantPricingByVendorQuery.Args, GetProductVariantPricingByVendorQuery.Result>, GetProductVariantPricingByVendorQuery.Handler>();
+
+        // Persons
+        services.AddScoped<IAppRequestHandler<GetAllPersonsQuery.Args, GetAllPersonsQuery.Result>, GetAllPersonsQuery.Handler>();
+        services.AddScoped<IAppRequestHandler<GetPersonByIdQuery.Args, GetPersonByIdQuery.Result>, GetPersonByIdQuery.Handler>();
+
+        // Vendors
+        services.AddScoped<IAppRequestHandler<GetAllVendorsQuery.Args, GetAllVendorsQuery.Result>, GetAllVendorsQuery.Handler>();
+        services.AddScoped<IAppRequestHandler<GetVendorByIdQuery.Args, GetVendorByIdQuery.Result>, GetVendorByIdQuery.Handler>();
     }
 }

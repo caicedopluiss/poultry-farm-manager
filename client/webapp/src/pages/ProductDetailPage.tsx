@@ -11,8 +11,14 @@ import {
     useTheme,
     useMediaQuery,
 } from "@mui/material";
-import { ArrowBack, Edit as EditIcon, Category as ProductIcon, Add as AddIcon } from "@mui/icons-material";
-import { getProductById, updateProduct } from "@/api/v1/products";
+import {
+    ArrowBack,
+    Edit as EditIcon,
+    Category as ProductIcon,
+    Add as AddIcon,
+    Inventory as StockIcon,
+} from "@mui/icons-material";
+import { getProductById, updateProduct, addProductStock } from "@/api/v1/products";
 import { getProductVariantsByProductId, createProductVariant, updateProductVariant } from "@/api/v1/productVariants";
 import type {
     Product,
@@ -25,6 +31,7 @@ import ProductVariantTable from "@/components/ProductVariantTable";
 import CreateProductVariantForm from "@/components/CreateProductVariantForm";
 import ProductVariantDetailModal from "@/components/ProductVariantDetailModal";
 import ProductDetailModal from "@/components/ProductDetailModal";
+import AddProductStockModal from "@/components/AddProductStockModal";
 
 export default function ProductDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -39,6 +46,7 @@ export default function ProductDetailPage() {
     const [createFormOpen, setCreateFormOpen] = useState(false);
     const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
     const [detailModalOpen, setDetailModalOpen] = useState(false);
+    const [addStockModalOpen, setAddStockModalOpen] = useState(false);
     const [productModalOpen, setProductModalOpen] = useState(false);
     useEffect(() => {
         if (id) {
@@ -131,6 +139,13 @@ export default function ProductDetailPage() {
             console.error("Failed to update product:", err);
             throw err;
         }
+    };
+    const handleAddStock = async (productVariantId: string, quantity: number) => {
+        if (!product?.id) return;
+
+        await addProductStock(product.id, productVariantId, quantity);
+        // Reload product and variants after adding stock
+        await Promise.all([loadProduct(product.id), loadVariants(product.id)]);
     };
 
     if (loading) {
@@ -234,6 +249,15 @@ export default function ProductDetailPage() {
                             Refresh
                         </Button>
                         <Button
+                            variant="outlined"
+                            color="primary"
+                            startIcon={<StockIcon />}
+                            onClick={() => setAddStockModalOpen(true)}
+                            size="small"
+                        >
+                            Add Stock
+                        </Button>
+                        <Button
                             variant="contained"
                             color="secondary"
                             startIcon={<AddIcon />}
@@ -264,6 +288,17 @@ export default function ProductDetailPage() {
                     onClose={handleCloseDetailModal}
                     variant={selectedVariant}
                     onUpdate={handleUpdateVariant}
+                />
+            )}
+
+            {/* Add Stock Modal */}
+            {product && (
+                <AddProductStockModal
+                    open={addStockModalOpen}
+                    onClose={() => setAddStockModalOpen(false)}
+                    onSubmit={handleAddStock}
+                    variants={variants}
+                    productName={product.name}
                 />
             )}
 

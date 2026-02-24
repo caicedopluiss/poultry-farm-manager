@@ -6,8 +6,19 @@ import { useNavigate, useLocation, Routes, Route } from "react-router-dom";
 import { useMemo } from "react";
 import GroupsIcon from "@mui/icons-material/Groups";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
-import { BatchListPage, BatchDetailPage, NotFoundPage, AssetDetailPage, ProductDetailPage } from "@/pages";
-import InventoryPage from "@/pages/InventoryPage";
+import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
+import {
+    BatchListPage,
+    BatchDetailPage,
+    BatchFinancePage,
+    NotFoundPage,
+    AssetDetailPage,
+    AssetFinancePage,
+    ProductDetailPage,
+    ProductVariantFinancePage,
+    InventoryPage,
+    FinancePage,
+} from "@/pages";
 import { BatchesProvider } from "@/contexts/batches";
 
 // Create a basic MUI theme
@@ -34,6 +45,11 @@ const NAVIGATION: Navigation = [
         segment: "inventory",
         title: "Inventory",
         icon: <Inventory2Icon />,
+    },
+    {
+        segment: "finance",
+        title: "Finance",
+        icon: <AccountBalanceIcon />,
     },
 ];
 
@@ -65,9 +81,13 @@ function App() {
                         <Route path="/" element={<BatchListPage />} />
                         <Route path="/batches" element={<BatchListPage />} />
                         <Route path="/batches/:id" element={<BatchDetailPage />} />
+                        <Route path="/batches/:id/finance" element={<BatchFinancePage />} />
                         <Route path="/inventory" element={<InventoryPage />} />
                         <Route path="/inventory/assets/:id" element={<AssetDetailPage />} />
+                        <Route path="/assets/:id/finance" element={<AssetFinancePage />} />
                         <Route path="/inventory/products/:id" element={<ProductDetailPage />} />
+                        <Route path="/product-variants/:id/finance" element={<ProductVariantFinancePage />} />
+                        <Route path="/finance" element={<FinancePage />} />
                         <Route path="*" element={<NotFoundPage />} />
                     </Routes>
                 </DashboardLayout>

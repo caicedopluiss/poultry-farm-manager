@@ -7,6 +7,7 @@ using PoultryFarmManager.Application.Commands.Batches;
 using PoultryFarmManager.Application.DTOs;
 using PoultryFarmManager.Application.Shared.CQRS;
 using PoultryFarmManager.Core.Enums;
+using PoultryFarmManager.Core.Models.Finance;
 
 namespace PoultryFarmManager.Tests.Integration.CommandsTests;
 
@@ -23,6 +24,22 @@ public class CreateBatchCommandTests(TestsFixture fixture) : IClassFixture<Tests
     public async Task CreateBatchCommand_ShouldCreateBatch()
     {
         // Arrange
+        var contactPerson = new Person
+        {
+            FirstName = "John",
+            LastName = "Doe"
+        };
+        dbContext.Persons.Add(contactPerson);
+        await dbContext.SaveChangesAsync();
+
+        var vendor = new Vendor
+        {
+            Name = "Test Vendor",
+            ContactPersonId = contactPerson.Id
+        };
+        dbContext.Vendors.Add(vendor);
+        await dbContext.SaveChangesAsync();
+
         var newBatch = new NewBatchDto
         (
             Name: "Test Batch",
@@ -31,7 +48,9 @@ public class CreateBatchCommandTests(TestsFixture fixture) : IClassFixture<Tests
             MaleCount: 50,
             FemaleCount: 50,
             UnsexedCount: 0,
-            Shed: "Shed A-1"
+            Shed: "Shed A-1",
+            VendorId: vendor.Id,
+            InitialCost: 5000.00m
         );
         var request = new AppRequest<CreateBatchCommand.Args>(new(newBatch));
 
@@ -56,6 +75,22 @@ public class CreateBatchCommandTests(TestsFixture fixture) : IClassFixture<Tests
     public async Task CreateBatchCommand_ShouldCreatePlannedBatch_ForFutureStartDate()
     {
         // Arrange
+        var contactPerson = new Person
+        {
+            FirstName = "Jane",
+            LastName = "Smith"
+        };
+        dbContext.Persons.Add(contactPerson);
+        await dbContext.SaveChangesAsync();
+
+        var vendor = new Vendor
+        {
+            Name = "Test Vendor 2",
+            ContactPersonId = contactPerson.Id
+        };
+        dbContext.Vendors.Add(vendor);
+        await dbContext.SaveChangesAsync();
+
         var futureDate = DateTime.UtcNow.AddDays(10).ToString(Constants.DateTimeFormat);
         var newBatch = new NewBatchDto
         (
@@ -65,7 +100,9 @@ public class CreateBatchCommandTests(TestsFixture fixture) : IClassFixture<Tests
             MaleCount: 20,
             FemaleCount: 30,
             UnsexedCount: 0,
-            Shed: "Shed B-2"
+            Shed: "Shed B-2",
+            VendorId: vendor.Id,
+            InitialCost: 3000.50m
         );
         var request = new AppRequest<CreateBatchCommand.Args>(new(newBatch));
 
@@ -87,6 +124,22 @@ public class CreateBatchCommandTests(TestsFixture fixture) : IClassFixture<Tests
     public async Task CreateBatchCommand_ShouldReturnValidationErrors_ForInvalidInput(int[] counts)
     {
         // Arrange
+        var contactPerson = new Person
+        {
+            FirstName = "Test",
+            LastName = "Person"
+        };
+        dbContext.Persons.Add(contactPerson);
+        await dbContext.SaveChangesAsync();
+
+        var vendor = new Vendor
+        {
+            Name = "Test Vendor 3",
+            ContactPersonId = contactPerson.Id
+        };
+        dbContext.Vendors.Add(vendor);
+        await dbContext.SaveChangesAsync();
+
         var newBatch = new NewBatchDto
         (
             Name: "", // Invalid: Name is required
@@ -95,7 +148,9 @@ public class CreateBatchCommandTests(TestsFixture fixture) : IClassFixture<Tests
             MaleCount: counts[0],
             FemaleCount: counts[1],
             UnsexedCount: counts[2],
-            Shed: null
+            Shed: null,
+            VendorId: vendor.Id,
+            InitialCost: 1000.00m
         );
         var request = new AppRequest<CreateBatchCommand.Args>(new(newBatch));
 
@@ -118,6 +173,22 @@ public class CreateBatchCommandTests(TestsFixture fixture) : IClassFixture<Tests
     public async Task CreateBatchCommand_ShouldReturnValidationError_ForNameExceedingMaxLength()
     {
         // Arrange
+        var contactPerson = new Person
+        {
+            FirstName = "Test",
+            LastName = "Person"
+        };
+        dbContext.Persons.Add(contactPerson);
+        await dbContext.SaveChangesAsync();
+
+        var vendor = new Vendor
+        {
+            Name = "Test Vendor 4",
+            ContactPersonId = contactPerson.Id
+        };
+        dbContext.Vendors.Add(vendor);
+        await dbContext.SaveChangesAsync();
+
         var newBatch = new NewBatchDto
         (
             Name: new string('A', 101), // Invalid: Name exceeds max length
@@ -126,7 +197,9 @@ public class CreateBatchCommandTests(TestsFixture fixture) : IClassFixture<Tests
             MaleCount: 10,
             FemaleCount: 10,
             UnsexedCount: 0,
-            Shed: "Test Shed"
+            Shed: "Test Shed",
+            VendorId: vendor.Id,
+            InitialCost: 1500.00m
         );
         var request = new AppRequest<CreateBatchCommand.Args>(new(newBatch));
 
@@ -147,6 +220,22 @@ public class CreateBatchCommandTests(TestsFixture fixture) : IClassFixture<Tests
     public async Task CreateBatchCommand_ShouldReturnValidationError_ForShedExceedingMaxLength()
     {
         // Arrange
+        var contactPerson = new Person
+        {
+            FirstName = "Test",
+            LastName = "Person"
+        };
+        dbContext.Persons.Add(contactPerson);
+        await dbContext.SaveChangesAsync();
+
+        var vendor = new Vendor
+        {
+            Name = "Test Vendor 5",
+            ContactPersonId = contactPerson.Id
+        };
+        dbContext.Vendors.Add(vendor);
+        await dbContext.SaveChangesAsync();
+
         var newBatch = new NewBatchDto
         (
             Name: "Valid Batch Name",
@@ -155,7 +244,9 @@ public class CreateBatchCommandTests(TestsFixture fixture) : IClassFixture<Tests
             MaleCount: 10,
             FemaleCount: 10,
             UnsexedCount: 0,
-            Shed: new string('S', 101) // Invalid: Shed exceeds max length
+            Shed: new string('S', 101), // Invalid: Shed exceeds max length
+            VendorId: vendor.Id,
+            InitialCost: 2000.00m
         );
         var request = new AppRequest<CreateBatchCommand.Args>(new(newBatch));
 

@@ -182,4 +182,116 @@ public class GetBatchesListQueryTests(TestsFixture fixture) : IClassFixture<Test
         // Batch without activity should have null FirstStatusChangeDate
         Assert.Null(batchWithoutActivityDto.FirstStatusChangeDate);
     }
+
+    [Fact]
+    public async Task GetBatchesListQuery_ShouldReturnBatchesSortedByNameAscending_WhenSortByNameAndSortOrderAsc()
+    {
+        // Arrange - Add batches with specific names
+        var batch1 = fixture.CreateRandomEntity<Batch>();
+        batch1.Name = "Charlie";
+        var batch2 = fixture.CreateRandomEntity<Batch>();
+        batch2.Name = "Alpha";
+        var batch3 = fixture.CreateRandomEntity<Batch>();
+        batch3.Name = "Bravo";
+        dbContext.Batches.AddRange(batch1, batch2, batch3);
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        var request = new AppRequest<GetBatchesListQuery.Args>(new("name", "asc"));
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        var batchesList = result.Value.Batches.ToList();
+        Assert.Equal(3, batchesList.Count);
+        Assert.Equal("Alpha", batchesList[0].Name);
+        Assert.Equal("Bravo", batchesList[1].Name);
+        Assert.Equal("Charlie", batchesList[2].Name);
+    }
+
+    [Fact]
+    public async Task GetBatchesListQuery_ShouldReturnBatchesSortedByNameDescending_WhenSortByNameAndSortOrderDesc()
+    {
+        // Arrange - Add batches with specific names
+        var batch1 = fixture.CreateRandomEntity<Batch>();
+        batch1.Name = "Alpha";
+        var batch2 = fixture.CreateRandomEntity<Batch>();
+        batch2.Name = "Bravo";
+        var batch3 = fixture.CreateRandomEntity<Batch>();
+        batch3.Name = "Charlie";
+        dbContext.Batches.AddRange(batch1, batch2, batch3);
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        var request = new AppRequest<GetBatchesListQuery.Args>(new("name", "desc"));
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        var batchesList = result.Value.Batches.ToList();
+        Assert.Equal(3, batchesList.Count);
+        Assert.Equal("Charlie", batchesList[0].Name);
+        Assert.Equal("Bravo", batchesList[1].Name);
+        Assert.Equal("Alpha", batchesList[2].Name);
+    }
+
+    [Fact]
+    public async Task GetBatchesListQuery_ShouldReturnBatchesSortedByStatusAscending_WhenSortByStatusAndSortOrderAsc()
+    {
+        // Arrange - Add batches with different statuses
+        var batch1 = fixture.CreateRandomEntity<Batch>();
+        batch1.Status = BatchStatus.Processed;
+        var batch2 = fixture.CreateRandomEntity<Batch>();
+        batch2.Status = BatchStatus.Active;
+        var batch3 = fixture.CreateRandomEntity<Batch>();
+        batch3.Status = BatchStatus.Canceled;
+        dbContext.Batches.AddRange(batch1, batch2, batch3);
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        var request = new AppRequest<GetBatchesListQuery.Args>(new("status", "asc"));
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        var batchesList = result.Value.Batches.ToList();
+        Assert.Equal(3, batchesList.Count);
+        Assert.Equal(BatchStatus.Active.ToString(), batchesList[0].Status); // 0
+        Assert.Equal(BatchStatus.Processed.ToString(), batchesList[1].Status); // 1
+        Assert.Equal(BatchStatus.Canceled.ToString(), batchesList[2].Status); // 4
+    }
+
+    [Fact]
+    public async Task GetBatchesListQuery_ShouldReturnBatchesInDefaultOrder_WhenNoSortingParametersProvided()
+    {
+        // Arrange - Add batches with different start dates
+        var batch1 = fixture.CreateRandomEntity<Batch>();
+        batch1.StartDate = System.DateTime.UtcNow.AddDays(-5);
+        var batch2 = fixture.CreateRandomEntity<Batch>();
+        batch2.StartDate = System.DateTime.UtcNow.AddDays(-10);
+        var batch3 = fixture.CreateRandomEntity<Batch>();
+        batch3.StartDate = System.DateTime.UtcNow.AddDays(-1);
+        dbContext.Batches.AddRange(batch1, batch2, batch3);
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        var request = new AppRequest<GetBatchesListQuery.Args>(new());
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert - Should be sorted by StartDate descending (default)
+        Assert.NotNull(result);
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        var batchesList = result.Value.Batches.ToList();
+        Assert.Equal(3, batchesList.Count);
+        Assert.Equal(batch3.Id, batchesList[0].Id); // Most recent
+        Assert.Equal(batch1.Id, batchesList[1].Id);
+        Assert.Equal(batch2.Id, batchesList[2].Id); // Oldest
+    }
 }

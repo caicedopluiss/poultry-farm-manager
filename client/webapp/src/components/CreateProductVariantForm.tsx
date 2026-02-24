@@ -12,7 +12,9 @@ import {
     CircularProgress,
 } from "@mui/material";
 import { getProducts } from "@/api/v1/products";
+import { getVendors } from "@/api/v1/vendors";
 import type { NewProductVariant, Product } from "@/types/inventory";
+import type { Vendor } from "@/types/vendor";
 
 interface CreateProductVariantFormProps {
     open: boolean;
@@ -34,20 +36,26 @@ const UNITS_OF_MEASURE = [
 
 const CreateProductVariantForm: React.FC<CreateProductVariantFormProps> = ({ open, onClose, onSubmit, productId }) => {
     const [products, setProducts] = useState<Product[]>([]);
+    const [vendors, setVendors] = useState<Vendor[]>([]);
     const [loadingProducts, setLoadingProducts] = useState(false);
+    const [loadingVendors, setLoadingVendors] = useState(false);
     const [selectedProductId, setSelectedProductId] = useState<string>(productId || "");
+    const [selectedVendorId, setSelectedVendorId] = useState<string>("");
     const [name, setName] = useState("");
-    const [quantity, setQuantity] = useState<number>(0);
     const [stock, setStock] = useState<number>(0);
     const [unitOfMeasure, setUnitOfMeasure] = useState<string>("Kilogram");
+    const [unitPrice, setUnitPrice] = useState<number>(0);
     const [description, setDescription] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Load products when productId is not provided
+    // Load products and vendors when dialog opens
     useEffect(() => {
-        if (open && !productId) {
-            loadProducts();
+        if (open) {
+            if (!productId) {
+                loadProducts();
+            }
+            loadVendors();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open, productId]);
@@ -75,6 +83,22 @@ const CreateProductVariantForm: React.FC<CreateProductVariantFormProps> = ({ ope
         }
     };
 
+    const loadVendors = async () => {
+        try {
+            setLoadingVendors(true);
+            const response = await getVendors();
+            setVendors(response.vendors);
+            if (response.vendors.length > 0 && !selectedVendorId) {
+                setSelectedVendorId(response.vendors[0].id);
+            }
+        } catch (err) {
+            setError("Failed to load vendors");
+            console.error(err);
+        } finally {
+            setLoadingVendors(false);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
@@ -84,10 +108,12 @@ const CreateProductVariantForm: React.FC<CreateProductVariantFormProps> = ({ ope
             const variantData: NewProductVariant = {
                 productId: selectedProductId,
                 name: name.trim(),
-                quantity,
+                quantity: 1,
                 stock,
                 unitOfMeasure,
                 description: description.trim() || null,
+                vendorId: selectedVendorId,
+                unitPrice,
             };
 
             await onSubmit(variantData);
@@ -102,17 +128,19 @@ const CreateProductVariantForm: React.FC<CreateProductVariantFormProps> = ({ ope
     const handleClose = () => {
         if (!isSubmitting) {
             setSelectedProductId(productId || "");
+            setSelectedVendorId("");
             setName("");
-            setQuantity(0);
             setStock(0);
             setUnitOfMeasure("Kilogram");
+            setUnitPrice(0);
             setDescription("");
             setError(null);
             onClose();
         }
     };
 
-    const isFormValid = selectedProductId !== "" && name.trim() !== "" && quantity >= 0 && stock >= 0;
+    const isFormValid =
+        selectedProductId !== "" && selectedVendorId !== "" && name.trim() !== "" && stock >= 0 && unitPrice > 0;
 
     return (
         <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
@@ -160,16 +188,6 @@ const CreateProductVariantForm: React.FC<CreateProductVariantFormProps> = ({ ope
                         />
 
                         <TextField
-                            label="Quantity"
-                            type="number"
-                            value={quantity}
-                            onChange={(e) => setQuantity(Number(e.target.value))}
-                            required
-                            fullWidth
-                            inputProps={{ min: 0, step: 0.01 }}
-                        />
-
-                        <TextField
                             label="Stock"
                             type="number"
                             value={stock}
@@ -202,6 +220,39 @@ const CreateProductVariantForm: React.FC<CreateProductVariantFormProps> = ({ ope
                             rows={3}
                             fullWidth
                             placeholder="Optional description..."
+                        />
+
+                        {loadingVendors ? (
+                            <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+                                <CircularProgress size={24} />
+                            </Box>
+                        ) : (
+                            <TextField
+                                label="Vendor"
+                                select
+                                value={selectedVendorId}
+                                onChange={(e) => setSelectedVendorId(e.target.value)}
+                                required
+                                fullWidth
+                                helperText="Select the vendor for this purchase"
+                            >
+                                {vendors.map((vendor) => (
+                                    <MenuItem key={vendor.id} value={vendor.id}>
+                                        {vendor.name}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
+                        )}
+
+                        <TextField
+                            label="Unit Price"
+                            type="number"
+                            value={unitPrice}
+                            onChange={(e) => setUnitPrice(Number(e.target.value))}
+                            required
+                            fullWidth
+                            inputProps={{ min: 0, step: 0.01 }}
+                            helperText={`Total cost: ${unitPrice.toFixed(2)}`}
                         />
                     </Box>
                 </DialogContent>

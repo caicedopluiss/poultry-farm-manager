@@ -18,7 +18,7 @@ import {
     useTheme,
     useMediaQuery,
 } from "@mui/material";
-import { ArrowBack, Edit as EditIcon, Inventory2 as AssetIcon } from "@mui/icons-material";
+import { ArrowBack, Edit as EditIcon, Inventory2 as AssetIcon, AttachMoney as FinanceIcon } from "@mui/icons-material";
 import { getAssetById, updateAsset } from "@/api/v1/assets";
 import type { Asset, UpdateAsset } from "@/types/inventory";
 import AssetDetailModal from "@/components/AssetDetailModal";
@@ -118,6 +118,14 @@ export default function AssetDetailPage() {
                         </Typography>
                     </Box>
                 </Box>
+                <Button
+                    startIcon={<FinanceIcon />}
+                    variant="outlined"
+                    onClick={() => navigate(`/assets/${id}/finance`)}
+                    sx={{ mr: 1 }}
+                >
+                    View Purchase History
+                </Button>
                 <Button startIcon={<EditIcon />} variant="contained" onClick={handleEditAsset}>
                     Edit
                 </Button>

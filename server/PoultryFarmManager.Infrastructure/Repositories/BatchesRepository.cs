@@ -17,9 +17,27 @@ public sealed class BatchesRepository(AppDbContext context) : IBatchesRepository
         return Task.FromResult(createdBatch);
     }
 
-    public async Task<IReadOnlyCollection<Batch>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<Batch>> GetAllAsync(string? sortBy = null, string? sortOrder = null, CancellationToken cancellationToken = default)
     {
-        var batches = await context.Batches.AsNoTracking().OrderByDescending(b => b.StartDate).ToListAsync(cancellationToken);
+        var query = context.Batches.AsNoTracking();
+
+        var isDescending = string.Equals(sortOrder, "desc", StringComparison.OrdinalIgnoreCase);
+
+        if (string.Equals(sortBy, "name", StringComparison.OrdinalIgnoreCase))
+        {
+            query = isDescending ? query.OrderByDescending(b => b.Name) : query.OrderBy(b => b.Name);
+        }
+        else if (string.Equals(sortBy, "status", StringComparison.OrdinalIgnoreCase))
+        {
+            query = isDescending ? query.OrderByDescending(b => b.Status) : query.OrderBy(b => b.Status);
+        }
+        else
+        {
+            // Default sorting
+            query = query.OrderByDescending(b => b.StartDate);
+        }
+
+        var batches = await query.ToListAsync(cancellationToken);
         return batches;
     }
 

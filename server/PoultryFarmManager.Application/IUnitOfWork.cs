@@ -11,6 +11,9 @@ public interface IUnitOfWork
     IAssetsRepository Assets { get; }
     IProductsRepository Products { get; }
     IProductVariantsRepository ProductVariants { get; }
+    ITransactionsRepository Transactions { get; }
+    IVendorsRepository Vendors { get; }
+    IPersonsRepository Persons { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

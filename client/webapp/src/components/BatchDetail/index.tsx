@@ -33,6 +33,8 @@ import {
     Inventory as ProductConsumptionIcon,
     Edit as EditIcon,
     Scale as WeightMeasurementIcon,
+    AttachMoney as FinanceIcon,
+    Notes as NotesIcon,
 } from "@mui/icons-material";
 import moment from "moment";
 import type { Batch } from "@/types/batch";
@@ -46,6 +48,7 @@ import type {
 } from "@/types/batchActivity";
 import RegisterActivityDialog from "@/components/RegisterActivityDialog";
 import EditBatchNameDialog from "@/components/EditBatchNameDialog";
+import EditBatchNotesDialog from "@/components/EditBatchNotesDialog";
 
 interface BatchDetailProps {
     batch: Batch;
@@ -63,6 +66,7 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const menuOpen = Boolean(anchorEl);
     const [editNameDialogOpen, setEditNameDialogOpen] = useState(false);
+    const [editNotesDialogOpen, setEditNotesDialogOpen] = useState(false);
 
     const calculateDays = (startDate: string, firstStatusChangeDate?: string | null, status?: string): number => {
         // Only continue counting for Active status
@@ -152,9 +156,28 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
         <Container maxWidth="lg" sx={{ py: 3 }}>
             {/* Header */}
             <Box sx={{ mb: 4 }}>
-                <Button variant="outlined" startIcon={<BackIcon />} onClick={() => navigate("/")} sx={{ mb: 2 }}>
-                    Back to Batches
-                </Button>
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        mb: 2,
+                        flexWrap: "wrap",
+                        gap: 2,
+                    }}
+                >
+                    <Button variant="outlined" startIcon={<BackIcon />} onClick={() => navigate("/")}>
+                        Back to Batches
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="success"
+                        startIcon={<FinanceIcon />}
+                        onClick={() => navigate(`/batches/${batch.id}/finance`)}
+                    >
+                        View Finance
+                    </Button>
+                </Box>
 
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2, flexWrap: "wrap" }}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -240,6 +263,47 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                                     </Box>
                                 </Box>
                             )}
+
+                            <Box sx={{ mt: 2 }}>
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        alignItems: "center",
+                                        mb: 1,
+                                    }}
+                                >
+                                    <Typography
+                                        variant="body2"
+                                        color="text.secondary"
+                                        sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                                    >
+                                        <NotesIcon fontSize="small" />
+                                        Notes
+                                    </Typography>
+                                    <Button
+                                        size="small"
+                                        variant="outlined"
+                                        startIcon={<EditIcon />}
+                                        onClick={() => setEditNotesDialogOpen(true)}
+                                        sx={{ minWidth: "auto", px: 1 }}
+                                    >
+                                        Edit
+                                    </Button>
+                                </Box>
+                                <Paper
+                                    variant="outlined"
+                                    sx={{
+                                        p: 2,
+                                        minHeight: 80,
+                                        bgcolor: "grey.50",
+                                    }}
+                                >
+                                    <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+                                        {batch.notes || "No notes added yet."}
+                                    </Typography>
+                                </Paper>
+                            </Box>
                         </Box>
                     </CardContent>
                 </Card>
@@ -615,6 +679,15 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                 open={editNameDialogOpen}
                 onClose={() => setEditNameDialogOpen(false)}
                 batch={batch}
+                onSuccess={handleActivitySuccess}
+            />
+
+            {/* Edit Batch Notes Dialog */}
+            <EditBatchNotesDialog
+                open={editNotesDialogOpen}
+                onClose={() => setEditNotesDialogOpen(false)}
+                batchId={batch.id}
+                currentNotes={batch.notes ?? null}
                 onSuccess={handleActivitySuccess}
             />
         </Container>

@@ -17,8 +17,27 @@ const url = "v1/batches";
 interface GetBatchesResponse {
     batches: Batch[];
 }
-export async function getBatches(): Promise<GetBatchesResponse> {
-    const response: GetBatchesResponse = await apiClient.get(url);
+
+interface GetBatchesParams {
+    sortBy?: string;
+    sortOrder?: string;
+}
+
+export async function getBatches(params?: GetBatchesParams): Promise<GetBatchesResponse> {
+    const queryParams = new URLSearchParams(window.location.search);
+
+    // Only add params if they're not already in the URL
+    if (params?.sortBy && !queryParams.has("sortBy")) {
+        queryParams.set("sortBy", params.sortBy);
+    }
+    if (params?.sortOrder && !queryParams.has("sortOrder")) {
+        queryParams.set("sortOrder", params.sortOrder);
+    }
+
+    const queryString = queryParams.toString();
+    const endpoint = queryString ? `${url}?${queryString}` : url;
+
+    const response: GetBatchesResponse = await apiClient.get(endpoint);
 
     return response;
 }
@@ -96,6 +115,16 @@ interface UpdateBatchNameResponse {
 export async function updateBatchName(batchId: string, name: string): Promise<UpdateBatchNameResponse> {
     const response: UpdateBatchNameResponse = await apiClient.put(`${url}/${batchId}/name`, {
         name,
+    });
+    return response;
+}
+
+interface UpdateBatchNotesResponse {
+    success: boolean;
+}
+export async function updateBatchNotes(batchId: string, notes: string | null): Promise<UpdateBatchNotesResponse> {
+    const response: UpdateBatchNotesResponse = await apiClient.put(`${url}/${batchId}/notes`, {
+        notes,
     });
     return response;
 }

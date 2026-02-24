@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using PoultryFarmManager.Application;
 using PoultryFarmManager.Application.DTOs;
+using PoultryFarmManager.Core.Models.Finance;
 using PoultryFarmManager.WebAPI.Endpoints.v1.Batches;
 
 namespace PoultryFarmManager.Tests.Integration.WebAPIEndpoints;
@@ -23,6 +24,22 @@ public class CreateBatchEndpointTests(TestsFixture fixture) : IClassFixture<Test
     public async Task POST_Batches_ValidRequest_ShouldReturnCreated()
     {
         // Arrange
+        var contactPerson = new Person
+        {
+            FirstName = "API",
+            LastName = "Test"
+        };
+        dbContext.Persons.Add(contactPerson);
+        await dbContext.SaveChangesAsync();
+
+        var vendor = new Vendor
+        {
+            Name = "API Test Vendor",
+            ContactPersonId = contactPerson.Id
+        };
+        dbContext.Vendors.Add(vendor);
+        await dbContext.SaveChangesAsync();
+
         var newBatch = new NewBatchDto
         (
             Name: "Test Batch from API",
@@ -31,7 +48,9 @@ public class CreateBatchEndpointTests(TestsFixture fixture) : IClassFixture<Test
             MaleCount: 100,
             FemaleCount: 150,
             UnsexedCount: 50,
-            Shed: "Shed API-1"
+            Shed: "Shed API-1",
+            VendorId: vendor.Id,
+            InitialCost: 7500.00m
         );
         var body = new { newBatch };
 

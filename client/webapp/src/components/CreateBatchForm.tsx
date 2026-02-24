@@ -13,8 +13,13 @@ import {
     DialogActions,
     useTheme,
     useMediaQuery,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
 } from "@mui/material";
 import type { NewBatch } from "@/types/batch";
+import type { Vendor } from "@/types/vendor";
 import moment from "moment";
 
 interface CreateBatchFormProps {
@@ -23,9 +28,19 @@ interface CreateBatchFormProps {
     onClose: () => void;
     loading: boolean;
     error: string | null;
+    vendors: Vendor[];
+    vendorsLoading: boolean;
 }
 
-export default function CreateBatchForm({ open, onSubmit, onClose, loading, error }: CreateBatchFormProps) {
+export default function CreateBatchForm({
+    open,
+    onSubmit,
+    onClose,
+    loading,
+    error,
+    vendors,
+    vendorsLoading,
+}: CreateBatchFormProps) {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
     const isSmallMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -38,6 +53,8 @@ export default function CreateBatchForm({ open, onSubmit, onClose, loading, erro
         unsexedCount: 0,
         breed: "",
         shed: "",
+        vendorId: "",
+        initialCost: "",
     });
 
     // Reset form when modal opens
@@ -51,6 +68,8 @@ export default function CreateBatchForm({ open, onSubmit, onClose, loading, erro
                 unsexedCount: 0,
                 breed: "",
                 shed: "",
+                vendorId: "",
+                initialCost: "",
             });
         }
     }, [open]);
@@ -77,6 +96,8 @@ export default function CreateBatchForm({ open, onSubmit, onClose, loading, erro
             unsexedCount: formData.unsexedCount,
             breed: formData.breed || null,
             shed: formData.shed || null,
+            vendorId: formData.vendorId,
+            initialCost: parseFloat(formData.initialCost),
         };
 
         onSubmit(newBatch);
@@ -234,6 +255,61 @@ export default function CreateBatchForm({ open, onSubmit, onClose, loading, erro
                             />
                         </Stack>
 
+                        <Typography variant="h6" sx={{ mt: 2, mb: -1 }}>
+                            Purchase Details
+                        </Typography>
+
+                        <Stack direction={isSmallMobile ? "column" : "row"} spacing={isSmallMobile ? 3 : 2}>
+                            <FormControl
+                                fullWidth
+                                required
+                                size="medium"
+                                sx={{
+                                    flex: 1,
+                                    "& .MuiInputBase-root": {
+                                        height: isMobile ? 56 : 64,
+                                        fontSize: isMobile ? "1rem" : "1.1rem",
+                                    },
+                                }}
+                            >
+                                <InputLabel>Vendor</InputLabel>
+                                <Select
+                                    value={formData.vendorId}
+                                    onChange={(e) => setFormData((prev) => ({ ...prev, vendorId: e.target.value }))}
+                                    label="Vendor"
+                                    disabled={loading || vendorsLoading}
+                                    required
+                                >
+                                    <MenuItem value="">
+                                        <em>Select a vendor</em>
+                                    </MenuItem>
+                                    {vendors.map((vendor) => (
+                                        <MenuItem key={vendor.id} value={vendor.id}>
+                                            {vendor.name}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+
+                            <TextField
+                                label="Initial Cost"
+                                type="number"
+                                value={formData.initialCost}
+                                onChange={handleInputChange("initialCost")}
+                                inputProps={{ min: 0.01, step: 0.01 }}
+                                disabled={loading}
+                                required
+                                size="medium"
+                                sx={{
+                                    flex: 1,
+                                    "& .MuiInputBase-root": {
+                                        height: isMobile ? 56 : 64,
+                                        fontSize: isMobile ? "1rem" : "1.1rem",
+                                    },
+                                }}
+                            />
+                        </Stack>
+
                         <Box
                             sx={{
                                 display: "flex",
@@ -283,7 +359,13 @@ export default function CreateBatchForm({ open, onSubmit, onClose, loading, erro
                 <Button
                     onClick={handleSubmit}
                     variant="contained"
-                    disabled={loading || !formData.name || totalPopulation === 0}
+                    disabled={
+                        loading ||
+                        !formData.name ||
+                        !formData.vendorId ||
+                        !formData.initialCost ||
+                        totalPopulation === 0
+                    }
                     startIcon={loading ? <CircularProgress size={20} /> : null}
                     size="large"
                     sx={{

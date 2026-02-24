@@ -8,10 +8,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using PoultryFarmManager.Application;
 using PoultryFarmManager.Infrastructure;
+using PoultryFarmManager.WebAPI.Endpoints.v1;
 using PoultryFarmManager.WebAPI.Endpoints.v1.Assets;
 using PoultryFarmManager.WebAPI.Endpoints.v1.Batches;
+using PoultryFarmManager.WebAPI.Endpoints.v1.Persons;
 using PoultryFarmManager.WebAPI.Endpoints.v1.Products;
 using PoultryFarmManager.WebAPI.Endpoints.v1.ProductVariants;
+using PoultryFarmManager.WebAPI.Endpoints.v1.Transactions;
+using PoultryFarmManager.WebAPI.Endpoints.v1.Vendors;
 
 namespace PoultryFarmManager.WebAPI;
 
@@ -93,17 +97,21 @@ public class Program
         app.MapEndpoint<RegisterProductConsumptionEndpoint>(apiPrefix);
         app.MapEndpoint<RegisterWeightMeasurementEndpoint>(apiPrefix);
         app.MapEndpoint<UpdateBatchNameEndpoint>(apiPrefix);
+        app.MapEndpoint<UpdateBatchNotesEndpoint>(apiPrefix);
 
         // Asset endpoints
         app.MapEndpoint<CreateAssetEndpoint>(apiPrefix);
         app.MapEndpoint<GetAllAssetsEndpoint>(apiPrefix);
         app.MapEndpoint<GetAssetByIdEndpoint>(apiPrefix);
+        app.MapEndpoint<GetAssetTransactionsEndpoint>(apiPrefix);
+        app.MapEndpoint<GetAssetPricingByVendorEndpoint>(apiPrefix);
         app.MapEndpoint<UpdateAssetEndpoint>(apiPrefix);
 
         // Product endpoints
         app.MapEndpoint<CreateProductEndpoint>(apiPrefix);
         app.MapEndpoint<GetAllProductsEndpoint>(apiPrefix);
         app.MapEndpoint<GetProductByIdEndpoint>(apiPrefix);
+        app.MapEndpoint<AddProductStockEndpoint>(apiPrefix);
         app.MapEndpoint<UpdateProductEndpoint>(apiPrefix);
 
         // ProductVariant endpoints
@@ -111,7 +119,25 @@ public class Program
         app.MapEndpoint<GetAllProductVariantsEndpoint>(apiPrefix);
         app.MapEndpoint<GetProductVariantByIdEndpoint>(apiPrefix);
         app.MapEndpoint<GetProductVariantsByProductIdEndpoint>(apiPrefix);
+        app.MapEndpoint<GetProductVariantTransactionsEndpoint>(apiPrefix);
+        app.MapEndpoint<GetProductVariantPricingByVendorEndpoint>(apiPrefix);
         app.MapEndpoint<UpdateProductVariantEndpoint>(apiPrefix);
+
+        // Transaction endpoints
+        app.MapEndpoint<CreateTransactionEndpoint>(apiPrefix);
+        app.MapEndpoint<GetBatchTransactionsEndpoint>(apiPrefix);
+
+        // Person endpoints
+        app.MapEndpoint<CreatePersonEndpoint>(apiPrefix);
+        app.MapEndpoint<GetAllPersonsEndpoint>(apiPrefix);
+        app.MapEndpoint<GetPersonByIdEndpoint>(apiPrefix);
+        app.MapEndpoint<UpdatePersonEndpoint>(apiPrefix);
+
+        // Vendor endpoints
+        app.MapEndpoint<CreateVendorEndpoint>(apiPrefix);
+        app.MapEndpoint<GetAllVendorsEndpoint>(apiPrefix);
+        app.MapEndpoint<GetVendorByIdEndpoint>(apiPrefix);
+        app.MapEndpoint<UpdateVendorEndpoint>(apiPrefix);
 
         app.UseCors("AllowAllOrigins");
 

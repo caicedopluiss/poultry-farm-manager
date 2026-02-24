@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
     Dialog,
     DialogTitle,
@@ -12,7 +13,13 @@ import {
     Divider,
     IconButton,
 } from "@mui/material";
-import { Close as CloseIcon, Edit as EditIcon, Save as SaveIcon, Cancel as CancelIcon } from "@mui/icons-material";
+import {
+    Close as CloseIcon,
+    Edit as EditIcon,
+    Save as SaveIcon,
+    Cancel as CancelIcon,
+    AccountBalance as FinanceIcon,
+} from "@mui/icons-material";
 import type { ProductVariant, UpdateProductVariant } from "@/types/inventory";
 
 interface ProductVariantDetailModalProps {
@@ -34,6 +41,7 @@ const UNITS_OF_MEASURE = [
 ];
 
 const ProductVariantDetailModal: React.FC<ProductVariantDetailModalProps> = ({ open, onClose, variant, onUpdate }) => {
+    const navigate = useNavigate();
     const [isEditing, setIsEditing] = useState(false);
     const [editedName, setEditedName] = useState("");
     const [editedQuantity, setEditedQuantity] = useState<number>(0);
@@ -96,6 +104,12 @@ const ProductVariantDetailModal: React.FC<ProductVariantDetailModalProps> = ({ o
     const handleClose = () => {
         setIsEditing(false);
         onClose();
+    };
+    const handleViewFinance = () => {
+        if (variant) {
+            handleClose();
+            navigate(`/product-variants/${variant.id}/finance`);
+        }
     };
 
     if (!variant) return null;
@@ -248,6 +262,9 @@ const ProductVariantDetailModal: React.FC<ProductVariantDetailModalProps> = ({ o
                 ) : (
                     <>
                         <Button onClick={handleClose}>Close</Button>
+                        <Button onClick={handleViewFinance} startIcon={<FinanceIcon />}>
+                            View Purchase History
+                        </Button>
                         <Button onClick={handleEdit} variant="contained" startIcon={<EditIcon />}>
                             Edit
                         </Button>
