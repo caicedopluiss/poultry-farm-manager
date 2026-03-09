@@ -19,7 +19,8 @@ public sealed class UpdateBatchNotesCommand
 
         protected override async Task<Result> ExecuteAsync(Args args, CancellationToken cancellationToken = default)
         {
-            batch!.Notes = args.Notes;
+            // Convert empty/whitespace strings to null
+            batch!.Notes = string.IsNullOrWhiteSpace(args.Notes) ? null : args.Notes;
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -41,7 +42,8 @@ public sealed class UpdateBatchNotesCommand
                     throw new InvalidOperationException($"Batch with ID {args.BatchId} not found.");
             }
 
-            if (args.Notes != null && args.Notes.Length > 500)
+            // Validate trimmed notes length
+            if (!string.IsNullOrWhiteSpace(args.Notes) && args.Notes.Trim().Length > 500)
             {
                 errors.Add(("notes", "Notes cannot exceed 500 characters."));
             }

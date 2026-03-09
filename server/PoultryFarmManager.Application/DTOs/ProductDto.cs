@@ -21,7 +21,8 @@ public record NewProductDto(
         result.Manufacturer = Manufacturer;
         result.Stock = Stock;
         result.UnitOfMeasure = Enum.Parse<UnitOfMeasure>(UnitOfMeasure, ignoreCase: true);
-        result.Description = Description;
+        // Trim and convert empty/whitespace to null
+        result.Description = string.IsNullOrWhiteSpace(Description) ? null : Description.Trim();
 
         return result;
     }
@@ -88,9 +89,10 @@ public record UpdateProductDto(
             product.UnitOfMeasure = unit;
         }
 
-        if (!string.IsNullOrWhiteSpace(Description))
+        if (Description != null)
         {
-            product.Description = Description;
+            // Trim and convert empty/whitespace strings to null
+            product.Description = string.IsNullOrWhiteSpace(Description) ? null : Description.Trim();
         }
     }
 }

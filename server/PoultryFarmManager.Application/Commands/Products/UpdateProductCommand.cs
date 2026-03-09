@@ -55,7 +55,8 @@ public sealed class UpdateProductCommand
                 errors.Add(("unitOfMeasure", "Unit of Measure is not valid."));
             }
 
-            if (!string.IsNullOrWhiteSpace(args.UpdateData.Description) && args.UpdateData.Description.Length > 500)
+            // Validate trimmed description length
+            if (!string.IsNullOrWhiteSpace(args.UpdateData.Description) && args.UpdateData.Description.Trim().Length > 500)
             {
                 errors.Add(("description", "Description cannot exceed 500 characters."));
             }

@@ -23,8 +23,9 @@ public record NewAssetDto(
         var result = to ?? new();
 
         result.Name = Name;
-        result.Description = Description;
-        result.Notes = Notes;
+        // Trim and convert empty/whitespace to null
+        result.Description = string.IsNullOrWhiteSpace(Description) ? null : Description.Trim();
+        result.Notes = string.IsNullOrWhiteSpace(Notes) ? null : Notes.Trim();
 
         return result;
     }
@@ -66,19 +67,21 @@ public record UpdateAssetDto(
 {
     public void ApplyTo(Asset asset)
     {
-        if (Name != null)
+        if (!string.IsNullOrWhiteSpace(Name))
         {
             asset.Name = Name;
         }
 
         if (Description != null)
         {
-            asset.Description = Description;
+            // Trim and convert empty/whitespace strings to null
+            asset.Description = string.IsNullOrWhiteSpace(Description) ? null : Description.Trim();
         }
 
         if (Notes != null)
         {
-            asset.Notes = Notes;
+            // Trim and convert empty/whitespace strings to null
+            asset.Notes = string.IsNullOrWhiteSpace(Notes) ? null : Notes.Trim();
         }
 
         if (States != null && States.Count > 0)

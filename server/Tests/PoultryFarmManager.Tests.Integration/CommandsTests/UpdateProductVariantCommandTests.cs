@@ -404,4 +404,92 @@ public class UpdateProductVariantCommandTests(TestsFixture fixture) : IClassFixt
         Assert.Contains(result.ValidationErrors, e => e.field == "description");
         Assert.Equal(5, result.ValidationErrors.Count());
     }
+
+    [Fact]
+    public async Task UpdateProductVariantCommand_ShouldClearDescription_WhenEmptyStringProvided()
+    {
+        // Arrange - Create a product and variant with description
+        var product = new Product
+        {
+            Name = "Test Feed",
+            Manufacturer = "Test Manufacturer",
+            UnitOfMeasure = UnitOfMeasure.Kilogram,
+            Stock = 1000m
+        };
+        dbContext.Products.Add(product);
+        await dbContext.SaveChangesAsync();
+
+        var variant = new ProductVariant
+        {
+            ProductId = product.Id,
+            Name = "Test Variant",
+            UnitOfMeasure = UnitOfMeasure.Kilogram,
+            Stock = 100m,
+            Quantity = 10,
+            Description = "Some description"
+        };
+        dbContext.ProductVariants.Add(variant);
+        await dbContext.SaveChangesAsync();
+
+        var updateDto = new UpdateProductVariantDto(
+            Name: null,
+            UnitOfMeasure: null,
+            Stock: null,
+            Quantity: null,
+            Description: "" // Empty string should clear description
+        );
+        var request = new AppRequest<UpdateProductVariantCommand.Args>(new(variant.Id, updateDto));
+
+        // Act
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Value!.UpdatedProductVariant.Description); // Should be null
+    }
+
+    [Fact]
+    public async Task UpdateProductVariantCommand_ShouldClearDescription_WhenWhitespaceProvided()
+    {
+        // Arrange - Create a product and variant with description
+        var product = new Product
+        {
+            Name = "Test Feed",
+            Manufacturer = "Test Manufacturer",
+            UnitOfMeasure = UnitOfMeasure.Kilogram,
+            Stock = 1000m
+        };
+        dbContext.Products.Add(product);
+        await dbContext.SaveChangesAsync();
+
+        var variant = new ProductVariant
+        {
+            ProductId = product.Id,
+            Name = "Test Variant",
+            UnitOfMeasure = UnitOfMeasure.Kilogram,
+            Stock = 100m,
+            Quantity = 10,
+            Description = "Some description"
+        };
+        dbContext.ProductVariants.Add(variant);
+        await dbContext.SaveChangesAsync();
+
+        var updateDto = new UpdateProductVariantDto(
+            Name: null,
+            UnitOfMeasure: null,
+            Stock: null,
+            Quantity: null,
+            Description: "   " // Whitespace should also clear description
+        );
+        var request = new AppRequest<UpdateProductVariantCommand.Args>(new(variant.Id, updateDto));
+
+        // Act
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Value!.UpdatedProductVariant.Description); // Should be null
+    }
 }

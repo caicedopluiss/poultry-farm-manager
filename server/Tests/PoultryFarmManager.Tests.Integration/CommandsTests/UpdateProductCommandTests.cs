@@ -282,4 +282,70 @@ public class UpdateProductCommandTests(TestsFixture fixture) : IClassFixture<Tes
         Assert.Contains(result.ValidationErrors, e => e.field == "description");
         Assert.Equal(5, result.ValidationErrors.Count());
     }
+
+    [Fact]
+    public async Task UpdateProductCommand_ShouldClearDescription_WhenEmptyStringProvided()
+    {
+        // Arrange - Create a product with description
+        var product = new Product
+        {
+            Name = "Test Product",
+            Manufacturer = "Test Manufacturer",
+            UnitOfMeasure = UnitOfMeasure.Kilogram,
+            Stock = 100m,
+            Description = "Some description"
+        };
+        dbContext.Products.Add(product);
+        await dbContext.SaveChangesAsync();
+
+        var updateDto = new UpdateProductDto(
+            Name: null,
+            Manufacturer: null,
+            UnitOfMeasure: null,
+            Stock: null,
+            Description: "" // Empty string should clear description
+        );
+        var request = new AppRequest<UpdateProductCommand.Args>(new(product.Id, updateDto));
+
+        // Act
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Value!.UpdatedProduct.Description); // Should be null
+    }
+
+    [Fact]
+    public async Task UpdateProductCommand_ShouldClearDescription_WhenWhitespaceProvided()
+    {
+        // Arrange - Create a product with description
+        var product = new Product
+        {
+            Name = "Test Product",
+            Manufacturer = "Test Manufacturer",
+            UnitOfMeasure = UnitOfMeasure.Kilogram,
+            Stock = 100m,
+            Description = "Some description"
+        };
+        dbContext.Products.Add(product);
+        await dbContext.SaveChangesAsync();
+
+        var updateDto = new UpdateProductDto(
+            Name: null,
+            Manufacturer: null,
+            UnitOfMeasure: null,
+            Stock: null,
+            Description: "   " // Whitespace should also clear description
+        );
+        var request = new AppRequest<UpdateProductCommand.Args>(new(product.Id, updateDto));
+
+        // Act
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Value!.UpdatedProduct.Description); // Should be null
+    }
 }

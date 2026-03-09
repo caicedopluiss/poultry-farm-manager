@@ -22,7 +22,8 @@ public record NewProductVariantDto(
         result.Name = Name;
         result.Stock = Stock;
         result.Quantity = Quantity;
-        result.Description = Description;
+        // Trim and convert empty/whitespace to null
+        result.Description = string.IsNullOrWhiteSpace(Description) ? null : Description.Trim();
         result.UnitOfMeasure = Enum.Parse<UnitOfMeasure>(UnitOfMeasure, ignoreCase: true);
 
         return result;
@@ -101,9 +102,10 @@ public record UpdateProductVariantDto(
             productVariant.Quantity = Quantity.Value;
         }
 
-        if (!string.IsNullOrWhiteSpace(Description))
+        if (Description != null)
         {
-            productVariant.Description = Description;
+            // Trim and convert empty/whitespace strings to null
+            productVariant.Description = string.IsNullOrWhiteSpace(Description) ? null : Description.Trim();
         }
     }
 }
