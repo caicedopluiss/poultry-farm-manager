@@ -9,7 +9,6 @@ public record NewProductVariantDto(
     string Name,
     string UnitOfMeasure,
     decimal Stock,
-    int Quantity,
     string? Description,
     Guid VendorId,
     decimal UnitPrice)
@@ -21,7 +20,6 @@ public record NewProductVariantDto(
         result.ProductId = ProductId;
         result.Name = Name;
         result.Stock = Stock;
-        result.Quantity = Quantity;
         // Trim and convert empty/whitespace to null
         result.Description = string.IsNullOrWhiteSpace(Description) ? null : Description.Trim();
         result.UnitOfMeasure = Enum.Parse<UnitOfMeasure>(UnitOfMeasure, ignoreCase: true);
@@ -36,7 +34,6 @@ public record ProductVariantDto(
     string Name,
     string UnitOfMeasure,
     decimal Stock,
-    int Quantity,
     string? Description,
     ProductDto? Product
 )
@@ -44,7 +41,7 @@ public record ProductVariantDto(
     /// <summary>
     /// Parameterless constructor for mapping dto instance from core model/entity.
     /// </summary>
-    public ProductVariantDto() : this(Guid.Empty, Guid.Empty, string.Empty, string.Empty, 0, 0, null, null)
+    public ProductVariantDto() : this(Guid.Empty, Guid.Empty, string.Empty, string.Empty, 0, null, null)
     {
     }
 
@@ -57,7 +54,6 @@ public record ProductVariantDto(
             Name = from.Name,
             UnitOfMeasure = from.UnitOfMeasure.ToString(),
             Stock = from.Stock,
-            Quantity = from.Quantity,
             Description = from.Description,
             Product = from.Product != null ? new ProductDto
             {
@@ -77,7 +73,6 @@ public record UpdateProductVariantDto(
     string? Name,
     string? UnitOfMeasure,
     decimal? Stock,
-    int? Quantity,
     string? Description)
 {
     public void ApplyTo(ProductVariant productVariant)
@@ -95,11 +90,6 @@ public record UpdateProductVariantDto(
         if (Stock.HasValue)
         {
             productVariant.Stock = Stock.Value;
-        }
-
-        if (Quantity.HasValue)
-        {
-            productVariant.Quantity = Quantity.Value;
         }
 
         if (Description != null)

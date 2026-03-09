@@ -62,11 +62,6 @@ public sealed class UpdateProductVariantCommand
                 errors.Add(("stock", "Stock cannot be negative."));
             }
 
-            if (args.UpdateData.Quantity.HasValue && args.UpdateData.Quantity.Value <= 0)
-            {
-                errors.Add(("quantity", "Quantity must be greater than zero."));
-            }
-
             return Task.FromResult<IEnumerable<(string field, string error)>>(errors);
         }
     }

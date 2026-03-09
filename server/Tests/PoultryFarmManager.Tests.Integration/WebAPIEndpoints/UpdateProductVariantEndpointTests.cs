@@ -36,8 +36,7 @@ public class UpdateProductVariantEndpointTests(TestsFixture fixture) : IClassFix
             ProductId = product.Id,
             Name = "Old Name",
             UnitOfMeasure = UnitOfMeasure.Kilogram,
-            Stock = 100m,
-            Quantity = 10
+            Stock = 100m
         };
         dbContext.ProductVariants.Add(variant);
         await dbContext.SaveChangesAsync();
@@ -47,7 +46,6 @@ public class UpdateProductVariantEndpointTests(TestsFixture fixture) : IClassFix
             Name = "Updated Name",
             UnitOfMeasure = nameof(UnitOfMeasure.Gram),
             Stock = 250m,
-            Quantity = 20,
             Description = "Updated description"
         };
         var body = new { updateProductVariant };

@@ -22,7 +22,6 @@ import {
 } from "@mui/material";
 import {
     ArrowBack as BackIcon,
-    TrendingDown as ExpenseIcon,
     ShoppingCart as PurchaseIcon,
     Store as VendorIcon,
     Add as AddIcon,
@@ -100,10 +99,9 @@ export default function ProductVariantFinancePage() {
     };
 
     // Calculate totals
-    const totalExpense = transactions.reduce((sum, t) => sum + t.transactionAmount, 0);
     const totalPurchases = transactions.length;
     const averagePrice =
-        totalPurchases > 0 ? totalExpense / transactions.reduce((sum, t) => sum + (t.quantity || 0), 0) : 0;
+        totalPurchases > 0 ? transactions.reduce((sum, t) => sum + t.unitPrice, 0) / totalPurchases : 0;
 
     // Loading state
     if (isLoading) {
@@ -156,25 +154,6 @@ export default function ProductVariantFinancePage() {
 
             {/* Summary Cards */}
             <Box sx={{ display: "flex", gap: 3, mb: 4, flexWrap: "wrap" }}>
-                <Box sx={{ flex: "1 1 300px", minWidth: 250 }}>
-                    <Card>
-                        <CardContent>
-                            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-                                <ExpenseIcon color="error" />
-                                <Typography variant="body2" color="text.secondary">
-                                    Total Spent
-                                </Typography>
-                            </Box>
-                            <Typography variant="h5" sx={{ fontWeight: "bold" }}>
-                                ${totalExpense.toFixed(2)}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                                All-time purchases
-                            </Typography>
-                        </CardContent>
-                    </Card>
-                </Box>
-
                 <Box sx={{ flex: "1 1 300px", minWidth: 250 }}>
                     <Card>
                         <CardContent>

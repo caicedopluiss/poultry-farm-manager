@@ -71,12 +71,10 @@ export default function TransactionsTable({ transactions }: TransactionsTablePro
                                 )}
                             </TableCell>
                             <TableCell align="right">${transaction.unitPrice.toFixed(2)}</TableCell>
-                            <TableCell align="right">{transaction.quantity || "-"}</TableCell>
                             <TableCell align="right">
-                                <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-                                    ${transaction.transactionAmount.toFixed(2)}
-                                </Typography>
+                                {transaction.quantity !== null ? transaction.quantity.toFixed(2) : "-"}
                             </TableCell>
+                            <TableCell align="right">${transaction.transactionAmount.toFixed(2)}</TableCell>
                             <TableCell>
                                 <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
                                     {transaction.vendorName && (

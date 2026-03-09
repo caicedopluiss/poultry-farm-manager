@@ -37,7 +37,6 @@ public class GetProductVariantByIdQueryTests(TestsFixture fixture) : IClassFixtu
             Name = "25kg Bag",
             UnitOfMeasure = UnitOfMeasure.Kilogram,
             Stock = 50m,
-            Quantity = 25,
             Description = "Standard 25kg feed bag"
         };
         dbContext.ProductVariants.Add(variant);
@@ -58,7 +57,6 @@ public class GetProductVariantByIdQueryTests(TestsFixture fixture) : IClassFixtu
         Assert.Equal(product.Id, result.Value!.ProductVariant.ProductId);
         Assert.Equal(nameof(UnitOfMeasure.Kilogram), result.Value!.ProductVariant.UnitOfMeasure);
         Assert.Equal(50m, result.Value!.ProductVariant.Stock);
-        Assert.Equal(25, result.Value!.ProductVariant.Quantity);
     }
 
     [Fact]
