@@ -72,7 +72,8 @@ public sealed class CreateProductVariantCommand
                 errors.Add(("name", "Name cannot exceed 100 characters."));
             }
 
-            if (!string.IsNullOrWhiteSpace(args.NewProductVariant.Description) && args.NewProductVariant.Description.Length > 500)
+            // Validate trimmed description length
+            if (!string.IsNullOrWhiteSpace(args.NewProductVariant.Description) && args.NewProductVariant.Description.Trim().Length > 500)
             {
                 errors.Add(("description", "Description cannot exceed 500 characters."));
             }

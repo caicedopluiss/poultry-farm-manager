@@ -44,7 +44,29 @@ export default function EditAssetDialog({ open, asset, onClose, onSubmit }: Edit
     };
 
     const handleSubmit = () => {
-        onSubmit(formData);
+        const dataToSubmit: UpdateAsset = {
+            ...formData,
+        };
+
+        // For description: only send if changed, convert empty to empty string (not null)
+        const originalDescription = asset.description || "";
+        const currentDescription = formData.description || "";
+        if (currentDescription !== originalDescription) {
+            dataToSubmit.description = formData.description || "";
+        } else {
+            delete dataToSubmit.description;
+        }
+
+        // For notes: only send if changed, convert empty to empty string (not null)
+        const originalNotes = asset.notes || "";
+        const currentNotes = formData.notes || "";
+        if (currentNotes !== originalNotes) {
+            dataToSubmit.notes = formData.notes || "";
+        } else {
+            delete dataToSubmit.notes;
+        }
+
+        onSubmit(dataToSubmit);
     };
 
     return (

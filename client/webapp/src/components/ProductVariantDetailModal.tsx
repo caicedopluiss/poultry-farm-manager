@@ -81,9 +81,15 @@ const ProductVariantDetailModal: React.FC<ProductVariantDetailModalProps> = ({ o
             if (editedUnitOfMeasure !== variant.unitOfMeasure) {
                 updates.unitOfMeasure = editedUnitOfMeasure;
             }
-            if (editedDescription !== (variant.description || "")) {
-                updates.description = editedDescription || null;
+
+            // For description: compare considering both null and empty string as equivalent
+            const originalDescription = variant.description || "";
+            const currentDescription = editedDescription || "";
+            if (currentDescription !== originalDescription) {
+                // Send empty string (not null) so backend can process it
+                updates.description = editedDescription || "";
             }
+
             if (editedStock !== variant.stock) {
                 updates.stock = editedStock;
             }

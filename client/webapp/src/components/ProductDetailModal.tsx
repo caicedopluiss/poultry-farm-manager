@@ -68,8 +68,13 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ open, onClose, 
             if (editedUnitOfMeasure !== product.unitOfMeasure) {
                 updates.unitOfMeasure = editedUnitOfMeasure;
             }
-            if (editedDescription !== (product.description || "")) {
-                updates.description = editedDescription || null;
+
+            // For description: compare considering both null and empty string as equivalent
+            const originalDescription = product.description || "";
+            const currentDescription = editedDescription || "";
+            if (currentDescription !== originalDescription) {
+                // Send empty string (not null) so backend can process it
+                updates.description = editedDescription || "";
             }
 
             if (Object.keys(updates).length > 0) {

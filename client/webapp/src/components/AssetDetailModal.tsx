@@ -91,11 +91,21 @@ const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ open, onClose, asse
             if (editedName !== asset.name) {
                 updates.name = editedName;
             }
-            if (editedDescription !== (asset.description || "")) {
-                updates.description = editedDescription || null;
+
+            // For description: compare considering both null and empty string as equivalent
+            const originalDescription = asset.description || "";
+            const currentDescription = editedDescription || "";
+            if (currentDescription !== originalDescription) {
+                // Send empty string (not null) so backend can process it
+                updates.description = editedDescription || "";
             }
-            if (editedNotes !== (asset.notes || "")) {
-                updates.notes = editedNotes || null;
+
+            // For notes: compare considering both null and empty string as equivalent
+            const originalNotes = asset.notes || "";
+            const currentNotes = editedNotes || "";
+            if (currentNotes !== originalNotes) {
+                // Send empty string (not null) so backend can process it
+                updates.notes = editedNotes || "";
             }
 
             // Always include states if they exist (since they're managed as a whole)

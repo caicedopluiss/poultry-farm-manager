@@ -200,6 +200,98 @@ public class UpdateAssetCommandTests(TestsFixture fixture) : IClassFixture<Tests
         Assert.Contains(result.ValidationErrors, e => e.field == "notes");
         Assert.Equal(3, result.ValidationErrors.Count());
     }
-}
 
+    [Fact]
+    public async Task UpdateAssetCommand_ShouldClearDescription_WhenEmptyStringProvided()
+    {
+        // Arrange - Create an asset with description
+        var asset = new Asset
+        {
+            Name = "Test Asset",
+            Description = "Some description",
+            Notes = "Some notes"
+        };
+        dbContext.Assets.Add(asset);
+        await dbContext.SaveChangesAsync();
+
+        var updateDto = new UpdateAssetDto(
+            Name: null,
+            Description: "", // Empty string should clear description
+            Notes: null,
+            States: null
+        );
+        var request = new AppRequest<UpdateAssetCommand.Args>(new(asset.Id, updateDto));
+
+        // Act
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Value!.UpdatedAsset.Description); // Should be null
+        Assert.Equal("Some notes", result.Value!.UpdatedAsset.Notes); // Should remain unchanged
+    }
+
+    [Fact]
+    public async Task UpdateAssetCommand_ShouldClearNotes_WhenEmptyStringProvided()
+    {
+        // Arrange - Create an asset with notes
+        var asset = new Asset
+        {
+            Name = "Test Asset",
+            Description = "Some description",
+            Notes = "Some notes"
+        };
+        dbContext.Assets.Add(asset);
+        await dbContext.SaveChangesAsync();
+
+        var updateDto = new UpdateAssetDto(
+            Name: null,
+            Description: null,
+            Notes: "", // Empty string should clear notes
+            States: null
+        );
+        var request = new AppRequest<UpdateAssetCommand.Args>(new(asset.Id, updateDto));
+
+        // Act
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.True(result.IsSuccess);
+        Assert.Equal("Some description", result.Value!.UpdatedAsset.Description); // Should remain unchanged
+        Assert.Null(result.Value!.UpdatedAsset.Notes); // Should be null
+    }
+
+    [Fact]
+    public async Task UpdateAssetCommand_ShouldClearBothDescriptionAndNotes_WhenEmptyStringsProvided()
+    {
+        // Arrange - Create an asset with both fields
+        var asset = new Asset
+        {
+            Name = "Test Asset",
+            Description = "Some description",
+            Notes = "Some notes"
+        };
+        dbContext.Assets.Add(asset);
+        await dbContext.SaveChangesAsync();
+
+        var updateDto = new UpdateAssetDto(
+            Name: null,
+            Description: "", // Empty string should clear description
+            Notes: "   ", // Whitespace should also clear notes
+            States: null
+        );
+        var request = new AppRequest<UpdateAssetCommand.Args>(new(asset.Id, updateDto));
+
+        // Act
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Value!.UpdatedAsset.Description); // Should be null
+        Assert.Null(result.Value!.UpdatedAsset.Notes); // Should be null
+    }
+}
 
