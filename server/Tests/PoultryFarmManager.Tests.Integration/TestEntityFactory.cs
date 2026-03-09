@@ -224,7 +224,6 @@ internal class ProductVariantFactory : IEntityFactory<ProductVariant>
             Name = $"{names[_random.Next(names.Length)]}_{Guid.NewGuid().ToString()[..8]}",
             UnitOfMeasure = units[_random.Next(units.Length)],
             Stock = Math.Round((decimal)(_random.NextDouble() * 500), 2),
-            Quantity = _random.Next(1, 100),
             Description = _random.Next(2) == 0 ? $"Test variant description {Guid.NewGuid().ToString()[..8]}" : null
         };
     }

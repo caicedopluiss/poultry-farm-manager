@@ -698,7 +698,6 @@ public class CreateTransactionCommandTests(TestsFixture fixture) : IClassFixture
             ProductId = product.Id,
             Name = "Test Variant",
             Description = "Test Variant Description",
-            Quantity = 10,
             Stock = 50,
             UnitOfMeasure = UnitOfMeasure.Kilogram
         };
@@ -771,7 +770,6 @@ public class CreateTransactionCommandTests(TestsFixture fixture) : IClassFixture
             ProductId = product.Id,
             Name = "Test Variant",
             Description = "Test Variant Description",
-            Quantity = 10,
             Stock = 50,
             UnitOfMeasure = UnitOfMeasure.Kilogram
         };

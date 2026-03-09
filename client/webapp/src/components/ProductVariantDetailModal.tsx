@@ -44,7 +44,6 @@ const ProductVariantDetailModal: React.FC<ProductVariantDetailModalProps> = ({ o
     const navigate = useNavigate();
     const [isEditing, setIsEditing] = useState(false);
     const [editedName, setEditedName] = useState("");
-    const [editedQuantity, setEditedQuantity] = useState<number>(0);
     const [editedUnitOfMeasure, setEditedUnitOfMeasure] = useState("");
     const [editedDescription, setEditedDescription] = useState("");
     const [editedStock, setEditedStock] = useState<number>(0);
@@ -53,7 +52,6 @@ const ProductVariantDetailModal: React.FC<ProductVariantDetailModalProps> = ({ o
     const handleEdit = () => {
         if (variant) {
             setEditedName(variant.name);
-            setEditedQuantity(variant.quantity);
             setEditedUnitOfMeasure(variant.unitOfMeasure);
             setEditedDescription(variant.description || "");
             setEditedStock(variant.stock);
@@ -74,9 +72,6 @@ const ProductVariantDetailModal: React.FC<ProductVariantDetailModalProps> = ({ o
 
             if (editedName !== variant.name) {
                 updates.name = editedName;
-            }
-            if (editedQuantity !== variant.quantity) {
-                updates.quantity = editedQuantity;
             }
             if (editedUnitOfMeasure !== variant.unitOfMeasure) {
                 updates.unitOfMeasure = editedUnitOfMeasure;
@@ -146,16 +141,6 @@ const ProductVariantDetailModal: React.FC<ProductVariantDetailModalProps> = ({ o
                             />
 
                             <TextField
-                                label="Quantity"
-                                type="number"
-                                value={editedQuantity}
-                                onChange={(e) => setEditedQuantity(Number(e.target.value))}
-                                required
-                                fullWidth
-                                inputProps={{ min: 1, step: 1 }}
-                            />
-
-                            <TextField
                                 label="Unit of Measure"
                                 select
                                 value={editedUnitOfMeasure}
@@ -196,15 +181,6 @@ const ProductVariantDetailModal: React.FC<ProductVariantDetailModalProps> = ({ o
                                 </Typography>
                                 <Typography variant="body1" fontWeight={500}>
                                     {variant.name}
-                                </Typography>
-                            </Box>
-
-                            <Box>
-                                <Typography variant="caption" color="text.secondary">
-                                    Quantity
-                                </Typography>
-                                <Typography variant="body1" fontWeight={500}>
-                                    {variant.quantity}
                                 </Typography>
                             </Box>
 

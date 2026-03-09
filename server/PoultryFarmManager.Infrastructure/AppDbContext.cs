@@ -181,7 +181,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.HasIndex(e => new { e.ProductId, e.Name }).IsUnique();
             entity.Property(e => e.UnitOfMeasure).IsRequired();
             entity.Property(e => e.Stock).IsRequired().HasPrecision(18, 2);
-            entity.Property(e => e.Quantity).IsRequired();
             entity.Property(e => e.Description).HasMaxLength(500);
 
             entity.HasOne(e => e.Product)

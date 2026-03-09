@@ -46,8 +46,7 @@ public class GetProductVariantTransactionsQueryTests(TestsFixture fixture) : ICl
             ProductId = product.Id,
             Name = "25kg Bag",
             UnitOfMeasure = UnitOfMeasure.Kilogram,
-            Stock = 2500m,
-            Quantity = 25
+            Stock = 2500m
         };
         dbContext.ProductVariants.Add(productVariant);
 
@@ -130,8 +129,7 @@ public class GetProductVariantTransactionsQueryTests(TestsFixture fixture) : ICl
             ProductId = product.Id,
             Name = "25kg Bag",
             UnitOfMeasure = UnitOfMeasure.Kilogram,
-            Stock = 2500m,
-            Quantity = 25
+            Stock = 2500m
         };
         dbContext.ProductVariants.Add(productVariant);
         await dbContext.SaveChangesAsync();
@@ -188,8 +186,7 @@ public class GetProductVariantTransactionsQueryTests(TestsFixture fixture) : ICl
             ProductId = product.Id,
             Name = "50kg Bag",
             UnitOfMeasure = UnitOfMeasure.Kilogram,
-            Stock = 5000m,
-            Quantity = 50
+            Stock = 5000m
         };
         dbContext.ProductVariants.Add(productVariant);
 

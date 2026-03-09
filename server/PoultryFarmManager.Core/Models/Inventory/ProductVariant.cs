@@ -9,7 +9,6 @@ public class ProductVariant : DbEntity
     public string Name { get; set; } = string.Empty;
     public UnitOfMeasure UnitOfMeasure { get; set; }
     public decimal Stock { get; set; }
-    public int Quantity { get; set; }
     public string? Description { get; set; }
 
     public Product? Product { get; set; }

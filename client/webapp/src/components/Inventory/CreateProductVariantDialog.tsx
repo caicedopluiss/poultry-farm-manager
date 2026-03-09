@@ -35,15 +35,13 @@ export default function CreateProductVariantDialog({
         name: "",
         description: "",
         stock: 0,
-        quantity: 0,
         unitOfMeasure: UnitOfMeasure.Unit,
         vendorId: null,
         unitPrice: null,
     });
 
     const handleChange = (field: keyof NewProductVariant) => (event: React.ChangeEvent<HTMLInputElement>) => {
-        const value =
-            field === "stock" || field === "quantity" ? parseFloat(event.target.value) || 0 : event.target.value;
+        const value = field === "stock" ? parseFloat(event.target.value) || 0 : event.target.value;
         setFormData((prev) => ({ ...prev, [field]: value }));
     };
 
@@ -55,7 +53,6 @@ export default function CreateProductVariantDialog({
             name: "",
             description: "",
             stock: 0,
-            quantity: 0,
             unitOfMeasure: UnitOfMeasure.Unit,
         });
     };
@@ -68,7 +65,6 @@ export default function CreateProductVariantDialog({
             name: "",
             description: "",
             stock: 0,
-            quantity: 0,
             unitOfMeasure: UnitOfMeasure.Unit,
             vendorId: null,
             unitPrice: null,
@@ -140,18 +136,6 @@ export default function CreateProductVariantDialog({
                     <Grid size={{ xs: 12, sm: 6 }}>
                         <TextField
                             fullWidth
-                            label="Quantity"
-                            type="number"
-                            value={formData.quantity}
-                            onChange={handleChange("quantity")}
-                            required
-                            inputProps={{ min: 0 }}
-                        />
-                    </Grid>
-
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                        <TextField
-                            fullWidth
                             select
                             label="Unit of Measure"
                             value={formData.unitOfMeasure}
@@ -175,7 +159,7 @@ export default function CreateProductVariantDialog({
                 <Button
                     onClick={handleSubmit}
                     variant="contained"
-                    disabled={!formData.productId || !formData.name || formData.stock < 0 || formData.quantity < 0}
+                    disabled={!formData.productId || !formData.name || formData.stock < 0}
                 >
                     Create
                 </Button>
