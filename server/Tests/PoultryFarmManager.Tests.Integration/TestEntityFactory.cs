@@ -128,6 +128,58 @@ internal static class TestEntityFactory
 
         return transaction;
     }
+
+    /// <summary>
+    /// Creates and persists a SaleOrder with one SaleOrderItem, a Batch and a customer Person.
+    /// </summary>
+    internal static async Task<Core.Models.SaleOrder> CreateSaleOrderAsync(
+        this TestsDbContext context,
+        decimal pricePerKg = 10m,
+        Core.Enums.SaleOrderStatus status = Core.Enums.SaleOrderStatus.Pending)
+    {
+        var customer = new Person
+        {
+            FirstName = $"Customer_{Guid.NewGuid().ToString()[..8]}",
+            LastName = "Test"
+        };
+        context.Persons.Add(customer);
+
+        var batch = new Batch
+        {
+            Name = $"Batch_{Guid.NewGuid().ToString()[..8]}",
+            StartDate = DateTime.UtcNow,
+            MaleCount = 50,
+            FemaleCount = 50,
+            UnsexedCount = 0,
+            InitialPopulation = 100,
+            Status = Core.Enums.BatchStatus.Active,
+            Shed = "Shed A-1"
+        };
+        context.Batches.Add(batch);
+        await context.SaveChangesAsync();
+
+        var saleOrder = new Core.Models.SaleOrder
+        {
+            BatchId = batch.Id,
+            CustomerId = customer.Id,
+            Date = DateTime.UtcNow,
+            Status = status,
+            PricePerKg = pricePerKg,
+            Items =
+            [
+                new Core.Models.SaleOrderItem
+                {
+                    Weight = 2.5m,
+                    UnitOfMeasure = Core.Enums.UnitOfMeasure.Kilogram,
+                    ProcessedDate = DateTime.UtcNow
+                }
+            ]
+        };
+        context.SaleOrders.Add(saleOrder);
+        await context.SaveChangesAsync();
+
+        return saleOrder;
+    }
 }
 
 internal class BatchFactory : IEntityFactory<Batch>

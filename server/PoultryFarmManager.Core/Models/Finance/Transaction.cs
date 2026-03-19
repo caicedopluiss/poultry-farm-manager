@@ -25,6 +25,10 @@ public class Transaction : DbEntity
     public Guid? BatchId { get; set; }
     public Batch? Batch { get; set; }
 
+    // Relationship with sale order payment (if applicable)
+    public Guid? SaleOrderId { get; set; }
+    public SaleOrder? SaleOrder { get; set; }
+
     // Relationship with counterpart
     public Guid? VendorId { get; set; }
     public Vendor? Vendor { get; set; }
