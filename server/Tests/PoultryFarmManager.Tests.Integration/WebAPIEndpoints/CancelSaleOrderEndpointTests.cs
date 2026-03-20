@@ -35,13 +35,13 @@ public class CancelSaleOrderEndpointTests(TestsFixture fixture) : IClassFixture<
     }
 
     [Fact]
-    public async Task POST_CancelSaleOrder_SaleOrderNotFound_ShouldReturnBadRequest()
+    public async Task POST_CancelSaleOrder_SaleOrderNotFound_ShouldReturnNotFound()
     {
         // Act
         var response = await fixture.Client.PostAsync($"/api/v1/sale-orders/{Guid.NewGuid()}/cancel", null);
 
         // Assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [Fact]

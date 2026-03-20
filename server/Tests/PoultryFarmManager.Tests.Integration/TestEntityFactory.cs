@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using PoultryFarmManager.Core.Models;
 using PoultryFarmManager.Core.Models.Inventory;
@@ -177,6 +178,27 @@ internal static class TestEntityFactory
         };
         context.SaleOrders.Add(saleOrder);
         await context.SaveChangesAsync();
+
+        // When the requested status is Paid, create a payment that fully covers TotalAmount
+        // so that TotalPaid >= TotalAmount evaluates correctly in validation logic.
+        if (status == Core.Enums.SaleOrderStatus.Paid)
+        {
+            var totalAmount = saleOrder.Items.Sum(i => i.Weight) * pricePerKg;
+            var payment = new Transaction
+            {
+                Title = $"Full payment for sale order #{saleOrder.Id}",
+                Date = DateTime.UtcNow,
+                Type = TransactionType.Income,
+                UnitPrice = totalAmount,
+                Quantity = null,
+                TransactionAmount = totalAmount,
+                BatchId = batch.Id,
+                SaleOrderId = saleOrder.Id,
+                CustomerId = customer.Id
+            };
+            context.Transactions.Add(payment);
+            await context.SaveChangesAsync();
+        }
 
         return saleOrder;
     }

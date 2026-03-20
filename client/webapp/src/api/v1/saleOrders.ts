@@ -1,4 +1,5 @@
-import apiClient from "@/api/client";
+import apiClient, { API_RESULT_CODE_NOT_FOUND } from "@/api/client";
+import type { ApiClientError } from "@/api/client";
 import type { SaleOrder, NewSaleOrder, NewSaleOrderPayment } from "@/types/saleOrder";
 
 const url = "v1/sale-orders";
@@ -17,8 +18,13 @@ interface SaleOrderResponse {
 }
 
 export async function getSaleOrderById(id: string): Promise<SaleOrder | null> {
-    const response: SaleOrderResponse = await apiClient.get(`${url}/${id}`);
-    return response.saleOrder;
+    try {
+        const response: SaleOrderResponse = await apiClient.get(`${url}/${id}`);
+        return response.saleOrder;
+    } catch (err) {
+        if ((err as ApiClientError).code === API_RESULT_CODE_NOT_FOUND) return null;
+        throw err;
+    }
 }
 
 export async function createSaleOrder(newSaleOrder: NewSaleOrder): Promise<SaleOrder> {

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,7 +27,7 @@ public class AddSaleOrderPaymentEndpoint : IEndpoint
             .Accepts<AddPaymentRequestBody>(MediaTypeNames.Application.Json)
             .Produces<AddPaymentResponseBody>(StatusCodes.Status200OK, MediaTypeNames.Application.Json)
             .Produces<ErrorResponse>(StatusCodes.Status400BadRequest, MediaTypeNames.Application.Json)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces<ErrorResponse>(StatusCodes.Status404NotFound, MediaTypeNames.Application.Json);
     }
 
     private static async Task<IResult> AddAsync(
@@ -38,8 +39,14 @@ public class AddSaleOrderPaymentEndpoint : IEndpoint
         var request = new AppRequest<AddSaleOrderPaymentCommand.Args>(new(id, body.Payment));
         var result = await mediator.SendAsync<AddSaleOrderPaymentCommand.Args, AddSaleOrderPaymentCommand.Result>(request, cancellationToken);
 
-        return !result.IsSuccess
-            ? Results.BadRequest(new ErrorResponse(result.Message, result.ValidationErrors))
-            : Results.Ok(new AddPaymentResponseBody(result.Value!.UpdatedSaleOrder));
+        if (!result.IsSuccess)
+        {
+            if (result.ValidationErrors.Any(e => e.field == "saleOrderId" && e.error.Contains("not found")))
+                return Results.NotFound(new ErrorResponse(StatusCodes.Status404NotFound, "Sale order not found."));
+
+            return Results.BadRequest(new ErrorResponse(result.Message, result.ValidationErrors));
+        }
+
+        return Results.Ok(new AddPaymentResponseBody(result.Value!.UpdatedSaleOrder));
     }
 }

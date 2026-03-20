@@ -96,6 +96,6 @@ public class AddSaleOrderPaymentEndpointTests(TestsFixture fixture) : IClassFixt
         var response = await fixture.Client.PostAsJsonAsync($"/api/v1/sale-orders/{Guid.NewGuid()}/payments", body);
 
         // Assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 }

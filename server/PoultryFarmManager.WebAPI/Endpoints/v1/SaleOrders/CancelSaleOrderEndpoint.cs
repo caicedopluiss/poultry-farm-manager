@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +25,7 @@ public class CancelSaleOrderEndpoint : IEndpoint
             .WithTags("SaleOrders")
             .Produces<CancelSaleOrderResponseBody>(StatusCodes.Status200OK, MediaTypeNames.Application.Json)
             .Produces<ErrorResponse>(StatusCodes.Status400BadRequest, MediaTypeNames.Application.Json)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces<ErrorResponse>(StatusCodes.Status404NotFound, MediaTypeNames.Application.Json);
     }
 
     private static async Task<IResult> CancelAsync(
@@ -35,8 +36,14 @@ public class CancelSaleOrderEndpoint : IEndpoint
         var request = new AppRequest<CancelSaleOrderCommand.Args>(new(id));
         var result = await mediator.SendAsync<CancelSaleOrderCommand.Args, CancelSaleOrderCommand.Result>(request, cancellationToken);
 
-        return !result.IsSuccess
-            ? Results.BadRequest(new ErrorResponse(result.Message, result.ValidationErrors))
-            : Results.Ok(new CancelSaleOrderResponseBody(result.Value!.CancelledSaleOrder));
+        if (!result.IsSuccess)
+        {
+            if (result.ValidationErrors.Any(e => e.field == "saleOrderId" && e.error.Contains("not found")))
+                return Results.NotFound(new ErrorResponse(StatusCodes.Status404NotFound, "Sale order not found."));
+
+            return Results.BadRequest(new ErrorResponse(result.Message, result.ValidationErrors));
+        }
+
+        return Results.Ok(new CancelSaleOrderResponseBody(result.Value!.CancelledSaleOrder));
     }
 }
