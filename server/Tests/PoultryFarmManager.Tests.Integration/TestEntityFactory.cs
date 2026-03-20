@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using PoultryFarmManager.Core.Models;
 using PoultryFarmManager.Core.Models.Inventory;
@@ -127,6 +128,79 @@ internal static class TestEntityFactory
         await context.SaveChangesAsync();
 
         return transaction;
+    }
+
+    /// <summary>
+    /// Creates and persists a SaleOrder with one SaleOrderItem, a Batch and a customer Person.
+    /// </summary>
+    internal static async Task<Core.Models.SaleOrder> CreateSaleOrderAsync(
+        this TestsDbContext context,
+        decimal pricePerKg = 10m,
+        Core.Enums.SaleOrderStatus status = Core.Enums.SaleOrderStatus.Pending)
+    {
+        var customer = new Person
+        {
+            FirstName = $"Customer_{Guid.NewGuid().ToString()[..8]}",
+            LastName = "Test"
+        };
+        context.Persons.Add(customer);
+
+        var batch = new Batch
+        {
+            Name = $"Batch_{Guid.NewGuid().ToString()[..8]}",
+            StartDate = DateTime.UtcNow,
+            MaleCount = 50,
+            FemaleCount = 50,
+            UnsexedCount = 0,
+            InitialPopulation = 100,
+            Status = Core.Enums.BatchStatus.Active,
+            Shed = "Shed A-1"
+        };
+        context.Batches.Add(batch);
+        await context.SaveChangesAsync();
+
+        var saleOrder = new Core.Models.SaleOrder
+        {
+            BatchId = batch.Id,
+            CustomerId = customer.Id,
+            Date = DateTime.UtcNow,
+            Status = status,
+            PricePerKg = pricePerKg,
+            Items =
+            [
+                new Core.Models.SaleOrderItem
+                {
+                    Weight = 2.5m,
+                    UnitOfMeasure = Core.Enums.UnitOfMeasure.Kilogram,
+                    ProcessedDate = DateTime.UtcNow
+                }
+            ]
+        };
+        context.SaleOrders.Add(saleOrder);
+        await context.SaveChangesAsync();
+
+        // When the requested status is Paid, create a payment that fully covers TotalAmount
+        // so that TotalPaid >= TotalAmount evaluates correctly in validation logic.
+        if (status == Core.Enums.SaleOrderStatus.Paid)
+        {
+            var totalAmount = saleOrder.Items.Sum(i => i.Weight) * pricePerKg;
+            var payment = new Transaction
+            {
+                Title = $"Full payment for sale order #{saleOrder.Id}",
+                Date = DateTime.UtcNow,
+                Type = TransactionType.Income,
+                UnitPrice = totalAmount,
+                Quantity = null,
+                TransactionAmount = totalAmount,
+                BatchId = batch.Id,
+                SaleOrderId = saleOrder.Id,
+                CustomerId = customer.Id
+            };
+            context.Transactions.Add(payment);
+            await context.SaveChangesAsync();
+        }
+
+        return saleOrder;
     }
 }
 

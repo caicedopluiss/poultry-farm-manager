@@ -11,6 +11,7 @@ internal class TestsDbContext(DbContextOptions<AppDbContext> options) : AppDbCon
         // Clear in correct order respecting foreign key constraints
         // Finance tables: Transactions reference Vendors, Vendors reference Persons
         await Transactions.ExecuteDeleteAsync();
+        await SaleOrders.ExecuteDeleteAsync(); // cascade deletes SaleOrderItems
         await Vendors.ExecuteDeleteAsync();
         await Persons.ExecuteDeleteAsync();
 

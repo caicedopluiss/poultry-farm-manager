@@ -5,6 +5,7 @@ using PoultryFarmManager.Application.Commands.Batches;
 using PoultryFarmManager.Application.Commands.Persons;
 using PoultryFarmManager.Application.Commands.Products;
 using PoultryFarmManager.Application.Commands.ProductVariants;
+using PoultryFarmManager.Application.Commands.SaleOrders;
 using PoultryFarmManager.Application.Commands.Transactions;
 using PoultryFarmManager.Application.Commands.Vendors;
 using PoultryFarmManager.Application.Queries.Transactions;
@@ -13,6 +14,7 @@ using PoultryFarmManager.Application.Queries.Batches;
 using PoultryFarmManager.Application.Queries.Persons;
 using PoultryFarmManager.Application.Queries.Products;
 using PoultryFarmManager.Application.Queries.ProductVariants;
+using PoultryFarmManager.Application.Queries.SaleOrders;
 using PoultryFarmManager.Application.Queries.Vendors;
 using PoultryFarmManager.Application.Shared.CQRS;
 
@@ -63,6 +65,11 @@ public static class ApplicationServices
         // Vendors
         services.AddScoped<IAppRequestHandler<CreateVendorCommand.Args, CreateVendorCommand.Result>, CreateVendorCommand.Handler>();
         services.AddScoped<IAppRequestHandler<UpdateVendorCommand.Args, UpdateVendorCommand.Result>, UpdateVendorCommand.Handler>();
+
+        // Sale Orders
+        services.AddScoped<IAppRequestHandler<CreateSaleOrderCommand.Args, CreateSaleOrderCommand.Result>, CreateSaleOrderCommand.Handler>();
+        services.AddScoped<IAppRequestHandler<AddSaleOrderPaymentCommand.Args, AddSaleOrderPaymentCommand.Result>, AddSaleOrderPaymentCommand.Handler>();
+        services.AddScoped<IAppRequestHandler<CancelSaleOrderCommand.Args, CancelSaleOrderCommand.Result>, CancelSaleOrderCommand.Handler>();
     }
 
     private static void AddQueryHandlers(IServiceCollection services)
@@ -98,5 +105,9 @@ public static class ApplicationServices
         // Vendors
         services.AddScoped<IAppRequestHandler<GetAllVendorsQuery.Args, GetAllVendorsQuery.Result>, GetAllVendorsQuery.Handler>();
         services.AddScoped<IAppRequestHandler<GetVendorByIdQuery.Args, GetVendorByIdQuery.Result>, GetVendorByIdQuery.Handler>();
+
+        // Sale Orders
+        services.AddScoped<IAppRequestHandler<GetSaleOrdersByBatchIdQuery.Args, GetSaleOrdersByBatchIdQuery.Result>, GetSaleOrdersByBatchIdQuery.Handler>();
+        services.AddScoped<IAppRequestHandler<GetSaleOrderByIdQuery.Args, GetSaleOrderByIdQuery.Result>, GetSaleOrderByIdQuery.Handler>();
     }
 }
