@@ -103,6 +103,18 @@ public record SaleOrderDto(
         var items = from.Items.Select(i => new SaleOrderItemDto().Map(i)).ToList();
         var payments = from.Payments.Select(p => new SaleOrderPaymentDto().Map(p)).ToList();
 
+        var totalAmount = from.TotalAmount;
+        var totalPaid = from.TotalPaid;
+
+        // Compute status from actual payment data so stale DB values never cause a mismatch.
+        var status = from.Status == SaleOrderStatus.Cancelled
+            ? SaleOrderStatus.Cancelled
+            : totalPaid >= totalAmount
+                ? SaleOrderStatus.Paid
+                : totalPaid > 0
+                    ? SaleOrderStatus.PartiallyPaid
+                    : SaleOrderStatus.Pending;
+
         return this with
         {
             Id = from.Id,
@@ -113,14 +125,14 @@ public record SaleOrderDto(
                 ? $"{from.Customer.FirstName} {from.Customer.LastName}"
                 : string.Empty,
             Date = from.Date.ToString(Constants.DateTimeFormat),
-            Status = from.Status.ToString(),
+            Status = status.ToString(),
             Notes = from.Notes,
             PricePerUnit = from.PricePerKg,
             Items = items,
             Payments = payments,
             TotalWeight = from.Items.Sum(i => i.Weight),
-            TotalAmount = from.TotalAmount,
-            TotalPaid = from.TotalPaid,
+            TotalAmount = totalAmount,
+            TotalPaid = totalPaid,
             PendingAmount = from.PendingAmount
         };
     }

@@ -22,6 +22,10 @@ public sealed class AddSaleOrderPaymentCommand
 
             var paymentDate = Utils.ParseIso8601DateTimeString(args.Payment.DateClientIsoString).UtcDateTime;
 
+            // Capture TotalPaid before creating the transaction to avoid EF relationship fixup
+            // double-counting the new payment when computing the status below.
+            var totalPaidBefore = saleOrder!.TotalPaid;
+
             var transaction = new Transaction
             {
                 Title = $"Payment for sale order #{args.SaleOrderId}",
@@ -39,7 +43,7 @@ public sealed class AddSaleOrderPaymentCommand
             await unitOfWork.Transactions.CreateAsync(transaction, cancellationToken);
 
             // Update sale order status
-            var totalPaidAfter = saleOrder.TotalPaid + args.Payment.Amount;
+            var totalPaidAfter = totalPaidBefore + args.Payment.Amount;
             saleOrder.Status = totalPaidAfter >= saleOrder.TotalAmount
                 ? SaleOrderStatus.Paid
                 : SaleOrderStatus.PartiallyPaid;
@@ -73,7 +77,8 @@ public sealed class AddSaleOrderPaymentCommand
             if (saleOrder.Status == SaleOrderStatus.Cancelled)
                 errors.Add(("saleOrderId", "Cannot add a payment to a cancelled sale order."));
 
-            if (saleOrder.Status == SaleOrderStatus.Paid)
+            // Use actual totals rather than the stored Status field, which may be stale.
+            if (saleOrder.TotalPaid >= saleOrder.TotalAmount)
                 errors.Add(("saleOrderId", "Sale order is already fully paid."));
 
             if (!Utils.IsIso8601DateStringValid(args.Payment.DateClientIsoString))

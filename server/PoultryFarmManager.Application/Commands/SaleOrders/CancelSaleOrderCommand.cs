@@ -48,7 +48,8 @@ public sealed class CancelSaleOrderCommand
             if (saleOrder.Status == SaleOrderStatus.Cancelled)
                 errors.Add(("saleOrderId", "Sale order is already cancelled."));
 
-            if (saleOrder.Status == SaleOrderStatus.Paid)
+            // Use actual totals rather than the stored Status field, which may be stale.
+            if (saleOrder.TotalPaid >= saleOrder.TotalAmount)
                 errors.Add(("saleOrderId", "Cannot cancel a fully paid sale order."));
 
             return errors;
