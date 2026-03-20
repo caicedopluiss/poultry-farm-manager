@@ -147,21 +147,6 @@ const ProductVariantsList: React.FC<ProductVariantsListProps> = ({ variants, loa
                                 </TableCell>
                                 <TableCell sx={{ color: "white" }} align="right">
                                     <TableSortLabel
-                                        active={orderBy === "quantity"}
-                                        direction={orderBy === "quantity" ? order : "asc"}
-                                        onClick={() => handleRequestSort("quantity")}
-                                        sx={{
-                                            color: "white !important",
-                                            "&:hover": { color: "white !important" },
-                                            "& .MuiTableSortLabel-icon": { color: "white !important" },
-                                            flexDirection: "row-reverse",
-                                        }}
-                                    >
-                                        <Typography fontWeight="bold">Quantity</Typography>
-                                    </TableSortLabel>
-                                </TableCell>
-                                <TableCell sx={{ color: "white" }} align="right">
-                                    <TableSortLabel
                                         active={orderBy === "stock"}
                                         direction={orderBy === "stock" ? order : "asc"}
                                         onClick={() => handleRequestSort("stock")}
@@ -224,9 +209,6 @@ const ProductVariantsList: React.FC<ProductVariantsListProps> = ({ variants, loa
                                                 -
                                             </Typography>
                                         )}
-                                    </TableCell>
-                                    <TableCell align="right">
-                                        <Typography variant="body2">{variant.quantity}</Typography>
                                     </TableCell>
                                     <TableCell align="right">
                                         <Typography variant="body2" fontWeight={500}>

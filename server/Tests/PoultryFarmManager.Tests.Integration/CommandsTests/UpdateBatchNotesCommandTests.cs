@@ -96,7 +96,7 @@ public class UpdateBatchNotesCommandTests(TestsFixture fixture) : IClassFixture<
     }
 
     [Fact]
-    public async Task UpdateBatchNotesCommand_ShouldStoreEmptyString_WithEmptyStringValue()
+    public async Task UpdateBatchNotesCommand_ShouldClearNotes_WhenEmptyStringProvided()
     {
         // Arrange - Create a batch with existing notes
         var batch = TestEntityFactory.GetFactory<Batch>().CreateRandom();
@@ -113,12 +113,11 @@ public class UpdateBatchNotesCommandTests(TestsFixture fixture) : IClassFixture<
         Assert.NotNull(result);
         Assert.True(result.IsSuccess);
 
-        // Verify in database - empty string should be stored as-is
+        // Verify in database - empty string should be converted to null
         dbContext.ChangeTracker.Clear();
         var updatedBatch = await dbContext.Batches.FindAsync(batch.Id);
         Assert.NotNull(updatedBatch);
-        Assert.NotNull(updatedBatch.Notes);
-        Assert.Equal(string.Empty, updatedBatch.Notes);
+        Assert.Null(updatedBatch.Notes);
     }
 
     [Fact]

@@ -49,7 +49,8 @@ public sealed class CreateProductCommand
                 errors.Add(("manufacturer", "Manufacturer cannot exceed 100 characters."));
             }
 
-            if (!string.IsNullOrWhiteSpace(args.NewProduct.Description) && args.NewProduct.Description.Length > 500)
+            // Validate trimmed description length
+            if (!string.IsNullOrWhiteSpace(args.NewProduct.Description) && args.NewProduct.Description.Trim().Length > 500)
             {
                 errors.Add(("description", "Description cannot exceed 500 characters."));
             }

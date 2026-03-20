@@ -48,7 +48,20 @@ export default function EditProductDialog({ open, product, onClose, onSubmit }: 
     };
 
     const handleSubmit = () => {
-        onSubmit(formData);
+        const dataToSubmit: UpdateProduct = {
+            ...formData,
+        };
+
+        // For description: only send if changed, convert empty to empty string (not null)
+        const originalDescription = product.description || "";
+        const currentDescription = formData.description || "";
+        if (currentDescription !== originalDescription) {
+            dataToSubmit.description = formData.description || "";
+        } else {
+            delete dataToSubmit.description;
+        }
+
+        onSubmit(dataToSubmit);
     };
 
     return (

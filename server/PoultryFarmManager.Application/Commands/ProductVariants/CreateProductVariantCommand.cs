@@ -23,10 +23,6 @@ public sealed class CreateProductVariantCommand
 
             var productVariant = args.NewProductVariant.Map();
 
-            // Calculate the variant's total stock: Stock + (Stock * Quantity)
-            var totalVariantStock = productVariant.Stock + (productVariant.Stock * productVariant.Quantity);
-            productVariant.Stock = totalVariantStock;
-
             var createdProductVariant = await unitOfWork.ProductVariants.CreateAsync(productVariant, cancellationToken);
 
             // Create a transaction for the product variant purchase
@@ -36,8 +32,8 @@ public sealed class CreateProductVariantCommand
                 Date = DateTime.UtcNow,
                 Type = TransactionType.Expense,
                 UnitPrice = args.NewProductVariant.UnitPrice,
-                Quantity = productVariant.Quantity,
-                TransactionAmount = args.NewProductVariant.UnitPrice * productVariant.Quantity,
+                Quantity = null,
+                TransactionAmount = args.NewProductVariant.UnitPrice,
                 ProductVariantId = createdProductVariant.Id,
                 VendorId = args.NewProductVariant.VendorId,
                 BatchId = null,
@@ -72,7 +68,8 @@ public sealed class CreateProductVariantCommand
                 errors.Add(("name", "Name cannot exceed 100 characters."));
             }
 
-            if (!string.IsNullOrWhiteSpace(args.NewProductVariant.Description) && args.NewProductVariant.Description.Length > 500)
+            // Validate trimmed description length
+            if (!string.IsNullOrWhiteSpace(args.NewProductVariant.Description) && args.NewProductVariant.Description.Trim().Length > 500)
             {
                 errors.Add(("description", "Description cannot exceed 500 characters."));
             }
@@ -80,11 +77,6 @@ public sealed class CreateProductVariantCommand
             if (args.NewProductVariant.Stock < 0)
             {
                 errors.Add(("stock", "Stock cannot be negative."));
-            }
-
-            if (args.NewProductVariant.Quantity <= 0)
-            {
-                errors.Add(("quantity", "Quantity must be greater than zero."));
             }
 
             if (string.IsNullOrWhiteSpace(args.NewProductVariant.UnitOfMeasure))

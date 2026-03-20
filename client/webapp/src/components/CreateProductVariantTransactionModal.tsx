@@ -13,7 +13,6 @@ import {
     InputLabel,
     Select,
     MenuItem,
-    Box,
     Typography,
     useTheme,
     useMediaQuery,
@@ -46,7 +45,6 @@ export default function CreateProductVariantTransactionModal({
         title: "",
         date: moment().format("YYYY-MM-DD"),
         unitPrice: "",
-        quantity: "",
         notes: "",
         vendorId: "",
     });
@@ -81,7 +79,6 @@ export default function CreateProductVariantTransactionModal({
                 title: `Purchase: ${productVariantName}`,
                 date: moment().format("YYYY-MM-DD"),
                 unitPrice: "",
-                quantity: "",
                 notes: "",
                 vendorId: "",
             });
@@ -105,30 +102,22 @@ export default function CreateProductVariantTransactionModal({
         }
 
         const unitPrice = parseFloat(formData.unitPrice);
-        const quantity = parseFloat(formData.quantity);
 
         if (isNaN(unitPrice) || unitPrice <= 0) {
             setError("Unit price must be a positive number");
             return;
         }
 
-        if (isNaN(quantity) || quantity <= 0) {
-            setError("Quantity must be a positive number");
-            return;
-        }
-
         try {
             setLoading(true);
-
-            const transactionAmount = unitPrice * quantity;
 
             await createTransaction({
                 title: formData.title.trim(),
                 dateClientIsoString: moment(formData.date).format(),
                 type: "Expense",
                 unitPrice,
-                quantity,
-                transactionAmount,
+                quantity: null,
+                transactionAmount: unitPrice,
                 notes: formData.notes.trim() || null,
                 vendorId: formData.vendorId,
                 productVariantId,
@@ -152,9 +141,6 @@ export default function CreateProductVariantTransactionModal({
             onClose();
         }
     };
-
-    const totalAmount = parseFloat(formData.unitPrice) * parseFloat(formData.quantity);
-    const isValidAmount = !isNaN(totalAmount) && totalAmount > 0;
 
     return (
         <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth fullScreen={isMobile}>
@@ -227,35 +213,6 @@ export default function CreateProductVariantTransactionModal({
                             fullWidth
                             inputProps={{ min: 0, step: 0.01 }}
                         />
-
-                        <TextField
-                            label="Quantity"
-                            type="number"
-                            value={formData.quantity}
-                            onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                            required
-                            fullWidth
-                            inputProps={{ min: 0, step: 0.01 }}
-                        />
-
-                        {isValidAmount && (
-                            <Box
-                                sx={{
-                                    p: 2,
-                                    bgcolor: "primary.50",
-                                    borderRadius: 1,
-                                    border: 1,
-                                    borderColor: "primary.main",
-                                }}
-                            >
-                                <Typography variant="body2" color="text.secondary">
-                                    Total Amount
-                                </Typography>
-                                <Typography variant="h5" sx={{ fontWeight: "bold", color: "primary.main" }}>
-                                    ${totalAmount.toFixed(2)}
-                                </Typography>
-                            </Box>
-                        )}
 
                         <TextField
                             label="Notes (Optional)"

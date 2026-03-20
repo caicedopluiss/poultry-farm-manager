@@ -51,7 +51,8 @@ public sealed class UpdateProductVariantCommand
                 errors.Add(("unitOfMeasure", "Invalid unit of measure."));
             }
 
-            if (!string.IsNullOrWhiteSpace(args.UpdateData.Description) && args.UpdateData.Description.Length > 500)
+            // Validate trimmed description length
+            if (!string.IsNullOrWhiteSpace(args.UpdateData.Description) && args.UpdateData.Description.Trim().Length > 500)
             {
                 errors.Add(("description", "Description cannot exceed 500 characters."));
             }
@@ -59,11 +60,6 @@ public sealed class UpdateProductVariantCommand
             if (args.UpdateData.Stock.HasValue && args.UpdateData.Stock.Value < 0)
             {
                 errors.Add(("stock", "Stock cannot be negative."));
-            }
-
-            if (args.UpdateData.Quantity.HasValue && args.UpdateData.Quantity.Value <= 0)
-            {
-                errors.Add(("quantity", "Quantity must be greater than zero."));
             }
 
             return Task.FromResult<IEnumerable<(string field, string error)>>(errors);

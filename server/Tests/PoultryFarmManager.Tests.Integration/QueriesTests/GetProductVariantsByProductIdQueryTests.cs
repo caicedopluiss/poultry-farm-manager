@@ -45,24 +45,21 @@ public class GetProductVariantsByProductIdQueryTests(TestsFixture fixture) : ICl
                 ProductId = product1.Id,
                 Name = "25kg Bag",
                 UnitOfMeasure = UnitOfMeasure.Kilogram,
-                Stock = 50m,
-                Quantity = 25
+                Stock = 50m
             },
             new ProductVariant
             {
                 ProductId = product1.Id,
                 Name = "50kg Bag",
                 UnitOfMeasure = UnitOfMeasure.Kilogram,
-                Stock = 30m,
-                Quantity = 50
+                Stock = 30m
             },
             new ProductVariant
             {
                 ProductId = product2.Id,
                 Name = "1L Bottle",
                 UnitOfMeasure = UnitOfMeasure.Liter,
-                Stock = 100m,
-                Quantity = 1
+                Stock = 100m
             }
         };
         dbContext.ProductVariants.AddRange(variants);

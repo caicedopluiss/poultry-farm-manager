@@ -65,7 +65,6 @@ export interface ProductVariant {
     name: string;
     unitOfMeasure: string;
     stock: number;
-    quantity: number;
     description?: string | null;
     product?: Product | null;
 }
@@ -75,7 +74,6 @@ export interface NewProductVariant {
     name: string;
     unitOfMeasure: string;
     stock: number;
-    quantity: number;
     description?: string | null;
     vendorId?: string | null;
     unitPrice?: number | null;
@@ -85,7 +83,6 @@ export interface UpdateProductVariant {
     name?: string | null;
     unitOfMeasure?: string | null;
     stock?: number | null;
-    quantity?: number | null;
     description?: string | null;
 }
 

@@ -108,7 +108,6 @@ const CreateProductVariantForm: React.FC<CreateProductVariantFormProps> = ({ ope
             const variantData: NewProductVariant = {
                 productId: selectedProductId,
                 name: name.trim(),
-                quantity: 1,
                 stock,
                 unitOfMeasure,
                 description: description.trim() || null,

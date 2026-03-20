@@ -267,6 +267,9 @@ namespace PoultryFarmManager.Infrastructure.Migrations
                     b.Property<int?>("Quantity")
                         .HasColumnType("integer");
 
+                    b.Property<Guid?>("SaleOrderId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -297,6 +300,8 @@ namespace PoultryFarmManager.Infrastructure.Migrations
                     b.HasIndex("Date");
 
                     b.HasIndex("ProductVariantId");
+
+                    b.HasIndex("SaleOrderId");
 
                     b.HasIndex("Type");
 
@@ -441,9 +446,6 @@ namespace PoultryFarmManager.Infrastructure.Migrations
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("Quantity")
-                        .HasColumnType("integer");
-
                     b.Property<decimal>("Stock")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
@@ -457,6 +459,71 @@ namespace PoultryFarmManager.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("ProductVariants", (string)null);
+                });
+
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.SaleOrder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BatchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<decimal>("PricePerKg")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BatchId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("Date");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("SaleOrders", (string)null);
+                });
+
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.SaleOrderItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ProcessedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("SaleOrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<byte>("UnitOfMeasure")
+                        .HasColumnType("smallint");
+
+                    b.Property<decimal>("Weight")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SaleOrderId");
+
+                    b.ToTable("SaleOrderItems", (string)null);
                 });
 
             modelBuilder.Entity("PoultryFarmManager.Core.Models.BatchActivities.MortalityRegistrationBatchActivity", b =>
@@ -533,6 +600,11 @@ namespace PoultryFarmManager.Infrastructure.Migrations
                         .HasForeignKey("ProductVariantId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("PoultryFarmManager.Core.Models.SaleOrder", "SaleOrder")
+                        .WithMany("Payments")
+                        .HasForeignKey("SaleOrderId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("PoultryFarmManager.Core.Models.Finance.Vendor", "Vendor")
                         .WithMany()
                         .HasForeignKey("VendorId")
@@ -545,6 +617,8 @@ namespace PoultryFarmManager.Infrastructure.Migrations
                     b.Navigation("Customer");
 
                     b.Navigation("ProductVariant");
+
+                    b.Navigation("SaleOrder");
 
                     b.Navigation("Vendor");
                 });
@@ -582,6 +656,36 @@ namespace PoultryFarmManager.Infrastructure.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.SaleOrder", b =>
+                {
+                    b.HasOne("PoultryFarmManager.Core.Models.Batch", "Batch")
+                        .WithMany()
+                        .HasForeignKey("BatchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PoultryFarmManager.Core.Models.Finance.Person", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Batch");
+
+                    b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.SaleOrderItem", b =>
+                {
+                    b.HasOne("PoultryFarmManager.Core.Models.SaleOrder", "SaleOrder")
+                        .WithMany("Items")
+                        .HasForeignKey("SaleOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SaleOrder");
+                });
+
             modelBuilder.Entity("PoultryFarmManager.Core.Models.Inventory.Asset", b =>
                 {
                     b.Navigation("States");
@@ -590,6 +694,13 @@ namespace PoultryFarmManager.Infrastructure.Migrations
             modelBuilder.Entity("PoultryFarmManager.Core.Models.Inventory.Product", b =>
                 {
                     b.Navigation("Variants");
+                });
+
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.SaleOrder", b =>
+                {
+                    b.Navigation("Items");
+
+                    b.Navigation("Payments");
                 });
 #pragma warning restore 612, 618
         }

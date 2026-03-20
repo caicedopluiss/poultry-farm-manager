@@ -14,7 +14,8 @@ public class UnitOfWork(
     IProductVariantsRepository productVariantsRepository,
     ITransactionsRepository transactionsRepository,
     IVendorsRepository vendorsRepository,
-    IPersonsRepository personsRepository) : IUnitOfWork
+    IPersonsRepository personsRepository,
+    ISaleOrdersRepository saleOrdersRepository) : IUnitOfWork
 {
     public IBatchesRepository Batches => batchRepository;
     public IBatchActivitiesRepository BatchActivities => batchActivitiesRepository;
@@ -24,6 +25,7 @@ public class UnitOfWork(
     public ITransactionsRepository Transactions => transactionsRepository;
     public IVendorsRepository Vendors => vendorsRepository;
     public IPersonsRepository Persons => personsRepository;
+    public ISaleOrdersRepository SaleOrders => saleOrdersRepository;
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

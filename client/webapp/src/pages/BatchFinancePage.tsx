@@ -18,14 +18,21 @@ import {
     ArrowBack as BackIcon,
     TrendingUp as IncomeIcon,
     TrendingDown as ExpenseIcon,
+    AccountBalance as CollectedIcon,
+    HourglassEmpty as PendingIcon,
     Add as AddIcon,
 } from "@mui/icons-material";
 import TransactionsTable from "@/components/TransactionsTable";
 import CreateTransactionModal from "@/components/CreateTransactionModal";
+import SaleOrdersList from "@/components/SaleOrdersList";
+import CreateSaleOrderModal from "@/components/CreateSaleOrderModal";
+import AddSaleOrderPaymentModal from "@/components/AddSaleOrderPaymentModal";
 import useBatches from "@/hooks/useBatches";
 import useTransactions from "@/hooks/useTransactions";
+import useSaleOrders from "@/hooks/useSaleOrders";
 import type { Batch } from "@/types/batch";
 import type { Transaction } from "@/types/transaction";
+import type { SaleOrder } from "@/types/saleOrder";
 
 export default function BatchFinancePage() {
     const { id } = useParams<{ id: string }>();
@@ -33,16 +40,20 @@ export default function BatchFinancePage() {
 
     const [batch, setBatch] = useState<Batch | null>(null);
     const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [saleOrders, setSaleOrders] = useState<SaleOrder[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [currentTab, setCurrentTab] = useState(0);
-    const [createModalOpen, setCreateModalOpen] = useState(false);
-    const [transactionType, setTransactionType] = useState<"Income" | "Expense">("Expense");
+
+    // Modals
+    const [createExpenseOpen, setCreateExpenseOpen] = useState(false);
+    const [createSaleOrderOpen, setCreateSaleOrderOpen] = useState(false);
+    const [addPaymentOrder, setAddPaymentOrder] = useState<SaleOrder | null>(null);
 
     const { fetchBatchById } = useBatches();
     const { fetchBatchTransactions } = useTransactions();
+    const { fetchBatchSaleOrders, cancelOrder } = useSaleOrders();
 
-    // Load batch and transactions
     const loadData = useCallback(async () => {
         if (!id) {
             setError("No batch ID provided");
@@ -59,15 +70,19 @@ export default function BatchFinancePage() {
                 return;
             }
 
-            const transactionsData = await fetchBatchTransactions(id);
+            const [transactionsData, saleOrdersData] = await Promise.all([
+                fetchBatchTransactions(id),
+                fetchBatchSaleOrders(id),
+            ]);
             setTransactions(transactionsData);
+            setSaleOrders(saleOrdersData);
         } catch (err) {
             setError("Failed to load batch finance data");
             console.error("Error loading batch finance:", err);
         } finally {
             setIsLoading(false);
         }
-    }, [id, fetchBatchById, fetchBatchTransactions]);
+    }, [id, fetchBatchById, fetchBatchTransactions, fetchBatchSaleOrders]);
 
     useEffect(() => {
         loadData();
@@ -77,24 +92,30 @@ export default function BatchFinancePage() {
         setCurrentTab(newValue);
     };
 
-    const handleOpenCreateModal = (type: "Income" | "Expense") => {
-        setTransactionType(type);
-        setCreateModalOpen(true);
-    };
+    const handleCancelOrder = useCallback(
+        async (order: SaleOrder) => {
+            try {
+                await cancelOrder(order.id);
+                await loadData();
+            } catch {
+                setError("Failed to cancel sale order");
+            }
+        },
+        [cancelOrder, loadData],
+    );
 
-    const handleTransactionCreated = () => {
-        setCreateModalOpen(false);
-        loadData();
-    };
-
-    // Filter transactions by type
-    const incomeTransactions = transactions.filter((t) => t.type === "Income");
     const expenseTransactions = transactions.filter((t) => t.type === "Expense");
 
-    // Calculate totals
-    const totalIncome = incomeTransactions.reduce((sum, t) => sum + t.transactionAmount, 0);
+    // Totals
+    const totalSalesValue = saleOrders
+        .filter((o) => o.status !== "Cancelled")
+        .reduce((sum, o) => sum + o.totalAmount, 0);
+    const totalCollected = saleOrders.reduce((sum, o) => sum + o.totalPaid, 0);
+    const totalPending = saleOrders
+        .filter((o) => o.status !== "Cancelled")
+        .reduce((sum, o) => sum + o.pendingAmount, 0);
     const totalExpense = expenseTransactions.reduce((sum, t) => sum + t.transactionAmount, 0);
-    const netProfit = totalIncome - totalExpense;
+    const net = totalCollected - totalExpense;
 
     // Loading state
     if (isLoading) {
@@ -147,68 +168,107 @@ export default function BatchFinancePage() {
             </Typography>
 
             {/* Summary Cards */}
-            <Grid container spacing={3} sx={{ mb: 4 }}>
-                <Grid size={{ xs: 12, md: 4 }}>
-                    <Card sx={{ bgcolor: "success.50", borderLeft: 6, borderColor: "success.main" }}>
-                        <CardContent>
-                            <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                                <IncomeIcon sx={{ mr: 1, color: "success.main" }} />
-                                <Typography variant="h6" color="success.dark">
-                                    Total Income
+            <Grid container spacing={2} sx={{ mb: 4 }}>
+                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
+                    <Card sx={{ bgcolor: "success.50", borderLeft: 4, borderColor: "success.main", height: "100%" }}>
+                        <CardContent sx={{ py: 1.5, "&:last-child": { pb: 1.5 } }}>
+                            <Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+                                <IncomeIcon sx={{ mr: 0.75, color: "success.main", fontSize: 18 }} />
+                                <Typography variant="body2" color="success.dark" sx={{ fontWeight: 600 }}>
+                                    Total Sales Value
                                 </Typography>
                             </Box>
-                            <Typography variant="h4" sx={{ fontWeight: "bold", color: "success.dark" }}>
-                                ${totalIncome.toFixed(2)}
+                            <Typography variant="h5" sx={{ fontWeight: "bold", color: "success.dark", mb: 0.25 }}>
+                                ${totalSalesValue.toFixed(2)}
                             </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                {incomeTransactions.length} transaction(s)
+                            <Typography variant="caption" color="text.secondary">
+                                {saleOrders.filter((o) => o.status !== "Cancelled").length} active order(s)
                             </Typography>
                         </CardContent>
                     </Card>
                 </Grid>
 
-                <Grid size={{ xs: 12, md: 4 }}>
-                    <Card sx={{ bgcolor: "error.50", borderLeft: 6, borderColor: "error.main" }}>
-                        <CardContent>
-                            <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                                <ExpenseIcon sx={{ mr: 1, color: "error.main" }} />
-                                <Typography variant="h6" color="error.dark">
-                                    Total Expense
+                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
+                    <Card sx={{ bgcolor: "primary.50", borderLeft: 4, borderColor: "primary.main", height: "100%" }}>
+                        <CardContent sx={{ py: 1.5, "&:last-child": { pb: 1.5 } }}>
+                            <Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+                                <CollectedIcon sx={{ mr: 0.75, color: "primary.main", fontSize: 18 }} />
+                                <Typography variant="body2" color="primary.dark" sx={{ fontWeight: 600 }}>
+                                    Total Collected
                                 </Typography>
                             </Box>
-                            <Typography variant="h4" sx={{ fontWeight: "bold", color: "error.dark" }}>
+                            <Typography variant="h5" sx={{ fontWeight: "bold", color: "primary.dark", mb: 0.25 }}>
+                                ${totalCollected.toFixed(2)}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                                Payments received
+                            </Typography>
+                        </CardContent>
+                    </Card>
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
+                    <Card sx={{ bgcolor: "warning.50", borderLeft: 4, borderColor: "warning.main", height: "100%" }}>
+                        <CardContent sx={{ py: 1.5, "&:last-child": { pb: 1.5 } }}>
+                            <Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+                                <PendingIcon sx={{ mr: 0.75, color: "warning.main", fontSize: 18 }} />
+                                <Typography variant="body2" color="warning.dark" sx={{ fontWeight: 600 }}>
+                                    Total Pending
+                                </Typography>
+                            </Box>
+                            <Typography variant="h5" sx={{ fontWeight: "bold", color: "warning.dark", mb: 0.25 }}>
+                                ${totalPending.toFixed(2)}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                                Outstanding balance
+                            </Typography>
+                        </CardContent>
+                    </Card>
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
+                    <Card sx={{ bgcolor: "error.50", borderLeft: 4, borderColor: "error.main", height: "100%" }}>
+                        <CardContent sx={{ py: 1.5, "&:last-child": { pb: 1.5 } }}>
+                            <Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+                                <ExpenseIcon sx={{ mr: 0.75, color: "error.main", fontSize: 18 }} />
+                                <Typography variant="body2" color="error.dark" sx={{ fontWeight: 600 }}>
+                                    Total Expenses
+                                </Typography>
+                            </Box>
+                            <Typography variant="h5" sx={{ fontWeight: "bold", color: "error.dark", mb: 0.25 }}>
                                 ${totalExpense.toFixed(2)}
                             </Typography>
-                            <Typography variant="body2" color="text.secondary">
+                            <Typography variant="caption" color="text.secondary">
                                 {expenseTransactions.length} transaction(s)
                             </Typography>
                         </CardContent>
                     </Card>
                 </Grid>
 
-                <Grid size={{ xs: 12, md: 4 }}>
+                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
                     <Card
                         sx={{
-                            bgcolor: netProfit >= 0 ? "primary.50" : "warning.50",
-                            borderLeft: 6,
-                            borderColor: netProfit >= 0 ? "primary.main" : "warning.main",
+                            bgcolor: net >= 0 ? "primary.50" : "warning.50",
+                            borderLeft: 4,
+                            borderColor: net >= 0 ? "primary.main" : "warning.main",
+                            height: "100%",
                         }}
                     >
-                        <CardContent>
+                        <CardContent sx={{ py: 1.5, "&:last-child": { pb: 1.5 } }}>
                             <Typography
-                                variant="h6"
-                                sx={{ mb: 1, color: netProfit >= 0 ? "primary.dark" : "warning.dark" }}
+                                variant="body2"
+                                sx={{ mb: 0.5, fontWeight: 600, color: net >= 0 ? "primary.dark" : "warning.dark" }}
                             >
                                 Net Profit/Loss
                             </Typography>
                             <Typography
-                                variant="h4"
-                                sx={{ fontWeight: "bold", color: netProfit >= 0 ? "primary.dark" : "warning.dark" }}
+                                variant="h5"
+                                sx={{ fontWeight: "bold", color: net >= 0 ? "primary.dark" : "warning.dark", mb: 0.25 }}
                             >
-                                ${netProfit.toFixed(2)}
+                                ${net.toFixed(2)}
                             </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                {transactions.length} total transaction(s)
+                            <Typography variant="caption" color="text.secondary">
+                                Collected minus expenses
                             </Typography>
                         </CardContent>
                     </Card>
@@ -228,61 +288,40 @@ export default function BatchFinancePage() {
                     }}
                 >
                     <Tabs value={currentTab} onChange={handleTabChange}>
-                        <Tab label={`All Transactions (${transactions.length})`} />
-                        <Tab label={`Income (${incomeTransactions.length})`} />
+                        <Tab label={`Sale Orders (${saleOrders.length})`} />
                         <Tab label={`Expenses (${expenseTransactions.length})`} />
                     </Tabs>
                 </Box>
 
-                {/* All Transactions */}
+                {/* Sale Orders Tab */}
                 {currentTab === 0 && (
                     <Box sx={{ p: 3 }}>
-                        <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+                        <Box sx={{ mb: 3 }}>
                             <Button
                                 variant="contained"
                                 color="success"
                                 startIcon={<AddIcon />}
-                                onClick={() => handleOpenCreateModal("Income")}
+                                onClick={() => setCreateSaleOrderOpen(true)}
                             >
-                                Add Income
-                            </Button>
-                            <Button
-                                variant="contained"
-                                color="error"
-                                startIcon={<AddIcon />}
-                                onClick={() => handleOpenCreateModal("Expense")}
-                            >
-                                Add Expense
+                                New Sale Order
                             </Button>
                         </Box>
-                        <TransactionsTable transactions={transactions} />
-                    </Box>
-                )}
-
-                {/* Income Tab */}
-                {currentTab === 1 && (
-                    <Box sx={{ p: 3 }}>
-                        <Button
-                            variant="contained"
-                            color="success"
-                            startIcon={<AddIcon />}
-                            onClick={() => handleOpenCreateModal("Income")}
-                            sx={{ mb: 3 }}
-                        >
-                            Add Income
-                        </Button>
-                        <TransactionsTable transactions={incomeTransactions} />
+                        <SaleOrdersList
+                            saleOrders={saleOrders}
+                            onAddPayment={(order) => setAddPaymentOrder(order)}
+                            onCancel={handleCancelOrder}
+                        />
                     </Box>
                 )}
 
                 {/* Expense Tab */}
-                {currentTab === 2 && (
+                {currentTab === 1 && (
                     <Box sx={{ p: 3 }}>
                         <Button
                             variant="contained"
                             color="error"
                             startIcon={<AddIcon />}
-                            onClick={() => handleOpenCreateModal("Expense")}
+                            onClick={() => setCreateExpenseOpen(true)}
                             sx={{ mb: 3 }}
                         >
                             Add Expense
@@ -292,13 +331,36 @@ export default function BatchFinancePage() {
                 )}
             </Paper>
 
-            {/* Create Transaction Modal */}
-            <CreateTransactionModal
-                open={createModalOpen}
-                onClose={() => setCreateModalOpen(false)}
-                onSuccess={handleTransactionCreated}
+            {/* Modals */}
+            <CreateSaleOrderModal
+                open={createSaleOrderOpen}
+                onClose={() => setCreateSaleOrderOpen(false)}
+                onSuccess={() => {
+                    setCreateSaleOrderOpen(false);
+                    loadData();
+                }}
                 batchId={id!}
-                transactionType={transactionType}
+            />
+
+            <AddSaleOrderPaymentModal
+                open={addPaymentOrder !== null}
+                onClose={() => setAddPaymentOrder(null)}
+                onSuccess={() => {
+                    setAddPaymentOrder(null);
+                    loadData();
+                }}
+                saleOrder={addPaymentOrder}
+            />
+
+            <CreateTransactionModal
+                open={createExpenseOpen}
+                onClose={() => setCreateExpenseOpen(false)}
+                onSuccess={() => {
+                    setCreateExpenseOpen(false);
+                    loadData();
+                }}
+                batchId={id!}
+                transactionType="Expense"
             />
         </Container>
     );

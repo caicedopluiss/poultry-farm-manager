@@ -1,5 +1,6 @@
 using System;
 using Microsoft.EntityFrameworkCore;
+using PoultryFarmManager.Core.Enums;
 using PoultryFarmManager.Core.Models;
 using PoultryFarmManager.Core.Models.BatchActivities;
 using PoultryFarmManager.Core.Models.Finance;
@@ -21,6 +22,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Person> Persons { get; set; }
     public DbSet<Vendor> Vendors { get; set; }
     public DbSet<Transaction> Transactions { get; set; }
+    public DbSet<SaleOrder> SaleOrders { get; set; }
+    public DbSet<SaleOrderItem> SaleOrderItems { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -181,7 +184,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.HasIndex(e => new { e.ProductId, e.Name }).IsUnique();
             entity.Property(e => e.UnitOfMeasure).IsRequired();
             entity.Property(e => e.Stock).IsRequired().HasPrecision(18, 2);
-            entity.Property(e => e.Quantity).IsRequired();
             entity.Property(e => e.Description).HasMaxLength(500);
 
             entity.HasOne(e => e.Product)
@@ -258,6 +260,59 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 .WithMany()
                 .HasForeignKey(e => e.CustomerId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.SaleOrder)
+                .WithMany(x => x.Payments)
+                .HasForeignKey(e => e.SaleOrderId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<SaleOrder>(entity =>
+        {
+            entity.ToTable(nameof(SaleOrders));
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).IsRequired().ValueGeneratedOnAdd();
+            entity.Property(e => e.BatchId).IsRequired();
+            entity.HasIndex(e => e.BatchId);
+            entity.Property(e => e.CustomerId).IsRequired();
+            entity.HasIndex(e => e.CustomerId);
+            entity.Property(e => e.Date).IsRequired();
+            entity.HasIndex(e => e.Date);
+            entity.Property(e => e.Status).IsRequired();
+            entity.HasIndex(e => e.Status);
+            entity.Property(e => e.PricePerKg).IsRequired().HasPrecision(18, 2);
+            entity.Property(e => e.Notes).HasMaxLength(500);
+
+            entity.Ignore(e => e.TotalAmount);
+            entity.Ignore(e => e.TotalPaid);
+            entity.Ignore(e => e.PendingAmount);
+
+            entity.HasOne(e => e.Batch)
+                .WithMany()
+                .HasForeignKey(e => e.BatchId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Customer)
+                .WithMany()
+                .HasForeignKey(e => e.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<SaleOrderItem>(entity =>
+        {
+            entity.ToTable(nameof(SaleOrderItems));
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).IsRequired().ValueGeneratedOnAdd();
+            entity.Property(e => e.SaleOrderId).IsRequired();
+            entity.HasIndex(e => e.SaleOrderId);
+            entity.Property(e => e.Weight).IsRequired().HasPrecision(18, 2);
+            entity.Property(e => e.UnitOfMeasure).IsRequired();
+            entity.Property(e => e.ProcessedDate).IsRequired();
+
+            entity.HasOne(e => e.SaleOrder)
+                .WithMany(x => x.Items)
+                .HasForeignKey(e => e.SaleOrderId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

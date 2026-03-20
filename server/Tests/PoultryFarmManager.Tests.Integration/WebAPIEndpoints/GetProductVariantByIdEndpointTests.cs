@@ -37,7 +37,6 @@ public class GetProductVariantByIdEndpointTests(TestsFixture fixture) : IClassFi
             Name = "25kg Bag",
             UnitOfMeasure = UnitOfMeasure.Kilogram,
             Stock = 100m,
-            Quantity = 25,
             Description = "25 kilogram bag"
         };
         dbContext.ProductVariants.Add(variant);

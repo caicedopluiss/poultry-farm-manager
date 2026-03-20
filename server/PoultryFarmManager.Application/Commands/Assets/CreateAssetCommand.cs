@@ -76,7 +76,8 @@ public sealed class CreateAssetCommand
                 errors.Add(("name", "Name cannot exceed 100 characters."));
             }
 
-            if (!string.IsNullOrWhiteSpace(args.NewAsset.Description) && args.NewAsset.Description.Length > 500)
+            // Validate trimmed description length
+            if (!string.IsNullOrWhiteSpace(args.NewAsset.Description) && args.NewAsset.Description.Trim().Length > 500)
             {
                 errors.Add(("description", "Description cannot exceed 500 characters."));
             }
@@ -86,7 +87,8 @@ public sealed class CreateAssetCommand
                 errors.Add(("initialQuantity", "Initial quantity must be greater than zero."));
             }
 
-            if (!string.IsNullOrWhiteSpace(args.NewAsset.Notes) && args.NewAsset.Notes.Length > 500)
+            // Validate trimmed notes length
+            if (!string.IsNullOrWhiteSpace(args.NewAsset.Notes) && args.NewAsset.Notes.Trim().Length > 500)
             {
                 errors.Add(("notes", "Notes cannot exceed 500 characters."));
             }
