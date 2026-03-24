@@ -227,13 +227,12 @@ public class RegisterProductConsumptionCommandTests(TestsFixture fixture) : ICla
         );
         var request = new AppRequest<RegisterProductConsumptionCommand.Args>(new(nonExistentBatchId, consumption));
 
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await handler.HandleAsync(request, CancellationToken.None)
-        );
+        // Act
+        var result = await handler.HandleAsync(request, CancellationToken.None);
 
-        Assert.Contains("not found", exception.Message);
-        Assert.Contains(nonExistentBatchId.ToString(), exception.Message);
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Contains(result.ValidationErrors, e => e.field == "batchId" && e.error.Contains("not found"));
     }
 
     [Fact]

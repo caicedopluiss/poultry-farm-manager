@@ -36,21 +36,17 @@ public class UpdateBatchNameEndpoint : IEndpoint
         [FromBody] UpdateBatchNameRequestBody body,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var request = new AppRequest<UpdateBatchNameCommand.Args>(new(id, body.Name));
-            var result = await mediator.SendAsync<UpdateBatchNameCommand.Args, UpdateBatchNameCommand.Result>(request, cancellationToken);
+        var request = new AppRequest<UpdateBatchNameCommand.Args>(new(id, body.Name));
+        var result = await mediator.SendAsync<UpdateBatchNameCommand.Args, UpdateBatchNameCommand.Result>(request, cancellationToken);
 
-            if (!result.IsSuccess)
-            {
-                return Results.BadRequest(new ErrorResponse(result.Message, result.ValidationErrors));
-            }
-
-            return Results.Ok(new UpdateBatchNameResponseBody(result.Value!.UpdatedBatch));
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
+        if (!result.IsSuccess)
         {
-            return Results.NotFound(new ErrorResponse(404, "Batch not found."));
+            var isNotFound = result.ValidationErrors.Any(e => e.error.Contains("not found", StringComparison.OrdinalIgnoreCase));
+            return isNotFound
+                ? Results.NotFound(new ErrorResponse(result.Message, result.ValidationErrors))
+                : Results.BadRequest(new ErrorResponse(result.Message, result.ValidationErrors));
         }
+
+        return Results.Ok(new UpdateBatchNameResponseBody(result.Value!.UpdatedBatch));
     }
 }

@@ -1,6 +1,8 @@
 export { default as BatchListPage } from "./BatchListPage";
 export { default as BatchDetailPage } from "./BatchDetailPage";
 export { default as BatchFinancePage } from "./BatchFinancePage";
+export { default as FeedingTableListPage } from "./FeedingTableListPage";
+export { default as FeedingTableDetailPage } from "./FeedingTableDetailPage";
 export { default as InventoryPage } from "./InventoryPage";
 export { default as AssetDetailPage } from "./AssetDetailPage";
 export { default as AssetFinancePage } from "./AssetFinancePage";

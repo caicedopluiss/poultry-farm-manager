@@ -126,9 +126,12 @@ public class UpdateBatchNotesCommandTests(TestsFixture fixture) : IClassFixture<
         // Arrange
         var request = new AppRequest<UpdateBatchNotesCommand.Args>(new(Guid.NewGuid(), "Some notes"));
 
-        // Act & Assert
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => handler.HandleAsync(request, CancellationToken.None));
-        Assert.Contains("not found", ex.Message);
+        // Act
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Contains(result.ValidationErrors, e => e.field == "batchId" && e.error.Contains("not found"));
     }
 
     [Fact]

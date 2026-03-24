@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,19 +38,18 @@ public class RegisterMortalityEndpoint : IEndpoint
         CancellationToken cancellationToken = default)
     {
         var request = new AppRequest<RegisterMortalityCommand.Args>(new(id, body.MortalityRegistration));
-        try
-        {
-            var result = await mediator.SendAsync<RegisterMortalityCommand.Args, RegisterMortalityCommand.Result>(request, cancellationToken);
+        var result = await mediator.SendAsync<RegisterMortalityCommand.Args, RegisterMortalityCommand.Result>(request, cancellationToken);
 
-            return !result.IsSuccess ?
-                Results.BadRequest(new ErrorResponse(result.Message, result.ValidationErrors)) :
-                Results.Created(
-                    $"/api/v1/batches/{result.Value!.MortalityRegistration.BatchId}/mortality/{result.Value!.MortalityRegistration.Id}",
-                    new RegisterMortalityResponseBody(result.Value!.MortalityRegistration));
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
+        if (!result.IsSuccess)
         {
-            return Results.NotFound(new ErrorResponse(StatusCodes.Status404NotFound, ex.Message));
+            var isNotFound = result.ValidationErrors.Any(e => e.error.Contains("not found", StringComparison.OrdinalIgnoreCase));
+            return isNotFound
+                ? Results.NotFound(new ErrorResponse(result.Message, result.ValidationErrors))
+                : Results.BadRequest(new ErrorResponse(result.Message, result.ValidationErrors));
         }
+
+        return Results.Created(
+            $"/api/v1/batches/{result.Value!.MortalityRegistration.BatchId}/mortality/{result.Value!.MortalityRegistration.Id}",
+            new RegisterMortalityResponseBody(result.Value!.MortalityRegistration));
     }
 }

@@ -35,21 +35,17 @@ public class UpdateBatchNotesEndpoint : IEndpoint
         [FromBody] UpdateBatchNotesRequestBody body,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var request = new AppRequest<UpdateBatchNotesCommand.Args>(new(id, body.Notes));
-            var result = await mediator.SendAsync<UpdateBatchNotesCommand.Args, UpdateBatchNotesCommand.Result>(request, cancellationToken);
+        var request = new AppRequest<UpdateBatchNotesCommand.Args>(new(id, body.Notes));
+        var result = await mediator.SendAsync<UpdateBatchNotesCommand.Args, UpdateBatchNotesCommand.Result>(request, cancellationToken);
 
-            if (!result.IsSuccess)
-            {
-                return Results.BadRequest(new ErrorResponse(result.Message, result.ValidationErrors));
-            }
-
-            return Results.Ok(new UpdateBatchNotesResponseBody(true));
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
+        if (!result.IsSuccess)
         {
-            return Results.NotFound(new ErrorResponse(404, "Batch not found."));
+            var isNotFound = result.ValidationErrors.Any(e => e.error.Contains("not found", StringComparison.OrdinalIgnoreCase));
+            return isNotFound
+                ? Results.NotFound(new ErrorResponse(result.Message, result.ValidationErrors))
+                : Results.BadRequest(new ErrorResponse(result.Message, result.ValidationErrors));
         }
+
+        return Results.Ok(new UpdateBatchNotesResponseBody(true));
     }
 }

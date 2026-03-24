@@ -247,10 +247,12 @@ public class SwitchBatchStatusCommandTests(TestsFixture fixture) : IClassFixture
         );
         var request = new AppRequest<SwitchBatchStatusCommand.Args>(new(nonExistentBatchId, statusSwitch));
 
-        // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await handler.HandleAsync(request, CancellationToken.None)
-        );
+        // Act
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Contains(result.ValidationErrors, e => e.field == "batchId" && e.error.Contains("not found"));
     }
 
     [Fact]

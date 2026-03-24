@@ -40,6 +40,7 @@ public static class InfrastructureServices
         services.AddScoped<IVendorsRepository, VendorsRepository>();
         services.AddScoped<IPersonsRepository, PersonsRepository>();
         services.AddScoped<ISaleOrdersRepository, SaleOrdersRepository>();
+        services.AddScoped<IFeedingTablesRepository, FeedingTablesRepository>();
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
     }

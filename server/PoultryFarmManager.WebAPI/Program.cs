@@ -17,6 +17,7 @@ using PoultryFarmManager.WebAPI.Endpoints.v1.ProductVariants;
 using PoultryFarmManager.WebAPI.Endpoints.v1.Transactions;
 using PoultryFarmManager.WebAPI.Endpoints.v1.Vendors;
 using PoultryFarmManager.WebAPI.Endpoints.v1.SaleOrders;
+using PoultryFarmManager.WebAPI.Endpoints.v1.FeedingTables;
 
 namespace PoultryFarmManager.WebAPI;
 
@@ -99,6 +100,14 @@ public class Program
         app.MapEndpoint<RegisterWeightMeasurementEndpoint>(apiPrefix);
         app.MapEndpoint<UpdateBatchNameEndpoint>(apiPrefix);
         app.MapEndpoint<UpdateBatchNotesEndpoint>(apiPrefix);
+        app.MapEndpoint<AssignFeedingTableToBatchEndpoint>(apiPrefix);
+        app.MapEndpoint<UpdateBatchDailyFeedingTimesEndpoint>(apiPrefix);
+
+        // FeedingTable endpoints
+        app.MapEndpoint<CreateFeedingTableEndpoint>(apiPrefix);
+        app.MapEndpoint<GetFeedingTablesListEndpoint>(apiPrefix);
+        app.MapEndpoint<GetFeedingTableByIdEndpoint>(apiPrefix);
+        app.MapEndpoint<UpdateFeedingTableEndpoint>(apiPrefix);
 
         // Asset endpoints
         app.MapEndpoint<CreateAssetEndpoint>(apiPrefix);

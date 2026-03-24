@@ -52,9 +52,12 @@ public class UpdateBatchNameCommandTests(TestsFixture fixture) : IClassFixture<T
         // Arrange
         var request = new AppRequest<UpdateBatchNameCommand.Args>(new(Guid.NewGuid(), "New Name"));
 
-        // Act & Assert
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => handler.HandleAsync(request, CancellationToken.None));
-        Assert.Contains("not found", ex.Message);
+        // Act
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Contains(result.ValidationErrors, e => e.field == "batchId" && e.error.Contains("not found"));
     }
 
     [Fact]
