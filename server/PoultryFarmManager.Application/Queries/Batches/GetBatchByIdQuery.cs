@@ -36,7 +36,11 @@ public class GetBatchByIdQuery
                 .OrderBy(a => a.Date)
                 .FirstOrDefault();
 
-            var batchDto = new BatchDto().Map(batch, firstStatusChangeDate: firstStatusSwitch?.Date);
+            var feedingTableDto = batch.FeedingTable is not null
+                ? new FeedingTableDto().Map(batch.FeedingTable)
+                : null;
+
+            var batchDto = new BatchDto().Map(batch, firstStatusChangeDate: firstStatusSwitch?.Date, feedingTable: feedingTableDto);
 
             var activityDtos = activities
                 .Select(activity => activity switch
@@ -63,5 +67,7 @@ public class GetBatchByIdQuery
 
             return Task.FromResult<IEnumerable<(string field, string error)>>(validationErrors);
         }
+
+
     }
 }

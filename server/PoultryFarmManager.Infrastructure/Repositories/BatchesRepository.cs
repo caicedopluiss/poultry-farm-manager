@@ -43,7 +43,10 @@ public sealed class BatchesRepository(AppDbContext context) : IBatchesRepository
 
     public async Task<Batch?> GetByIdAsync(Guid id, bool track = false, CancellationToken cancellationToken = default)
     {
-        var query = context.Batches.AsQueryable();
+        var query = context.Batches
+            .Include(b => b.FeedingTable)
+            .ThenInclude(t => t!.DayEntries)
+            .AsQueryable();
 
         if (!track)
         {

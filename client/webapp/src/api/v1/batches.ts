@@ -128,3 +128,30 @@ export async function updateBatchNotes(batchId: string, notes: string | null): P
     });
     return response;
 }
+
+interface AssignFeedingTableResponse {
+    batch: Batch;
+}
+export async function assignFeedingTableToBatch(
+    batchId: string,
+    feedingTableId: string | null,
+): Promise<AssignFeedingTableResponse> {
+    const response: AssignFeedingTableResponse = await apiClient.patch(`${url}/${batchId}/feeding-table`, {
+        feedingTableId,
+    });
+    return response;
+}
+
+interface UpdateBatchDailyFeedingTimesResponse {
+    batch: Batch;
+}
+export async function updateBatchDailyFeedingTimes(
+    batchId: string,
+    dailyFeedingTimes: number | null,
+): Promise<UpdateBatchDailyFeedingTimesResponse> {
+    const response: UpdateBatchDailyFeedingTimesResponse = await apiClient.patch(
+        `${url}/${batchId}/daily-feeding-times`,
+        { dailyFeedingTimes },
+    );
+    return response;
+}

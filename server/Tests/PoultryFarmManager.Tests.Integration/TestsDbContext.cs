@@ -21,6 +21,10 @@ internal class TestsDbContext(DbContextOptions<AppDbContext> options) : AppDbCon
         await WeightMeasurementActivities.ExecuteDeleteAsync();
         await Batches.ExecuteDeleteAsync();
 
+        // Clear feeding tables
+        await FeedingTableDayEntries.ExecuteDeleteAsync();
+        await FeedingTables.ExecuteDeleteAsync();
+
         // Clear inventory
         // AssetStates cascade delete with Assets, so delete Assets first (cascade deletes AssetStates)
         // ProductVariants reference Products, so delete ProductVariants first

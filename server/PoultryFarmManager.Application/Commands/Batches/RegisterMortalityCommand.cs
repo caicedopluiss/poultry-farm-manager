@@ -66,7 +66,12 @@ public sealed class RegisterMortalityCommand
             else
             {
                 // Verify batch exists. Tracking for potential updates
-                batch = await unitOfWork.Batches.GetByIdAsync(args.BatchId, track: true, cancellationToken) ?? throw new InvalidOperationException($"Batch with ID {args.BatchId} not found.");
+                batch = await unitOfWork.Batches.GetByIdAsync(args.BatchId, track: true, cancellationToken);
+                if (batch is null)
+                {
+                    errors.Add(("batchId", "Batch not found."));
+                    return errors;
+                }
             }
 
             if (args.NewMortalityRegistration.NumberOfDeaths <= 0)

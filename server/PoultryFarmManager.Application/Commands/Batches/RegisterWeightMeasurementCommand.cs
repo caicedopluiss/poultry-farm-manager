@@ -46,7 +46,12 @@ public sealed class RegisterWeightMeasurementCommand
             else
             {
                 // Verify batch exists
-                batch = await unitOfWork.Batches.GetByIdAsync(args.BatchId, track: false, cancellationToken) ?? throw new InvalidOperationException($"Batch with ID {args.BatchId} not found.");
+                batch = await unitOfWork.Batches.GetByIdAsync(args.BatchId, track: false, cancellationToken);
+                if (batch is null)
+                {
+                    errors.Add(("batchId", "Batch not found."));
+                    return errors;
+                }
 
                 // Verify batch status is Active
                 if (batch.Status != BatchStatus.Active)

@@ -38,8 +38,12 @@ public sealed class UpdateBatchNotesCommand
             else
             {
                 // Verify batch exists. Tracking for potential updates
-                batch = await unitOfWork.Batches.GetByIdAsync(args.BatchId, track: true, cancellationToken: cancellationToken) ??
-                    throw new InvalidOperationException($"Batch with ID {args.BatchId} not found.");
+                batch = await unitOfWork.Batches.GetByIdAsync(args.BatchId, track: true, cancellationToken: cancellationToken);
+                if (batch is null)
+                {
+                    errors.Add(("batchId", "Batch not found."));
+                    return errors;
+                }
             }
 
             // Validate trimmed notes length
