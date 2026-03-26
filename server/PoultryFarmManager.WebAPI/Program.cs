@@ -126,7 +126,6 @@ public class Program
 
         // ProductVariant endpoints
         app.MapEndpoint<CreateProductVariantEndpoint>(apiPrefix);
-        app.MapEndpoint<GetAllProductVariantsEndpoint>(apiPrefix);
         app.MapEndpoint<GetProductVariantByIdEndpoint>(apiPrefix);
         app.MapEndpoint<GetProductVariantsByProductIdEndpoint>(apiPrefix);
         app.MapEndpoint<GetProductVariantTransactionsEndpoint>(apiPrefix);

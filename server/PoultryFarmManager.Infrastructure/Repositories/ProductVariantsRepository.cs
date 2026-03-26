@@ -17,16 +17,6 @@ public sealed class ProductVariantsRepository(AppDbContext context) : IProductVa
         return Task.FromResult(createdProductVariant);
     }
 
-    public async Task<IReadOnlyCollection<ProductVariant>> GetAllAsync(CancellationToken cancellationToken = default)
-    {
-        var productVariants = await context.ProductVariants
-            .AsNoTracking()
-            .Include(pv => pv.Product)
-            .OrderBy(pv => pv.Name)
-            .ToListAsync(cancellationToken);
-        return productVariants;
-    }
-
     public async Task<IReadOnlyCollection<ProductVariant>> GetByProductIdAsync(Guid productId, CancellationToken cancellationToken = default)
     {
         var productVariants = await context.ProductVariants

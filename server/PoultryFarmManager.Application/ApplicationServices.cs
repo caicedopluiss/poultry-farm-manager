@@ -104,7 +104,6 @@ public static class ApplicationServices
         services.AddScoped<IAppRequestHandler<GetProductByIdQuery.Args, GetProductByIdQuery.Result>, GetProductByIdQuery.Handler>();
 
         // Product Variants
-        services.AddScoped<IAppRequestHandler<GetAllProductVariantsQuery.Args, GetAllProductVariantsQuery.Result>, GetAllProductVariantsQuery.Handler>();
         services.AddScoped<IAppRequestHandler<GetProductVariantByIdQuery.Args, GetProductVariantByIdQuery.Result>, GetProductVariantByIdQuery.Handler>();
         services.AddScoped<IAppRequestHandler<GetProductVariantsByProductIdQuery.Args, GetProductVariantsByProductIdQuery.Result>, GetProductVariantsByProductIdQuery.Handler>();
         services.AddScoped<IAppRequestHandler<GetProductVariantTransactionsQuery.Args, GetProductVariantTransactionsQuery.Result>, GetProductVariantTransactionsQuery.Handler>();
