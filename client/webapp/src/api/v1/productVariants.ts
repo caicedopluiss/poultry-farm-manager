@@ -5,15 +5,6 @@ import apiClient from "@/api/client";
 
 const url = "v1/product-variants";
 
-interface GetProductVariantsResponse {
-    productVariants: ProductVariant[];
-}
-
-export async function getProductVariants(): Promise<GetProductVariantsResponse> {
-    const response: GetProductVariantsResponse = await apiClient.get(url);
-    return response;
-}
-
 interface GetProductVariantsByProductIdResponse {
     productVariants: ProductVariant[];
 }
