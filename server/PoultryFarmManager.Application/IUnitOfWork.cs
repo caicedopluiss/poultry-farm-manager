@@ -15,6 +15,7 @@ public interface IUnitOfWork
     IVendorsRepository Vendors { get; }
     IPersonsRepository Persons { get; }
     ISaleOrdersRepository SaleOrders { get; }
+    IFeedingTablesRepository FeedingTables { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

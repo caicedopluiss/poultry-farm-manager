@@ -8,7 +8,6 @@ namespace PoultryFarmManager.Application.Repositories;
 
 public interface IProductVariantsRepository
 {
-    Task<IReadOnlyCollection<ProductVariant>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<IReadOnlyCollection<ProductVariant>> GetByProductIdAsync(Guid productId, CancellationToken cancellationToken = default);
     Task<ProductVariant?> GetByIdAsync(Guid id, bool track = false, CancellationToken cancellationToken = default);
     Task<ProductVariant> CreateAsync(ProductVariant productVariant, CancellationToken cancellationToken = default);

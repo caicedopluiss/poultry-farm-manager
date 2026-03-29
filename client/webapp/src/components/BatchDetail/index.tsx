@@ -16,6 +16,15 @@ import {
     MenuItem,
     ListItemIcon,
     ListItemText,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    FormControl,
+    InputLabel,
+    Select,
+    TextField,
+    Alert,
 } from "@mui/material";
 import {
     ArrowBack as BackIcon,
@@ -35,9 +44,12 @@ import {
     Scale as WeightMeasurementIcon,
     AttachMoney as FinanceIcon,
     Notes as NotesIcon,
+    SetMeal as FeedingTableIcon,
+    LinkOff as UnlinkIcon,
 } from "@mui/icons-material";
 import moment from "moment";
 import type { Batch } from "@/types/batch";
+import type { FeedingTable } from "@/types/feedingTable";
 import type {
     BatchActivity,
     StatusSwitch,
@@ -49,6 +61,8 @@ import type {
 import RegisterActivityDialog from "@/components/RegisterActivityDialog";
 import EditBatchNameDialog from "@/components/EditBatchNameDialog";
 import EditBatchNotesDialog from "@/components/EditBatchNotesDialog";
+import { getFeedingTables } from "@/api/v1/feedingTables";
+import { assignFeedingTableToBatch, updateBatchDailyFeedingTimes } from "@/api/v1/batches";
 
 interface BatchDetailProps {
     batch: Batch;
@@ -67,6 +81,19 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
     const menuOpen = Boolean(anchorEl);
     const [editNameDialogOpen, setEditNameDialogOpen] = useState(false);
     const [editNotesDialogOpen, setEditNotesDialogOpen] = useState(false);
+
+    // Feeding table assignment state
+    const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+    const [availableFeedingTables, setAvailableFeedingTables] = useState<FeedingTable[]>([]);
+    const [selectedFeedingTableId, setSelectedFeedingTableId] = useState<string>("");
+    const [assigning, setAssigning] = useState(false);
+    const [assignError, setAssignError] = useState<string | null>(null);
+
+    // Daily feeding times edit state
+    const [editFeedingTimesOpen, setEditFeedingTimesOpen] = useState(false);
+    const [editFeedingTimesValue, setEditFeedingTimesValue] = useState<string>("");
+    const [savingFeedingTimes, setSavingFeedingTimes] = useState(false);
+    const [editFeedingTimesError, setEditFeedingTimesError] = useState<string | null>(null);
 
     const calculateDays = (startDate: string, firstStatusChangeDate?: string | null, status?: string): number => {
         // Only continue counting for Active status
@@ -126,6 +153,29 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
     const weeks = calculateWeeks(batch.startDate, batch.firstStatusChangeDate, batch.status);
     const mortalityPercent = calculateMortality(batch.initialPopulation, batch.population);
 
+    const currentDayEntry =
+        batch.feedingTable && batch.feedingTable.dayEntries && batch.feedingTable.dayEntries.length > 0
+            ? (batch.feedingTable.dayEntries.find((e) => e.dayNumber === days) ??
+              [...batch.feedingTable.dayEntries].sort((a, b) => b.dayNumber - a.dayNumber)[0])
+            : null;
+    const totalBatchAmountPerSession =
+        currentDayEntry !== null
+            ? (() => {
+                  const raw = (currentDayEntry.amountPerBird * batch.population) / (batch.dailyFeedingTimes ?? 1);
+                  if (currentDayEntry.unitOfMeasure === "Kilogram") {
+                      return Math.round(raw / 0.05) * 0.05;
+                  }
+                  return Math.round(raw * 1000) / 1000;
+              })()
+            : null;
+
+    const formatTotal = (value: number, unitOfMeasure: string): string => {
+        if (unitOfMeasure === "Kilogram") {
+            return value.toFixed(2);
+        }
+        return String(value);
+    };
+
     const handleOpenActivityMenu = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
     };
@@ -149,6 +199,72 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
         // Refresh the batch data by calling the parent's refresh callback
         if (onRefresh) {
             onRefresh();
+        }
+    };
+
+    const handleOpenAssignDialog = async () => {
+        setAssignError(null);
+        setSelectedFeedingTableId(batch.feedingTable?.id ?? "");
+        try {
+            const { feedingTables } = await getFeedingTables();
+            setAvailableFeedingTables(feedingTables);
+        } catch {
+            setAvailableFeedingTables([]);
+        }
+        setAssignDialogOpen(true);
+    };
+
+    const handleConfirmAssign = async () => {
+        if (!selectedFeedingTableId) return;
+        setAssigning(true);
+        setAssignError(null);
+        try {
+            await assignFeedingTableToBatch(batch.id, selectedFeedingTableId);
+            setAssignDialogOpen(false);
+            if (onRefresh) onRefresh();
+        } catch (err: unknown) {
+            const apiErr = err as { response?: { message?: string } };
+            setAssignError(apiErr?.response?.message || "Failed to assign feeding table.");
+        } finally {
+            setAssigning(false);
+        }
+    };
+
+    const handleUnassignFeedingTable = async () => {
+        setAssigning(true);
+        try {
+            await assignFeedingTableToBatch(batch.id, null);
+            if (onRefresh) onRefresh();
+        } catch {
+            // silently fail — user can retry
+        } finally {
+            setAssigning(false);
+        }
+    };
+
+    const handleOpenEditFeedingTimes = () => {
+        setEditFeedingTimesValue(batch.dailyFeedingTimes !== null ? String(batch.dailyFeedingTimes) : "");
+        setEditFeedingTimesError(null);
+        setEditFeedingTimesOpen(true);
+    };
+
+    const handleSaveFeedingTimes = async () => {
+        const value = editFeedingTimesValue.trim() === "" ? null : parseInt(editFeedingTimesValue, 10);
+        if (value !== null && (isNaN(value) || value < 1)) {
+            setEditFeedingTimesError("Must be a positive integer (or leave empty to clear).");
+            return;
+        }
+        setSavingFeedingTimes(true);
+        setEditFeedingTimesError(null);
+        try {
+            await updateBatchDailyFeedingTimes(batch.id, value);
+            setEditFeedingTimesOpen(false);
+            if (onRefresh) onRefresh();
+        } catch (err: unknown) {
+            const apiErr = err as { response?: { message?: string } };
+            setEditFeedingTimesError(apiErr?.response?.message || "Failed to update daily feeding times.");
+        } finally {
+            setSavingFeedingTimes(false);
         }
     };
 
@@ -496,6 +612,243 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                 </CardContent>
             </Card>
 
+            {/* Feeding Table */}
+            <Card sx={{ mt: 3 }}>
+                <CardContent>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+                        <Typography variant="h6" component="div" fontWeight="bold">
+                            Feeding Table
+                        </Typography>
+                        <Box sx={{ display: "flex", gap: 1 }}>
+                            {batch.feedingTable && (
+                                <>
+                                    <Button
+                                        size="small"
+                                        variant="outlined"
+                                        startIcon={<EditIcon />}
+                                        onClick={() => navigate(`/feeding-tables/${batch.feedingTable!.id}`)}
+                                    >
+                                        Configure
+                                    </Button>
+                                    <Button
+                                        size="small"
+                                        variant="outlined"
+                                        color="error"
+                                        startIcon={<UnlinkIcon />}
+                                        onClick={handleUnassignFeedingTable}
+                                        disabled={assigning}
+                                    >
+                                        Unassign
+                                    </Button>
+                                </>
+                            )}
+                            <Button
+                                size="small"
+                                variant="outlined"
+                                startIcon={<FeedingTableIcon />}
+                                onClick={handleOpenAssignDialog}
+                            >
+                                {batch.feedingTable ? "Change Table" : "Assign Table"}
+                            </Button>
+                        </Box>
+                    </Box>
+                    <Divider sx={{ mb: 2 }} />
+
+                    {/* Daily Feeding Times */}
+                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+                        <Box>
+                            <Typography variant="body2" color="text.secondary">
+                                Daily Feeding Times
+                            </Typography>
+                            <Typography variant="body1" fontWeight="medium">
+                                {batch.dailyFeedingTimes !== null
+                                    ? `${batch.dailyFeedingTimes}x / day`
+                                    : "Not configured"}
+                            </Typography>
+                        </Box>
+                        <Button
+                            size="small"
+                            variant="outlined"
+                            startIcon={<EditIcon />}
+                            onClick={handleOpenEditFeedingTimes}
+                        >
+                            Edit
+                        </Button>
+                    </Box>
+
+                    {!batch.feedingTable ? (
+                        <Typography variant="body2" color="text.secondary" align="center" sx={{ py: 2 }}>
+                            No feeding table assigned to this batch.
+                        </Typography>
+                    ) : (
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                <FeedingTableIcon color="action" />
+                                <Box>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Feeding Table
+                                    </Typography>
+                                    <Typography
+                                        variant="body1"
+                                        fontWeight="medium"
+                                        sx={{
+                                            cursor: "pointer",
+                                            color: "primary.main",
+                                            textDecoration: "underline",
+                                        }}
+                                        onClick={() => navigate(`/feeding-tables/${batch.feedingTable!.id}`)}
+                                    >
+                                        {batch.feedingTable.name}
+                                    </Typography>
+                                </Box>
+                            </Box>
+
+                            {batch.feedingTable && (
+                                <Paper
+                                    variant="outlined"
+                                    sx={{
+                                        p: 2,
+                                        bgcolor: currentDayEntry ? "success.50" : "grey.50",
+                                        borderColor: currentDayEntry ? "success.200" : "grey.300",
+                                    }}
+                                >
+                                    <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                                        Today&apos;s Feeding — Day {days}
+                                    </Typography>
+                                    {currentDayEntry ? (
+                                        <>
+                                            <Box
+                                                sx={{
+                                                    display: "grid",
+                                                    gridTemplateColumns:
+                                                        currentDayEntry.expectedBirdWeight !== null
+                                                            ? "1fr 1fr 1fr"
+                                                            : "1fr 1fr",
+                                                    gap: 2,
+                                                    mt: 1,
+                                                }}
+                                            >
+                                                <Box
+                                                    sx={{
+                                                        p: 1.5,
+                                                        borderRadius: 1,
+                                                        bgcolor: "success.100",
+                                                        border: "1px solid",
+                                                        borderColor: "success.300",
+                                                    }}
+                                                >
+                                                    <Typography
+                                                        variant="caption"
+                                                        color="text.secondary"
+                                                        display="block"
+                                                    >
+                                                        Food Type
+                                                    </Typography>
+                                                    <Typography variant="h6" fontWeight="bold" color="success.dark">
+                                                        {currentDayEntry.foodType}
+                                                    </Typography>
+                                                </Box>
+                                                <Box
+                                                    sx={{
+                                                        p: 1.5,
+                                                        borderRadius: 1,
+                                                        bgcolor: "success.100",
+                                                        border: "1px solid",
+                                                        borderColor: "success.300",
+                                                    }}
+                                                >
+                                                    <Typography
+                                                        variant="caption"
+                                                        color="text.secondary"
+                                                        display="block"
+                                                    >
+                                                        Amount / Bird
+                                                    </Typography>
+                                                    <Typography variant="h6" fontWeight="bold" color="success.dark">
+                                                        {currentDayEntry.amountPerBird}{" "}
+                                                        <Typography
+                                                            component="span"
+                                                            variant="body2"
+                                                            color="text.secondary"
+                                                        >
+                                                            {currentDayEntry.unitOfMeasure}
+                                                        </Typography>
+                                                    </Typography>
+                                                </Box>
+                                                {currentDayEntry.expectedBirdWeight !== null && (
+                                                    <Box
+                                                        sx={{
+                                                            p: 1.5,
+                                                            borderRadius: 1,
+                                                            bgcolor: "grey.100",
+                                                            border: "1px solid",
+                                                            borderColor: "grey.300",
+                                                        }}
+                                                    >
+                                                        <Typography
+                                                            variant="caption"
+                                                            color="text.secondary"
+                                                            display="block"
+                                                        >
+                                                            Exp. Bird Weight
+                                                        </Typography>
+                                                        <Typography variant="h6" fontWeight="bold">
+                                                            {currentDayEntry.expectedBirdWeight}{" "}
+                                                            <Typography
+                                                                component="span"
+                                                                variant="body2"
+                                                                color="text.secondary"
+                                                            >
+                                                                {currentDayEntry.expectedBirdWeightUnitOfMeasure}
+                                                            </Typography>
+                                                        </Typography>
+                                                    </Box>
+                                                )}
+                                            </Box>
+                                            {totalBatchAmountPerSession !== null && (
+                                                <Box
+                                                    sx={{
+                                                        mt: 1.5,
+                                                        pt: 1.5,
+                                                        borderTop: "1px dashed",
+                                                        borderColor: "success.300",
+                                                    }}
+                                                >
+                                                    <Typography variant="body2" color="text.secondary">
+                                                        Total per Feeding Session
+                                                    </Typography>
+                                                    <Typography variant="h6" fontWeight="bold" color="success.main">
+                                                        {formatTotal(
+                                                            totalBatchAmountPerSession,
+                                                            currentDayEntry.unitOfMeasure,
+                                                        )}{" "}
+                                                        {currentDayEntry.unitOfMeasure}
+                                                    </Typography>
+                                                </Box>
+                                            )}
+                                            {currentDayEntry.dayNumber < days && (
+                                                <Typography
+                                                    variant="caption"
+                                                    color="text.secondary"
+                                                    sx={{ mt: 1, display: "block" }}
+                                                >
+                                                    Showing last configured day (Day {currentDayEntry.dayNumber}) —
+                                                    current day exceeds feeding table.
+                                                </Typography>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <Typography variant="body2" color="text.secondary">
+                                            No feeding entries configured in this table.
+                                        </Typography>
+                                    )}
+                                </Paper>
+                            )}
+                        </Box>
+                    )}
+                </CardContent>
+            </Card>
+
             {/* Activities Section */}
             <Card sx={{ mt: 3 }}>
                 <CardContent>
@@ -690,6 +1043,80 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                 currentNotes={batch.notes ?? null}
                 onSuccess={handleActivitySuccess}
             />
+
+            {/* Edit Daily Feeding Times Dialog */}
+            <Dialog open={editFeedingTimesOpen} onClose={() => setEditFeedingTimesOpen(false)} maxWidth="xs" fullWidth>
+                <DialogTitle>Daily Feeding Times</DialogTitle>
+                <DialogContent>
+                    <Box sx={{ pt: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+                        {editFeedingTimesError && <Alert severity="error">{editFeedingTimesError}</Alert>}
+                        <TextField
+                            label="Times per day"
+                            type="number"
+                            value={editFeedingTimesValue}
+                            onChange={(e) => setEditFeedingTimesValue(e.target.value)}
+                            placeholder="Leave empty to clear"
+                            inputProps={{ min: 1, step: 1 }}
+                            helperText="How many times per day this batch is fed"
+                        />
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setEditFeedingTimesOpen(false)}>Cancel</Button>
+                    <Button variant="contained" onClick={handleSaveFeedingTimes} disabled={savingFeedingTimes}>
+                        {savingFeedingTimes ? "Saving..." : "Save"}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Assign Feeding Table Dialog */}
+            <Dialog open={assignDialogOpen} onClose={() => setAssignDialogOpen(false)} maxWidth="sm" fullWidth>
+                <DialogTitle>Assign Feeding Table</DialogTitle>
+                <DialogContent>
+                    <Box sx={{ pt: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+                        {assignError && <Alert severity="error">{assignError}</Alert>}
+                        <FormControl fullWidth>
+                            <InputLabel>Feeding Table</InputLabel>
+                            <Select
+                                value={selectedFeedingTableId}
+                                label="Feeding Table"
+                                onChange={(e) => setSelectedFeedingTableId(e.target.value)}
+                            >
+                                {availableFeedingTables.length === 0 && (
+                                    <MenuItem disabled value="">
+                                        No feeding tables available
+                                    </MenuItem>
+                                )}
+                                {availableFeedingTables.map((ft) => (
+                                    <MenuItem key={ft.id} value={ft.id}>
+                                        {ft.name}
+                                        {ft.description ? ` — ${ft.description}` : ""}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        <Button
+                            size="small"
+                            variant="text"
+                            startIcon={<AddIcon />}
+                            onClick={() => navigate("/feeding-tables")}
+                            sx={{ alignSelf: "flex-start" }}
+                        >
+                            Create a new feeding table
+                        </Button>
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setAssignDialogOpen(false)}>Cancel</Button>
+                    <Button
+                        variant="contained"
+                        onClick={handleConfirmAssign}
+                        disabled={assigning || !selectedFeedingTableId}
+                    >
+                        {assigning ? "Assigning..." : "Assign"}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Container>
     );
 }

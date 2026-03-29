@@ -24,6 +24,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Transaction> Transactions { get; set; }
     public DbSet<SaleOrder> SaleOrders { get; set; }
     public DbSet<SaleOrderItem> SaleOrderItems { get; set; }
+    public DbSet<FeedingTable> FeedingTables { get; set; }
+    public DbSet<FeedingTableDayEntry> FeedingTableDayEntries { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -45,6 +47,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(e => e.InitialPopulation);
             entity.Property(e => e.Status);
             entity.Property(e => e.Notes).HasMaxLength(500);
+            entity.Property(e => e.DailyFeedingTimes);
         });
 
         modelBuilder.Entity<MortalityRegistrationBatchActivity>(entity =>
@@ -313,6 +316,45 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 .WithMany(x => x.Items)
                 .HasForeignKey(e => e.SaleOrderId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<FeedingTable>(entity =>
+        {
+            entity.ToTable(nameof(FeedingTables));
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).IsRequired().ValueGeneratedOnAdd();
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.HasIndex(e => e.Name).IsUnique();
+            entity.Property(e => e.Description).HasMaxLength(500);
+        });
+
+        modelBuilder.Entity<FeedingTableDayEntry>(entity =>
+        {
+            entity.ToTable(nameof(FeedingTableDayEntries));
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).IsRequired().ValueGeneratedOnAdd();
+            entity.Property(e => e.FeedingTableId).IsRequired();
+            entity.HasIndex(e => e.FeedingTableId);
+            entity.HasIndex(e => new { e.FeedingTableId, e.DayNumber }).IsUnique();
+            entity.Property(e => e.DayNumber).IsRequired();
+            entity.Property(e => e.FoodType).IsRequired();
+            entity.Property(e => e.AmountPerBird).IsRequired().HasPrecision(18, 2);
+            entity.Property(e => e.UnitOfMeasure).IsRequired();
+            entity.Property(e => e.ExpectedBirdWeight).HasPrecision(18, 2);
+            entity.Property(e => e.ExpectedBirdWeightUnitOfMeasure);
+
+            entity.HasOne(e => e.FeedingTable)
+                .WithMany(x => x.DayEntries)
+                .HasForeignKey(e => e.FeedingTableId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Batch>(entity =>
+        {
+            entity.HasOne(e => e.FeedingTable)
+                .WithMany()
+                .HasForeignKey(e => e.FeedingTableId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

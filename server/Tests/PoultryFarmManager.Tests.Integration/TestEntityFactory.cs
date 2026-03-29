@@ -202,6 +202,32 @@ internal static class TestEntityFactory
 
         return saleOrder;
     }
+
+    /// <summary>
+    /// Creates and persists a FeedingTable with the given number of day entries.
+    /// </summary>
+    internal static async Task<FeedingTable> CreateFeedingTableAsync(
+        this TestsDbContext context,
+        string? name = null,
+        int dayCount = 3)
+    {
+        var feedingTable = new FeedingTable
+        {
+            Name = name ?? $"FeedingTable_{Guid.NewGuid().ToString()[..8]}",
+            Description = "Test feeding table",
+            DayEntries = Enumerable.Range(1, dayCount).Select(day => new FeedingTableDayEntry
+            {
+                DayNumber = day,
+                FoodType = FoodType.PreInicio,
+                AmountPerBird = 100m * day,
+                UnitOfMeasure = UnitOfMeasure.Gram
+            }).ToList()
+        };
+        context.FeedingTables.Add(feedingTable);
+        await context.SaveChangesAsync();
+
+        return feedingTable;
+    }
 }
 
 internal class BatchFactory : IEntityFactory<Batch>

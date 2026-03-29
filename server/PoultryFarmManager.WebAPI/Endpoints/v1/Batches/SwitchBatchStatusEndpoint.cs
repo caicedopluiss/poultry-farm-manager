@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,19 +38,18 @@ public class SwitchBatchStatusEndpoint : IEndpoint
         CancellationToken cancellationToken = default)
     {
         var request = new AppRequest<SwitchBatchStatusCommand.Args>(new(id, body.StatusSwitch));
-        try
-        {
-            var result = await mediator.SendAsync<SwitchBatchStatusCommand.Args, SwitchBatchStatusCommand.Result>(request, cancellationToken);
+        var result = await mediator.SendAsync<SwitchBatchStatusCommand.Args, SwitchBatchStatusCommand.Result>(request, cancellationToken);
 
-            return !result.IsSuccess ?
-                Results.BadRequest(new ErrorResponse(result.Message, result.ValidationErrors)) :
-                Results.Created(
-                    $"/api/v1/batches/{result.Value!.StatusSwitch.BatchId}/status/{result.Value!.StatusSwitch.Id}",
-                    new SwitchStatusResponseBody(result.Value!.StatusSwitch));
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
+        if (!result.IsSuccess)
         {
-            return Results.NotFound(new ErrorResponse(StatusCodes.Status404NotFound, ex.Message));
+            var isNotFound = result.ValidationErrors.Any(e => e.error.Contains("not found", StringComparison.OrdinalIgnoreCase));
+            return isNotFound
+                ? Results.NotFound(new ErrorResponse(result.Message, result.ValidationErrors))
+                : Results.BadRequest(new ErrorResponse(result.Message, result.ValidationErrors));
         }
+
+        return Results.Created(
+            $"/api/v1/batches/{result.Value!.StatusSwitch.BatchId}/status/{result.Value!.StatusSwitch.Id}",
+            new SwitchStatusResponseBody(result.Value!.StatusSwitch));
     }
 }

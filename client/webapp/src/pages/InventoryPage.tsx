@@ -1,17 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Container, Tabs, Tab } from "@mui/material";
-import { Inventory2 as AssetIcon, Category as ProductIcon, ListAlt as VariantIcon } from "@mui/icons-material";
+import { Inventory2 as AssetIcon, Category as ProductIcon } from "@mui/icons-material";
 import AssetList from "@/components/AssetList";
 import ProductList from "@/components/ProductList";
-import ProductVariantsList from "@/components/ProductVariantsList";
 import CreateAssetForm from "@/components/CreateAssetForm";
 import CreateProductForm from "@/components/CreateProductForm";
-import CreateProductVariantForm from "@/components/CreateProductVariantForm";
 import { getAssets, createAsset } from "@/api/v1/assets";
 import { getProducts, createProduct } from "@/api/v1/products";
-import { getProductVariants, createProductVariant } from "@/api/v1/productVariants";
-import type { Asset, Product, ProductVariant, NewAsset, NewProduct, NewProductVariant } from "@/types/inventory";
+import type { Asset, Product, NewAsset, NewProduct } from "@/types/inventory";
 
 export default function InventoryPage() {
     const navigate = useNavigate();
@@ -32,11 +29,6 @@ export default function InventoryPage() {
     const [createProductLoading, setCreateProductLoading] = useState(false);
     const [createProductError, setCreateProductError] = useState<string | null>(null);
 
-    // Product Variants state
-    const [variants, setVariants] = useState<ProductVariant[]>([]);
-    const [variantsLoading, setVariantsLoading] = useState(false);
-    const [createVariantOpen, setCreateVariantOpen] = useState(false);
-
     // Load assets on mount
     useEffect(() => {
         loadAssets();
@@ -46,14 +38,6 @@ export default function InventoryPage() {
     useEffect(() => {
         if (currentTab === 1 && products.length === 0) {
             loadProducts();
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentTab]);
-
-    // Load variants when switching to variants tab
-    useEffect(() => {
-        if (currentTab === 2 && variants.length === 0) {
-            loadVariants();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentTab]);
@@ -79,18 +63,6 @@ export default function InventoryPage() {
             console.error("Failed to load products", error);
         } finally {
             setProductsLoading(false);
-        }
-    };
-
-    const loadVariants = async () => {
-        try {
-            setVariantsLoading(true);
-            const response = await getProductVariants();
-            setVariants(response.productVariants);
-        } catch (error) {
-            console.error("Failed to load product variants", error);
-        } finally {
-            setVariantsLoading(false);
         }
     };
 
@@ -146,21 +118,6 @@ export default function InventoryPage() {
         }
     };
 
-    const handleCreateVariant = () => {
-        setCreateVariantOpen(true);
-    };
-
-    const handleSubmitVariant = async (variantData: NewProductVariant) => {
-        try {
-            await createProductVariant(variantData);
-            setCreateVariantOpen(false);
-            loadVariants(); // Refresh the list
-        } catch (error) {
-            console.error("Failed to create variant:", error);
-            throw error;
-        }
-    };
-
     return (
         <Box sx={{ width: "100%", bgcolor: "background.default", minHeight: "100vh" }}>
             {/* Tabs */}
@@ -189,7 +146,6 @@ export default function InventoryPage() {
                     >
                         <Tab icon={<AssetIcon />} iconPosition="start" label="Assets" />
                         <Tab icon={<ProductIcon />} iconPosition="start" label="Products" />
-                        <Tab icon={<VariantIcon />} iconPosition="start" label="Product Variants" />
                     </Tabs>
                 </Container>
             </Box>
@@ -215,15 +171,6 @@ export default function InventoryPage() {
                 />
             )}
 
-            {currentTab === 2 && (
-                <ProductVariantsList
-                    variants={variants}
-                    loading={variantsLoading}
-                    onRefresh={loadVariants}
-                    onCreate={handleCreateVariant}
-                />
-            )}
-
             {/* Create Asset Form */}
             <CreateAssetForm
                 open={createAssetOpen}
@@ -240,13 +187,6 @@ export default function InventoryPage() {
                 onClose={() => setCreateProductOpen(false)}
                 loading={createProductLoading}
                 error={createProductError}
-            />
-
-            {/* Create Product Variant Form */}
-            <CreateProductVariantForm
-                open={createVariantOpen}
-                onSubmit={handleSubmitVariant}
-                onClose={() => setCreateVariantOpen(false)}
             />
         </Box>
     );

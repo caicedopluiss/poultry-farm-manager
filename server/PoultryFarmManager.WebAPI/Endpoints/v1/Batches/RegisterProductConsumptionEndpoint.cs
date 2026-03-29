@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,19 +38,18 @@ public class RegisterProductConsumptionEndpoint : IEndpoint
         CancellationToken cancellationToken = default)
     {
         var request = new AppRequest<RegisterProductConsumptionCommand.Args>(new(id, body.ProductConsumption));
-        try
-        {
-            var result = await mediator.SendAsync<RegisterProductConsumptionCommand.Args, RegisterProductConsumptionCommand.Result>(request, cancellationToken);
+        var result = await mediator.SendAsync<RegisterProductConsumptionCommand.Args, RegisterProductConsumptionCommand.Result>(request, cancellationToken);
 
-            return !result.IsSuccess ?
-                Results.BadRequest(new ErrorResponse(result.Message, result.ValidationErrors)) :
-                Results.Created(
-                    $"/api/v1/batches/{result.Value!.ProductConsumption.BatchId}/product-consumption/{result.Value!.ProductConsumption.Id}",
-                    new RegisterProductConsumptionResponseBody(result.Value!.ProductConsumption));
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
+        if (!result.IsSuccess)
         {
-            return Results.NotFound(new ErrorResponse(StatusCodes.Status404NotFound, ex.Message));
+            var isNotFound = result.ValidationErrors.Any(e => e.error.Contains("not found", StringComparison.OrdinalIgnoreCase));
+            return isNotFound
+                ? Results.NotFound(new ErrorResponse(result.Message, result.ValidationErrors))
+                : Results.BadRequest(new ErrorResponse(result.Message, result.ValidationErrors));
         }
+
+        return Results.Created(
+            $"/api/v1/batches/{result.Value!.ProductConsumption.BatchId}/product-consumption/{result.Value!.ProductConsumption.Id}",
+            new RegisterProductConsumptionResponseBody(result.Value!.ProductConsumption));
     }
 }

@@ -2,6 +2,7 @@ using System;
 using Microsoft.Extensions.DependencyInjection;
 using PoultryFarmManager.Application.Commands.Assets;
 using PoultryFarmManager.Application.Commands.Batches;
+using PoultryFarmManager.Application.Commands.FeedingTables;
 using PoultryFarmManager.Application.Commands.Persons;
 using PoultryFarmManager.Application.Commands.Products;
 using PoultryFarmManager.Application.Commands.ProductVariants;
@@ -11,6 +12,7 @@ using PoultryFarmManager.Application.Commands.Vendors;
 using PoultryFarmManager.Application.Queries.Transactions;
 using PoultryFarmManager.Application.Queries.Assets;
 using PoultryFarmManager.Application.Queries.Batches;
+using PoultryFarmManager.Application.Queries.FeedingTables;
 using PoultryFarmManager.Application.Queries.Persons;
 using PoultryFarmManager.Application.Queries.Products;
 using PoultryFarmManager.Application.Queries.ProductVariants;
@@ -41,6 +43,12 @@ public static class ApplicationServices
         services.AddScoped<IAppRequestHandler<RegisterWeightMeasurementCommand.Args, RegisterWeightMeasurementCommand.Result>, RegisterWeightMeasurementCommand.Handler>();
         services.AddScoped<IAppRequestHandler<UpdateBatchNameCommand.Args, UpdateBatchNameCommand.Result>, UpdateBatchNameCommand.Handler>();
         services.AddScoped<IAppRequestHandler<UpdateBatchNotesCommand.Args, UpdateBatchNotesCommand.Result>, UpdateBatchNotesCommand.Handler>();
+        services.AddScoped<IAppRequestHandler<AssignFeedingTableToBatchCommand.Args, AssignFeedingTableToBatchCommand.Result>, AssignFeedingTableToBatchCommand.Handler>();
+        services.AddScoped<IAppRequestHandler<UpdateBatchDailyFeedingTimesCommand.Args, UpdateBatchDailyFeedingTimesCommand.Result>, UpdateBatchDailyFeedingTimesCommand.Handler>();
+
+        // FeedingTables
+        services.AddScoped<IAppRequestHandler<CreateFeedingTableCommand.Args, CreateFeedingTableCommand.Result>, CreateFeedingTableCommand.Handler>();
+        services.AddScoped<IAppRequestHandler<UpdateFeedingTableCommand.Args, UpdateFeedingTableCommand.Result>, UpdateFeedingTableCommand.Handler>();
 
         // Assets
         services.AddScoped<IAppRequestHandler<CreateAssetCommand.Args, CreateAssetCommand.Result>, CreateAssetCommand.Handler>();
@@ -78,6 +86,10 @@ public static class ApplicationServices
         services.AddScoped<IAppRequestHandler<GetBatchesListQuery.Args, GetBatchesListQuery.Result>, GetBatchesListQuery.Handler>();
         services.AddScoped<IAppRequestHandler<GetBatchByIdQuery.Args, GetBatchByIdQuery.Result>, GetBatchByIdQuery.Handler>();
 
+        // FeedingTables
+        services.AddScoped<IAppRequestHandler<GetFeedingTablesListQuery.Args, GetFeedingTablesListQuery.Result>, GetFeedingTablesListQuery.Handler>();
+        services.AddScoped<IAppRequestHandler<GetFeedingTableByIdQuery.Args, GetFeedingTableByIdQuery.Result>, GetFeedingTableByIdQuery.Handler>();
+
         // Transactions
         services.AddScoped<IAppRequestHandler<GetBatchTransactionsQuery.Args, GetBatchTransactionsQuery.Result>, GetBatchTransactionsQuery.Handler>();
 
@@ -92,7 +104,6 @@ public static class ApplicationServices
         services.AddScoped<IAppRequestHandler<GetProductByIdQuery.Args, GetProductByIdQuery.Result>, GetProductByIdQuery.Handler>();
 
         // Product Variants
-        services.AddScoped<IAppRequestHandler<GetAllProductVariantsQuery.Args, GetAllProductVariantsQuery.Result>, GetAllProductVariantsQuery.Handler>();
         services.AddScoped<IAppRequestHandler<GetProductVariantByIdQuery.Args, GetProductVariantByIdQuery.Result>, GetProductVariantByIdQuery.Handler>();
         services.AddScoped<IAppRequestHandler<GetProductVariantsByProductIdQuery.Args, GetProductVariantsByProductIdQuery.Result>, GetProductVariantsByProductIdQuery.Handler>();
         services.AddScoped<IAppRequestHandler<GetProductVariantTransactionsQuery.Args, GetProductVariantTransactionsQuery.Result>, GetProductVariantTransactionsQuery.Handler>();

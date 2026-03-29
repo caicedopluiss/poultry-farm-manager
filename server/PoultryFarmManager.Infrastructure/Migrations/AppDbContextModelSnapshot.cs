@@ -32,6 +32,12 @@ namespace PoultryFarmManager.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<int?>("DailyFeedingTimes")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("FeedingTableId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("FemaleCount")
                         .HasColumnType("integer");
 
@@ -64,6 +70,8 @@ namespace PoultryFarmManager.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("FeedingTableId");
 
                     b.HasIndex("Name")
                         .IsUnique();
@@ -204,6 +212,68 @@ namespace PoultryFarmManager.Infrastructure.Migrations
                     b.HasIndex("BatchId");
 
                     b.ToTable("WeightMeasurementActivities", (string)null);
+                });
+
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.FeedingTable", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("FeedingTables", (string)null);
+                });
+
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.FeedingTableDayEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("AmountPerBird")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<int>("DayNumber")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal?>("ExpectedBirdWeight")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<byte?>("ExpectedBirdWeightUnitOfMeasure")
+                        .HasColumnType("smallint");
+
+                    b.Property<Guid>("FeedingTableId")
+                        .HasColumnType("uuid");
+
+                    b.Property<byte>("FoodType")
+                        .HasColumnType("smallint");
+
+                    b.Property<byte>("UnitOfMeasure")
+                        .HasColumnType("smallint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FeedingTableId");
+
+                    b.HasIndex("FeedingTableId", "DayNumber")
+                        .IsUnique();
+
+                    b.ToTable("FeedingTableDayEntries", (string)null);
                 });
 
             modelBuilder.Entity("PoultryFarmManager.Core.Models.Finance.Person", b =>
@@ -526,6 +596,16 @@ namespace PoultryFarmManager.Infrastructure.Migrations
                     b.ToTable("SaleOrderItems", (string)null);
                 });
 
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.Batch", b =>
+                {
+                    b.HasOne("PoultryFarmManager.Core.Models.FeedingTable", "FeedingTable")
+                        .WithMany()
+                        .HasForeignKey("FeedingTableId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("FeedingTable");
+                });
+
             modelBuilder.Entity("PoultryFarmManager.Core.Models.BatchActivities.MortalityRegistrationBatchActivity", b =>
                 {
                     b.HasOne("PoultryFarmManager.Core.Models.Batch", "Batch")
@@ -576,6 +656,17 @@ namespace PoultryFarmManager.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Batch");
+                });
+
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.FeedingTableDayEntry", b =>
+                {
+                    b.HasOne("PoultryFarmManager.Core.Models.FeedingTable", "FeedingTable")
+                        .WithMany("DayEntries")
+                        .HasForeignKey("FeedingTableId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FeedingTable");
                 });
 
             modelBuilder.Entity("PoultryFarmManager.Core.Models.Finance.Transaction", b =>
@@ -684,6 +775,11 @@ namespace PoultryFarmManager.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("SaleOrder");
+                });
+
+            modelBuilder.Entity("PoultryFarmManager.Core.Models.FeedingTable", b =>
+                {
+                    b.Navigation("DayEntries");
                 });
 
             modelBuilder.Entity("PoultryFarmManager.Core.Models.Inventory.Asset", b =>

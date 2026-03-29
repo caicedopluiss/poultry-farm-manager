@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import GroupsIcon from "@mui/icons-material/Groups";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
+import SetMealIcon from "@mui/icons-material/SetMeal";
 import {
     BatchListPage,
     BatchDetailPage,
@@ -18,6 +19,8 @@ import {
     ProductVariantFinancePage,
     InventoryPage,
     FinancePage,
+    FeedingTableListPage,
+    FeedingTableDetailPage,
 } from "@/pages";
 import { BatchesProvider } from "@/contexts/batches";
 
@@ -40,6 +43,11 @@ const NAVIGATION: Navigation = [
         segment: "batches",
         title: "Batches",
         icon: <GroupsIcon />,
+    },
+    {
+        segment: "feeding-tables",
+        title: "Feeding Tables",
+        icon: <SetMealIcon />,
     },
     {
         segment: "inventory",
@@ -82,6 +90,8 @@ function App() {
                         <Route path="/batches" element={<BatchListPage />} />
                         <Route path="/batches/:id" element={<BatchDetailPage />} />
                         <Route path="/batches/:id/finance" element={<BatchFinancePage />} />
+                        <Route path="/feeding-tables" element={<FeedingTableListPage />} />
+                        <Route path="/feeding-tables/:id" element={<FeedingTableDetailPage />} />
                         <Route path="/inventory" element={<InventoryPage />} />
                         <Route path="/inventory/assets/:id" element={<AssetDetailPage />} />
                         <Route path="/assets/:id/finance" element={<AssetFinancePage />} />

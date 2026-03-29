@@ -1,3 +1,5 @@
+import type { FeedingTable } from "@/types/feedingTable";
+
 export interface Batch {
     id: string;
     name: string;
@@ -12,6 +14,8 @@ export interface Batch {
     shed?: string | null; // Optional shed/location field
     firstStatusChangeDate?: string | null;
     notes?: string | null;
+    dailyFeedingTimes?: number | null;
+    feedingTable?: FeedingTable | null;
 }
 
 export interface NewBatch {

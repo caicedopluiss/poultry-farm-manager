@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using PoultryFarmManager.Application.DTOs;
 using PoultryFarmManager.Application.Shared.CQRS;
+using PoultryFarmManager.Core.Models.Inventory;
 
 namespace PoultryFarmManager.Application.Commands.Products;
 
@@ -14,41 +15,31 @@ public sealed class AddProductStockCommand
 
     public sealed class Handler(IUnitOfWork unitOfWork) : AppRequestHandler<Args, Result>
     {
+        private Product? _product;
+        private ProductVariant? _productVariant;
+
         protected override async Task<Result> ExecuteAsync(Args args, CancellationToken cancellationToken = default)
         {
-            var product = await unitOfWork.Products.GetByIdAsync(args.ProductId, track: true, cancellationToken: cancellationToken) ??
-                throw new InvalidOperationException($"Product with ID {args.ProductId} not found.");
+            // Re-fetch tracked instance for the product (variant is read-only, reuse cached copy)
+            _product = await unitOfWork.Products.GetByIdAsync(args.ProductId, track: true, cancellationToken: cancellationToken);
 
-            var productVariant = await unitOfWork.ProductVariants.GetByIdAsync(args.ProductVariantId, track: true, cancellationToken: cancellationToken) ??
-                throw new InvalidOperationException($"Product variant with ID {args.ProductVariantId} not found.");
-
-            // Verify the variant belongs to the product
-            if (productVariant.ProductId != args.ProductId)
-            {
-                throw new InvalidOperationException($"Product variant does not belong to the specified product.");
-            }
-
-            // Calculate the stock to add based on the variant's unit of measure
-            var stockToAdd = productVariant.Stock * args.Quantity;
-
-            // Update variant stock
-            productVariant.Stock += stockToAdd;
+            // Calculate the stock to add based on the variant's unit-of-measure and package size
+            var stockToAdd = _productVariant!.Stock * args.Quantity;
 
             // Update product stock - convert units if needed
-            if (productVariant.UnitOfMeasure == product.UnitOfMeasure)
+            if (_productVariant.UnitOfMeasure == _product!.UnitOfMeasure)
             {
-                product.Stock += stockToAdd;
+                _product.Stock += stockToAdd;
             }
-            else if (productVariant.UnitOfMeasure.TryConvert(product.UnitOfMeasure, stockToAdd, out var convertedStock))
+            else if (_productVariant.UnitOfMeasure.TryConvert(_product.UnitOfMeasure, stockToAdd, out var convertedStock))
             {
-                product.Stock += convertedStock;
+                _product.Stock += convertedStock;
             }
-            // If units are incompatible, only update variant stock
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             // Reload product with navigation properties
-            var updatedProduct = await unitOfWork.Products.GetByIdAsync(product.Id, track: false, cancellationToken);
+            var updatedProduct = await unitOfWork.Products.GetByIdAsync(_product.Id, track: false, cancellationToken);
             var productDto = new ProductDto().Map(updatedProduct!);
 
             return new Result(productDto);
@@ -61,19 +52,45 @@ public sealed class AddProductStockCommand
             if (args.ProductId == Guid.Empty)
             {
                 errors.Add(("productId", "Product ID is required."));
+                return errors;
             }
 
             if (args.ProductVariantId == Guid.Empty)
             {
                 errors.Add(("productVariantId", "Product variant ID is required."));
+                return errors;
             }
 
             if (args.Quantity <= 0)
             {
                 errors.Add(("quantity", "Quantity must be greater than 0."));
+                return errors;
             }
 
-            return await Task.FromResult(errors);
+            _product = await unitOfWork.Products.GetByIdAsync(args.ProductId, track: false, cancellationToken: cancellationToken);
+            if (_product is null)
+            {
+                errors.Add(("productId", "Product not found."));
+                return errors;
+            }
+
+            _productVariant = await unitOfWork.ProductVariants.GetByIdAsync(args.ProductVariantId, track: false, cancellationToken: cancellationToken);
+            if (_productVariant is null)
+            {
+                errors.Add(("productVariantId", "Product variant not found."));
+                return errors;
+            }
+
+            if (_productVariant.ProductId != args.ProductId)
+                errors.Add(("productVariantId", "Product variant does not belong to the specified product."));
+
+            if (_productVariant.UnitOfMeasure != _product.UnitOfMeasure &&
+                !_productVariant.UnitOfMeasure.TryConvert(_product.UnitOfMeasure, 1m, out _))
+            {
+                errors.Add(("productVariantId", $"Variant unit of measure ({_productVariant.UnitOfMeasure}) is incompatible with product unit of measure ({_product.UnitOfMeasure})."));
+            }
+
+            return errors;
         }
     }
 }

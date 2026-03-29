@@ -177,4 +177,49 @@ public class GetBatchByIdQueryTests(TestsFixture fixture) : IClassFixture<TestsF
         Assert.Equal(10.5m, consumption.Stock);
         Assert.Equal("Kilogram", consumption.UnitOfMeasure);
     }
+
+    [Fact]
+    public async Task GetBatchByIdQuery_ShouldReturnFeedingTable_WhenBatchHasFeedingTableAssigned()
+    {
+        // Arrange
+        var feedingTable = await dbContext.CreateFeedingTableAsync(name: "Day 1 Table", dayCount: 3);
+        var batch = fixture.CreateRandomEntity<Batch>();
+        batch.StartDate = DateTime.UtcNow.Date;
+        batch.FeedingTableId = feedingTable.Id;
+        dbContext.Batches.Add(batch);
+        await dbContext.SaveChangesAsync();
+
+        var request = new AppRequest<GetBatchByIdQuery.Args>(new(batch.Id));
+
+        // Act
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value!.Batch);
+
+        // Full feeding table is included
+        Assert.NotNull(result.Value.Batch.FeedingTable);
+        Assert.Equal(feedingTable.Id, result.Value.Batch.FeedingTable.Id);
+        Assert.Equal(3, result.Value.Batch.FeedingTable.DayEntries.Count);
+    }
+
+    [Fact]
+    public async Task GetBatchByIdQuery_ShouldReturnNullFeedingInfo_WhenBatchHasNoFeedingTableAssigned()
+    {
+        // Arrange
+        var batch = fixture.CreateRandomEntity<Batch>();
+        dbContext.Batches.Add(batch);
+        await dbContext.SaveChangesAsync();
+
+        var request = new AppRequest<GetBatchByIdQuery.Args>(new(batch.Id));
+
+        // Act
+        var result = await handler.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value!.Batch);
+        Assert.Null(result.Value.Batch.FeedingTable);
+    }
 }
