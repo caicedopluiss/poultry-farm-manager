@@ -22,7 +22,6 @@ import {
 } from "@mui/material";
 import {
     ArrowBack as BackIcon,
-    TrendingDown as ExpenseIcon,
     ShoppingCart as PurchaseIcon,
     Store as VendorIcon,
     Add as AddIcon,
@@ -166,25 +165,6 @@ export default function AssetFinancePage() {
 
             {/* Summary Cards */}
             <Box sx={{ display: "flex", gap: 3, mb: 4, flexWrap: "wrap" }}>
-                <Box sx={{ flex: "1 1 300px", minWidth: 250 }}>
-                    <Card>
-                        <CardContent>
-                            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-                                <ExpenseIcon color="error" />
-                                <Typography variant="body2" color="text.secondary">
-                                    Total Spent
-                                </Typography>
-                            </Box>
-                            <Typography variant="h5" sx={{ fontWeight: "bold" }}>
-                                ${totalExpense.toFixed(2)}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                                All-time purchases
-                            </Typography>
-                        </CardContent>
-                    </Card>
-                </Box>
-
                 <Box sx={{ flex: "1 1 300px", minWidth: 250 }}>
                     <Card>
                         <CardContent>
