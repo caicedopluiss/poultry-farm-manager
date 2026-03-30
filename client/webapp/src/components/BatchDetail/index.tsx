@@ -71,6 +71,7 @@ import EditBatchNameDialog from "@/components/EditBatchNameDialog";
 import EditBatchNotesDialog from "@/components/EditBatchNotesDialog";
 import { getFeedingTables } from "@/api/v1/feedingTables";
 import { assignFeedingTableToBatch, updateBatchDailyFeedingTimes } from "@/api/v1/batches";
+import { convertToKilograms } from "@/utils/units";
 
 interface BatchDetailProps {
     batch: Batch;
@@ -866,6 +867,18 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                                                         )}{" "}
                                                         {currentDayEntry.unitOfMeasure}
                                                     </Typography>
+                                                    {currentDayEntry.unitOfMeasure !== "Kilogram" &&
+                                                        (() => {
+                                                            const kg = convertToKilograms(
+                                                                totalBatchAmountPerSession,
+                                                                currentDayEntry.unitOfMeasure,
+                                                            );
+                                                            return !isNaN(kg) ? (
+                                                                <Typography variant="body2" color="text.secondary">
+                                                                    ≈ {kg.toFixed(2)} kg
+                                                                </Typography>
+                                                            ) : null;
+                                                        })()}
                                                 </Box>
                                             )}
                                             {currentDayEntry.dayNumber < days && (
@@ -1207,6 +1220,9 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                                         </Tooltip>
                                     </TableCell>
                                     <TableCell sx={{ fontWeight: "bold" }}>Per Session</TableCell>
+                                    {sortedFeedingEntries.some((e) => e.unitOfMeasure !== "Kilogram") && (
+                                        <TableCell sx={{ fontWeight: "bold" }}>Per Session (kg)</TableCell>
+                                    )}
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -1269,6 +1285,18 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                                             <TableCell>
                                                 {formatTotal(perSession, entry.unitOfMeasure)} {entry.unitOfMeasure}
                                             </TableCell>
+                                            {sortedFeedingEntries.some((e) => e.unitOfMeasure !== "Kilogram") &&
+                                                (() => {
+                                                    if (entry.unitOfMeasure === "Kilogram") {
+                                                        return <TableCell>—</TableCell>;
+                                                    }
+                                                    const kg = convertToKilograms(perSession, entry.unitOfMeasure);
+                                                    return (
+                                                        <TableCell>
+                                                            {!isNaN(kg) ? `${kg.toFixed(2)} kg` : "—"}
+                                                        </TableCell>
+                                                    );
+                                                })()}
                                         </TableRow>
                                     );
                                 })}
