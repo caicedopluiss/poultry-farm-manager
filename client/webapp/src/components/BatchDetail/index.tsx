@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { alpha } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import {
     Container,
@@ -25,6 +26,13 @@ import {
     Select,
     TextField,
     Alert,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Tooltip,
 } from "@mui/material";
 import {
     ArrowBack as BackIcon,
@@ -49,7 +57,7 @@ import {
 } from "@mui/icons-material";
 import moment from "moment";
 import type { Batch } from "@/types/batch";
-import type { FeedingTable } from "@/types/feedingTable";
+import type { FeedingTable, FeedingTableDayEntry } from "@/types/feedingTable";
 import type {
     BatchActivity,
     StatusSwitch,
@@ -63,6 +71,7 @@ import EditBatchNameDialog from "@/components/EditBatchNameDialog";
 import EditBatchNotesDialog from "@/components/EditBatchNotesDialog";
 import { getFeedingTables } from "@/api/v1/feedingTables";
 import { assignFeedingTableToBatch, updateBatchDailyFeedingTimes } from "@/api/v1/batches";
+import { convertToKilograms } from "@/utils/units";
 
 interface BatchDetailProps {
     batch: Batch;
@@ -91,6 +100,9 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
 
     // Daily feeding times edit state
     const [editFeedingTimesOpen, setEditFeedingTimesOpen] = useState(false);
+
+    // Lifecycle feeding plan dialog state
+    const [lifecyclePlanOpen, setLifecyclePlanOpen] = useState(false);
     const [editFeedingTimesValue, setEditFeedingTimesValue] = useState<string>("");
     const [savingFeedingTimes, setSavingFeedingTimes] = useState(false);
     const [editFeedingTimesError, setEditFeedingTimesError] = useState<string | null>(null);
@@ -153,6 +165,11 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
     const weeks = calculateWeeks(batch.startDate, batch.firstStatusChangeDate, batch.status);
     const mortalityPercent = calculateMortality(batch.initialPopulation, batch.population);
 
+    const effectiveDailyFeedingTimes =
+        batch.dailyFeedingTimes !== null && batch.dailyFeedingTimes !== undefined && batch.dailyFeedingTimes > 0
+            ? batch.dailyFeedingTimes
+            : 1;
+
     const currentDayEntry =
         batch.feedingTable && batch.feedingTable.dayEntries && batch.feedingTable.dayEntries.length > 0
             ? (batch.feedingTable.dayEntries.find((e) => e.dayNumber === days) ??
@@ -161,7 +178,7 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
     const totalBatchAmountPerSession =
         currentDayEntry !== null
             ? (() => {
-                  const raw = (currentDayEntry.amountPerBird * batch.population) / (batch.dailyFeedingTimes ?? 1);
+                  const raw = (currentDayEntry.amountPerBird * batch.population) / effectiveDailyFeedingTimes;
                   if (currentDayEntry.unitOfMeasure === "Kilogram") {
                       return Math.round(raw / 0.05) * 0.05;
                   }
@@ -174,6 +191,26 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
             return value.toFixed(2);
         }
         return String(value);
+    };
+
+    const sortedFeedingEntries: FeedingTableDayEntry[] = batch.feedingTable?.dayEntries
+        ? [...batch.feedingTable.dayEntries].sort((a, b) => a.dayNumber - b.dayNumber)
+        : [];
+
+    const calcEntryTotalPerDay = (entry: FeedingTableDayEntry): number => {
+        const raw = entry.amountPerBird * batch.population;
+        if (entry.unitOfMeasure === "Kilogram") {
+            return Math.round(raw / 0.05) * 0.05;
+        }
+        return Math.round(raw * 1000) / 1000;
+    };
+
+    const calcEntryPerSession = (entry: FeedingTableDayEntry): number => {
+        const raw = calcEntryTotalPerDay(entry) / effectiveDailyFeedingTimes;
+        if (entry.unitOfMeasure === "Kilogram") {
+            return Math.round(raw / 0.05) * 0.05;
+        }
+        return Math.round(raw * 1000) / 1000;
     };
 
     const handleOpenActivityMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -528,9 +565,12 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                             sx={{
                                 p: 2,
                                 textAlign: "center",
-                                bgcolor: mortalityPercent > 10 ? "error.50" : "success.50",
+                                bgcolor: (theme) =>
+                                    mortalityPercent > 10
+                                        ? alpha(theme.palette.error.main, 0.08)
+                                        : alpha(theme.palette.success.main, 0.08),
                                 border: "1px solid",
-                                borderColor: mortalityPercent > 10 ? "error.200" : "success.200",
+                                borderColor: mortalityPercent > 10 ? "error.light" : "success.light",
                             }}
                         >
                             <MortalityIcon
@@ -708,8 +748,11 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                                     variant="outlined"
                                     sx={{
                                         p: 2,
-                                        bgcolor: currentDayEntry ? "success.50" : "grey.50",
-                                        borderColor: currentDayEntry ? "success.200" : "grey.300",
+                                        bgcolor: (theme) =>
+                                            currentDayEntry
+                                                ? alpha(theme.palette.success.main, 0.08)
+                                                : theme.palette.grey[50],
+                                        borderColor: currentDayEntry ? "success.light" : "grey.300",
                                     }}
                                 >
                                     <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
@@ -732,9 +775,9 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                                                     sx={{
                                                         p: 1.5,
                                                         borderRadius: 1,
-                                                        bgcolor: "success.100",
+                                                        bgcolor: (theme) => alpha(theme.palette.success.main, 0.16),
                                                         border: "1px solid",
-                                                        borderColor: "success.300",
+                                                        borderColor: "success.light",
                                                     }}
                                                 >
                                                     <Typography
@@ -752,9 +795,9 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                                                     sx={{
                                                         p: 1.5,
                                                         borderRadius: 1,
-                                                        bgcolor: "success.100",
+                                                        bgcolor: (theme) => alpha(theme.palette.success.main, 0.16),
                                                         border: "1px solid",
-                                                        borderColor: "success.300",
+                                                        borderColor: "success.light",
                                                     }}
                                                 >
                                                     <Typography
@@ -811,7 +854,7 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                                                         mt: 1.5,
                                                         pt: 1.5,
                                                         borderTop: "1px dashed",
-                                                        borderColor: "success.300",
+                                                        borderColor: "success.light",
                                                     }}
                                                 >
                                                     <Typography variant="body2" color="text.secondary">
@@ -824,6 +867,18 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                                                         )}{" "}
                                                         {currentDayEntry.unitOfMeasure}
                                                     </Typography>
+                                                    {currentDayEntry.unitOfMeasure !== "Kilogram" &&
+                                                        (() => {
+                                                            const kg = convertToKilograms(
+                                                                totalBatchAmountPerSession,
+                                                                currentDayEntry.unitOfMeasure,
+                                                            );
+                                                            return !isNaN(kg) ? (
+                                                                <Typography variant="body2" color="text.secondary">
+                                                                    ≈ {kg.toFixed(2)} kg
+                                                                </Typography>
+                                                            ) : null;
+                                                        })()}
                                                 </Box>
                                             )}
                                             {currentDayEntry.dayNumber < days && (
@@ -843,6 +898,25 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                                         </Typography>
                                     )}
                                 </Paper>
+                            )}
+
+                            {/* Validation: daily feeding times not set */}
+                            {!batch.dailyFeedingTimes || batch.dailyFeedingTimes <= 0 ? (
+                                <Alert severity="warning" sx={{ mt: 1 }}>
+                                    Daily feeding times not configured — calculations assume 1 feeding per day.
+                                </Alert>
+                            ) : null}
+
+                            {/* View lifecycle plan button */}
+                            {sortedFeedingEntries.length > 0 && (
+                                <Button
+                                    size="small"
+                                    variant="outlined"
+                                    startIcon={<FeedingTableIcon />}
+                                    onClick={() => setLifecyclePlanOpen(true)}
+                                >
+                                    View Full Lifecycle Feeding Plan
+                                </Button>
                             )}
                         </Box>
                     )}
@@ -1115,6 +1189,123 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                     >
                         {assigning ? "Assigning..." : "Assign"}
                     </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Lifecycle Feeding Plan Dialog */}
+            <Dialog open={lifecyclePlanOpen} onClose={() => setLifecyclePlanOpen(false)} maxWidth="md" fullWidth>
+                <DialogTitle>
+                    Full Lifecycle Feeding Plan
+                    <Typography variant="body2" color="text.secondary">
+                        {batch.feedingTable?.name} — {batch.population.toLocaleString()} birds (current population)
+                    </Typography>
+                </DialogTitle>
+                <DialogContent sx={{ px: 2, pb: 1 }}>
+                    {(!batch.dailyFeedingTimes || batch.dailyFeedingTimes <= 0) && (
+                        <Alert severity="warning" sx={{ mb: 2 }}>
+                            Daily feeding times not configured — calculations assume 1 feeding per day.
+                        </Alert>
+                    )}
+                    <TableContainer sx={{ maxHeight: 500 }}>
+                        <Table size="small" stickyHeader>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell sx={{ fontWeight: "bold" }}>Day</TableCell>
+                                    <TableCell sx={{ fontWeight: "bold" }}>Food Type</TableCell>
+                                    <TableCell sx={{ fontWeight: "bold" }}>Amount / Bird</TableCell>
+                                    <TableCell sx={{ fontWeight: "bold" }}>Total / Day</TableCell>
+                                    <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}>
+                                        <Tooltip title="Daily feeding times configured for this batch">
+                                            <span>Times / Day</span>
+                                        </Tooltip>
+                                    </TableCell>
+                                    <TableCell sx={{ fontWeight: "bold" }}>Per Session</TableCell>
+                                    {sortedFeedingEntries.some((e) => e.unitOfMeasure !== "Kilogram") && (
+                                        <TableCell sx={{ fontWeight: "bold" }}>Per Session (kg)</TableCell>
+                                    )}
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {sortedFeedingEntries.map((entry) => {
+                                    const isToday =
+                                        entry.dayNumber === days ||
+                                        (entry.dayNumber === currentDayEntry?.dayNumber &&
+                                            currentDayEntry?.dayNumber !== undefined);
+                                    const totalPerDay = calcEntryTotalPerDay(entry);
+                                    const perSession = calcEntryPerSession(entry);
+                                    return (
+                                        <TableRow
+                                            key={entry.id}
+                                            sx={
+                                                isToday
+                                                    ? {
+                                                          bgcolor: (theme) => alpha(theme.palette.success.main, 0.08),
+                                                          "& td": {
+                                                              borderColor: "success.light",
+                                                              fontWeight: "bold",
+                                                          },
+                                                      }
+                                                    : undefined
+                                            }
+                                        >
+                                            <TableCell>
+                                                {isToday ? (
+                                                    <Tooltip title="Today">
+                                                        <Box
+                                                            component="span"
+                                                            sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                                                        >
+                                                            {entry.dayNumber}
+                                                            <Box
+                                                                component="span"
+                                                                sx={{
+                                                                    fontSize: "0.7rem",
+                                                                    color: "success.main",
+                                                                    fontWeight: "bold",
+                                                                }}
+                                                            >
+                                                                ★
+                                                            </Box>
+                                                        </Box>
+                                                    </Tooltip>
+                                                ) : (
+                                                    entry.dayNumber
+                                                )}
+                                            </TableCell>
+                                            <TableCell>{entry.foodType}</TableCell>
+                                            <TableCell>
+                                                {entry.amountPerBird} {entry.unitOfMeasure}
+                                            </TableCell>
+                                            <TableCell>
+                                                {formatTotal(totalPerDay, entry.unitOfMeasure)} {entry.unitOfMeasure}
+                                            </TableCell>
+                                            <TableCell sx={{ textAlign: "center" }}>
+                                                {effectiveDailyFeedingTimes}
+                                            </TableCell>
+                                            <TableCell>
+                                                {formatTotal(perSession, entry.unitOfMeasure)} {entry.unitOfMeasure}
+                                            </TableCell>
+                                            {sortedFeedingEntries.some((e) => e.unitOfMeasure !== "Kilogram") &&
+                                                (() => {
+                                                    if (entry.unitOfMeasure === "Kilogram") {
+                                                        return <TableCell>—</TableCell>;
+                                                    }
+                                                    const kg = convertToKilograms(perSession, entry.unitOfMeasure);
+                                                    return (
+                                                        <TableCell>
+                                                            {!isNaN(kg) ? `${kg.toFixed(2)} kg` : "—"}
+                                                        </TableCell>
+                                                    );
+                                                })()}
+                                        </TableRow>
+                                    );
+                                })}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setLifecyclePlanOpen(false)}>Close</Button>
                 </DialogActions>
             </Dialog>
         </Container>
