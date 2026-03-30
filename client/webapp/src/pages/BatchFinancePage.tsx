@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { alpha } from "@mui/material/styles";
 import { useState, useEffect, useCallback } from "react";
 import {
     Container,
@@ -170,7 +171,14 @@ export default function BatchFinancePage() {
             {/* Summary Cards */}
             <Grid container spacing={2} sx={{ mb: 4 }}>
                 <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
-                    <Card sx={{ bgcolor: "success.50", borderLeft: 4, borderColor: "success.main", height: "100%" }}>
+                    <Card
+                        sx={{
+                            bgcolor: (theme) => alpha(theme.palette.success.main, 0.08),
+                            borderLeft: 4,
+                            borderColor: "success.main",
+                            height: "100%",
+                        }}
+                    >
                         <CardContent sx={{ py: 1.5, "&:last-child": { pb: 1.5 } }}>
                             <Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
                                 <IncomeIcon sx={{ mr: 0.75, color: "success.main", fontSize: 18 }} />
@@ -189,7 +197,14 @@ export default function BatchFinancePage() {
                 </Grid>
 
                 <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
-                    <Card sx={{ bgcolor: "primary.50", borderLeft: 4, borderColor: "primary.main", height: "100%" }}>
+                    <Card
+                        sx={{
+                            bgcolor: (theme) => alpha(theme.palette.primary.main, 0.08),
+                            borderLeft: 4,
+                            borderColor: "primary.main",
+                            height: "100%",
+                        }}
+                    >
                         <CardContent sx={{ py: 1.5, "&:last-child": { pb: 1.5 } }}>
                             <Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
                                 <CollectedIcon sx={{ mr: 0.75, color: "primary.main", fontSize: 18 }} />
@@ -208,7 +223,14 @@ export default function BatchFinancePage() {
                 </Grid>
 
                 <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
-                    <Card sx={{ bgcolor: "warning.50", borderLeft: 4, borderColor: "warning.main", height: "100%" }}>
+                    <Card
+                        sx={{
+                            bgcolor: (theme) => alpha(theme.palette.warning.main, 0.08),
+                            borderLeft: 4,
+                            borderColor: "warning.main",
+                            height: "100%",
+                        }}
+                    >
                         <CardContent sx={{ py: 1.5, "&:last-child": { pb: 1.5 } }}>
                             <Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
                                 <PendingIcon sx={{ mr: 0.75, color: "warning.main", fontSize: 18 }} />
@@ -227,7 +249,14 @@ export default function BatchFinancePage() {
                 </Grid>
 
                 <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
-                    <Card sx={{ bgcolor: "error.50", borderLeft: 4, borderColor: "error.main", height: "100%" }}>
+                    <Card
+                        sx={{
+                            bgcolor: (theme) => alpha(theme.palette.error.main, 0.08),
+                            borderLeft: 4,
+                            borderColor: "error.main",
+                            height: "100%",
+                        }}
+                    >
                         <CardContent sx={{ py: 1.5, "&:last-child": { pb: 1.5 } }}>
                             <Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
                                 <ExpenseIcon sx={{ mr: 0.75, color: "error.main", fontSize: 18 }} />
@@ -248,7 +277,8 @@ export default function BatchFinancePage() {
                 <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
                     <Card
                         sx={{
-                            bgcolor: net >= 0 ? "primary.50" : "warning.50",
+                            bgcolor: (theme) =>
+                                alpha(net >= 0 ? theme.palette.primary.main : theme.palette.warning.main, 0.08),
                             borderLeft: 4,
                             borderColor: net >= 0 ? "primary.main" : "warning.main",
                             height: "100%",
