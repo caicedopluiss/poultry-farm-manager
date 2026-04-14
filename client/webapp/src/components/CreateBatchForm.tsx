@@ -296,7 +296,7 @@ export default function CreateBatchForm({
                                 type="number"
                                 value={formData.initialCost}
                                 onChange={handleInputChange("initialCost")}
-                                inputProps={{ min: 0.01, step: 0.01 }}
+                                inputProps={{ min: 0.001, step: 0.001 }}
                                 disabled={loading}
                                 required
                                 size="medium"

@@ -184,7 +184,7 @@ export default function CreateSaleOrderModal({ open, onClose, onSuccess, batchId
                             value={pricePerUnit}
                             onChange={(e) => setPricePerUnit(e.target.value)}
                             fullWidth
-                            inputProps={{ min: 0, step: "0.01" }}
+                            inputProps={{ min: 0, step: "0.001" }}
                         />
                     </Grid>
 
@@ -220,7 +220,7 @@ export default function CreateSaleOrderModal({ open, onClose, onSuccess, batchId
                                 onChange={(e) => updateItem(i, "weight", e.target.value)}
                                 fullWidth
                                 size="small"
-                                inputProps={{ min: 0, step: "0.01" }}
+                                inputProps={{ min: 0, step: "0.001" }}
                             />
                         </Grid>
                         <Grid size={{ xs: 12, sm: 5 }}>

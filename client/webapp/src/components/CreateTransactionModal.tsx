@@ -219,7 +219,7 @@ export default function CreateTransactionModal({
                             onChange={handleInputChange("unitPrice")}
                             required
                             disabled={loading}
-                            inputProps={{ min: 0.01, step: 0.01 }}
+                            inputProps={{ min: 0.001, step: 0.001 }}
                         />
 
                         <TextField
@@ -297,7 +297,7 @@ export default function CreateTransactionModal({
                                     {(
                                         parseFloat(formData.unitPrice || "0") *
                                         (formData.quantity ? parseInt(formData.quantity) : 1)
-                                    ).toFixed(2)}
+                                    ).toFixed(3)}
                                 </Typography>
                             </Box>
                         )}

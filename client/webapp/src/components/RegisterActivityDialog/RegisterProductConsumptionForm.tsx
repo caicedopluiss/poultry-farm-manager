@@ -179,7 +179,7 @@ export default function RegisterProductConsumptionForm({
                 }
                 inputProps={{
                     min: 0.01,
-                    step: "0.01",
+                    step: "0.001",
                 }}
             />
 

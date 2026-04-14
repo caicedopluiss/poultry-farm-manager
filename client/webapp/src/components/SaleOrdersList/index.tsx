@@ -169,14 +169,14 @@ function SaleOrderRow({
                 <TableCell>
                     <StatusChip status={effectiveStatus} />
                 </TableCell>
-                <TableCell align="right">{order.totalWeight.toFixed(2)} kg</TableCell>
-                <TableCell align="right">${order.pricePerUnit.toFixed(2)}</TableCell>
-                <TableCell align="right">${order.totalAmount.toFixed(2)}</TableCell>
+                <TableCell align="right">{order.totalWeight.toFixed(3)} kg</TableCell>
+                <TableCell align="right">${order.pricePerUnit.toFixed(3)}</TableCell>
+                <TableCell align="right">${order.totalAmount.toFixed(3)}</TableCell>
                 <TableCell align="right" sx={{ color: "success.main", fontWeight: 500 }}>
-                    ${order.totalPaid.toFixed(2)}
+                    ${order.totalPaid.toFixed(3)}
                 </TableCell>
                 <TableCell align="right" sx={{ color: order.pendingAmount > 0 ? "error.main" : "text.secondary" }}>
-                    ${order.pendingAmount.toFixed(2)}
+                    ${order.pendingAmount.toFixed(3)}
                 </TableCell>
                 <TableCell>
                     {canAct && (
@@ -219,7 +219,7 @@ function SaleOrderRow({
                                         {order.items.map((item, i) => (
                                             <TableRow key={item.id}>
                                                 <TableCell>{i + 1}</TableCell>
-                                                <TableCell>{item.weight.toFixed(2)}</TableCell>
+                                                <TableCell>{item.weight.toFixed(3)}</TableCell>
                                                 <TableCell>{item.unitOfMeasure}</TableCell>
                                                 <TableCell>
                                                     {moment(item.processedDate).format("MMM DD, YYYY")}
@@ -254,7 +254,7 @@ function SaleOrderRow({
                                             {order.payments.map((p) => (
                                                 <TableRow key={p.transactionId}>
                                                     <TableCell>{moment(p.date).format("MMM DD, YYYY")}</TableCell>
-                                                    <TableCell align="right">${p.amount.toFixed(2)}</TableCell>
+                                                    <TableCell align="right">${p.amount.toFixed(3)}</TableCell>
                                                     <TableCell>{p.notes ?? "-"}</TableCell>
                                                 </TableRow>
                                             ))}

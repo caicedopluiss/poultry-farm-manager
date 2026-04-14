@@ -101,7 +101,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(e => e.Notes).HasMaxLength(500);
 
             entity.Property(e => e.ProductId).IsRequired();
-            entity.Property(e => e.Stock).IsRequired().HasPrecision(18, 2);
+            entity.Property(e => e.Stock).IsRequired().HasPrecision(18, 3);
             entity.Property(e => e.UnitOfMeasure).IsRequired();
 
             entity.HasOne(e => e.Batch)
@@ -126,7 +126,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(e => e.Date).IsRequired();
             entity.Property(e => e.Notes).HasMaxLength(500);
 
-            entity.Property(e => e.AverageWeight).IsRequired().HasPrecision(18, 2);
+            entity.Property(e => e.AverageWeight).IsRequired().HasPrecision(18, 3);
             entity.Property(e => e.SampleSize).IsRequired();
             entity.Property(e => e.UnitOfMeasure).IsRequired();
 
@@ -173,7 +173,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.HasIndex(e => new { e.Name, e.Manufacturer, e.UnitOfMeasure }).IsUnique();
             entity.Property(e => e.Manufacturer).IsRequired().HasMaxLength(100);
             entity.Property(e => e.UnitOfMeasure).IsRequired();
-            entity.Property(e => e.Stock).IsRequired().HasPrecision(18, 2);
+            entity.Property(e => e.Stock).IsRequired().HasPrecision(18, 3);
             entity.Property(e => e.Description).HasMaxLength(500);
         });
 
@@ -186,7 +186,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
             entity.HasIndex(e => new { e.ProductId, e.Name }).IsUnique();
             entity.Property(e => e.UnitOfMeasure).IsRequired();
-            entity.Property(e => e.Stock).IsRequired().HasPrecision(18, 2);
+            entity.Property(e => e.Stock).IsRequired().HasPrecision(18, 3);
             entity.Property(e => e.Description).HasMaxLength(500);
 
             entity.HasOne(e => e.Product)
@@ -233,9 +233,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.HasIndex(e => e.Date);
             entity.Property(e => e.Type).IsRequired();
             entity.HasIndex(e => e.Type);
-            entity.Property(e => e.UnitPrice).IsRequired().HasPrecision(18, 2);
+            entity.Property(e => e.UnitPrice).IsRequired().HasPrecision(18, 3);
             entity.Property(e => e.Quantity);
-            entity.Property(e => e.TransactionAmount).IsRequired().HasPrecision(18, 2);
+            entity.Property(e => e.TransactionAmount).IsRequired().HasPrecision(18, 3);
             entity.Property(e => e.Notes).HasMaxLength(500);
 
             // Relationships
@@ -283,7 +283,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.HasIndex(e => e.Date);
             entity.Property(e => e.Status).IsRequired();
             entity.HasIndex(e => e.Status);
-            entity.Property(e => e.PricePerKg).IsRequired().HasPrecision(18, 2);
+            entity.Property(e => e.PricePerKg).IsRequired().HasPrecision(18, 3);
             entity.Property(e => e.Notes).HasMaxLength(500);
 
             entity.Ignore(e => e.TotalAmount);
@@ -308,7 +308,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(e => e.Id).IsRequired().ValueGeneratedOnAdd();
             entity.Property(e => e.SaleOrderId).IsRequired();
             entity.HasIndex(e => e.SaleOrderId);
-            entity.Property(e => e.Weight).IsRequired().HasPrecision(18, 2);
+            entity.Property(e => e.Weight).IsRequired().HasPrecision(18, 3);
             entity.Property(e => e.UnitOfMeasure).IsRequired();
             entity.Property(e => e.ProcessedDate).IsRequired();
 
@@ -338,9 +338,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.HasIndex(e => new { e.FeedingTableId, e.DayNumber }).IsUnique();
             entity.Property(e => e.DayNumber).IsRequired();
             entity.Property(e => e.FoodType).IsRequired();
-            entity.Property(e => e.AmountPerBird).IsRequired().HasPrecision(18, 2);
+            entity.Property(e => e.AmountPerBird).IsRequired().HasPrecision(18, 3);
             entity.Property(e => e.UnitOfMeasure).IsRequired();
-            entity.Property(e => e.ExpectedBirdWeight).HasPrecision(18, 2);
+            entity.Property(e => e.ExpectedBirdWeight).HasPrecision(18, 3);
             entity.Property(e => e.ExpectedBirdWeightUnitOfMeasure);
 
             entity.HasOne(e => e.FeedingTable)
