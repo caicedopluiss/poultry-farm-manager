@@ -105,7 +105,7 @@ export default function CreateAssetTransactionModal({
         }
 
         const unitPrice = parseFloat(formData.unitPrice);
-        const quantity = parseFloat(formData.quantity);
+        const quantity = parseInt(formData.quantity, 10);
 
         if (isNaN(unitPrice) || unitPrice <= 0) {
             setError("Unit price must be a positive number");
@@ -225,7 +225,7 @@ export default function CreateAssetTransactionModal({
                             onChange={(e) => setFormData({ ...formData, unitPrice: e.target.value })}
                             required
                             fullWidth
-                            inputProps={{ min: 0, step: 0.01 }}
+                            inputProps={{ min: 0, step: 0.001 }}
                         />
 
                         <TextField
@@ -235,7 +235,7 @@ export default function CreateAssetTransactionModal({
                             onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
                             required
                             fullWidth
-                            inputProps={{ min: 0, step: 0.01 }}
+                            inputProps={{ min: 1, step: 1 }}
                         />
 
                         {isValidAmount && (
@@ -252,7 +252,7 @@ export default function CreateAssetTransactionModal({
                                     Total Amount
                                 </Typography>
                                 <Typography variant="h5" sx={{ fontWeight: "bold", color: "primary.main" }}>
-                                    ${totalAmount.toFixed(2)}
+                                    ${totalAmount.toFixed(3)}
                                 </Typography>
                             </Box>
                         )}

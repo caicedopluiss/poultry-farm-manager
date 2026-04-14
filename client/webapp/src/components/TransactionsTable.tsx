@@ -70,11 +70,11 @@ export default function TransactionsTable({ transactions }: TransactionsTablePro
                                     <Chip icon={<ExpenseIcon />} label="Expense" color="error" size="small" />
                                 )}
                             </TableCell>
-                            <TableCell align="right">${transaction.unitPrice.toFixed(2)}</TableCell>
+                            <TableCell align="right">${transaction.unitPrice.toFixed(3)}</TableCell>
                             <TableCell align="right">
-                                {transaction.quantity !== null ? transaction.quantity.toFixed(2) : "-"}
+                                {transaction.quantity !== null ? transaction.quantity : "-"}
                             </TableCell>
-                            <TableCell align="right">${transaction.transactionAmount.toFixed(2)}</TableCell>
+                            <TableCell align="right">${transaction.transactionAmount.toFixed(3)}</TableCell>
                             <TableCell>
                                 <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
                                     {transaction.vendorName && (

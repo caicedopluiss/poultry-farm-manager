@@ -211,7 +211,7 @@ export default function CreateProductVariantTransactionModal({
                             onChange={(e) => setFormData({ ...formData, unitPrice: e.target.value })}
                             required
                             fullWidth
-                            inputProps={{ min: 0, step: 0.01 }}
+                            inputProps={{ min: 0, step: 0.001 }}
                         />
 
                         <TextField

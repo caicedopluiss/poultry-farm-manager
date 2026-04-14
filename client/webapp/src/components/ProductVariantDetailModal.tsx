@@ -170,7 +170,7 @@ const ProductVariantDetailModal: React.FC<ProductVariantDetailModalProps> = ({ o
                                 value={editedStock}
                                 onChange={(e) => setEditedStock(parseFloat(e.target.value))}
                                 fullWidth
-                                inputProps={{ step: "0.01", min: "0" }}
+                                inputProps={{ step: "0.001", min: "0" }}
                             />
                         </>
                     ) : (

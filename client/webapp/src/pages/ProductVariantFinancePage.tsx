@@ -183,7 +183,7 @@ export default function ProductVariantFinancePage() {
                                 </Typography>
                             </Box>
                             <Typography variant="h5" sx={{ fontWeight: "bold" }}>
-                                ${averagePrice.toFixed(2)}
+                                ${averagePrice.toFixed(3)}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
                                 Per unit across all purchases
@@ -275,7 +275,7 @@ export default function ProductVariantFinancePage() {
                                                 </TableCell>
                                                 <TableCell>
                                                     <Chip
-                                                        label={`$${pricing.lastUnitPrice.toFixed(2)}`}
+                                                        label={`$${pricing.lastUnitPrice.toFixed(3)}`}
                                                         color="primary"
                                                         size="small"
                                                     />

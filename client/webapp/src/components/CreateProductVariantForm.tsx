@@ -193,7 +193,7 @@ const CreateProductVariantForm: React.FC<CreateProductVariantFormProps> = ({ ope
                             onChange={(e) => setStock(Number(e.target.value))}
                             required
                             fullWidth
-                            inputProps={{ min: 0, step: 0.01 }}
+                            inputProps={{ min: 0, step: 0.001 }}
                         />
 
                         <TextField
@@ -250,8 +250,8 @@ const CreateProductVariantForm: React.FC<CreateProductVariantFormProps> = ({ ope
                             onChange={(e) => setUnitPrice(Number(e.target.value))}
                             required
                             fullWidth
-                            inputProps={{ min: 0, step: 0.01 }}
-                            helperText={`Total cost: ${unitPrice.toFixed(2)}`}
+                            inputProps={{ min: 0, step: 0.001 }}
+                            helperText={`Total cost: ${unitPrice.toFixed(3)}`}
                         />
                     </Box>
                 </DialogContent>
