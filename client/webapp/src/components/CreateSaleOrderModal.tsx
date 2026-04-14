@@ -21,6 +21,7 @@ import type { NewSaleOrder, NewSaleOrderItem } from "@/types/saleOrder";
 import type { Person } from "@/types/person";
 import { getPersons } from "@/api/v1/persons";
 import useSaleOrders from "@/hooks/useSaleOrders";
+import { convertToKilograms } from "@/utils/units";
 
 const UNIT_OPTIONS = ["Kilogram", "Gram", "Pound"] as const;
 
@@ -129,6 +130,22 @@ export default function CreateSaleOrderModal({ open, onClose, onSuccess, batchId
             setSubmitError(message);
         }
     }
+
+    const parsedPricePerUnit = parseFloat(pricePerUnit);
+    const allItemsValid =
+        items.length > 0 &&
+        items.every((item) => {
+            const w = parseFloat(item.weight);
+            return !isNaN(w) && w > 0 && !!item.unitOfMeasure;
+        });
+    const totalWeightKg = allItemsValid
+        ? items.reduce((sum, item) => {
+              const kg = convertToKilograms(parseFloat(item.weight), item.unitOfMeasure);
+              return isNaN(kg) ? sum : sum + kg;
+          }, 0)
+        : 0;
+    const hasTotalWeight = allItemsValid && totalWeightKg > 0;
+    const hasTotalAmount = hasTotalWeight && !isNaN(parsedPricePerUnit) && parsedPricePerUnit > 0;
 
     return (
         <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
@@ -251,6 +268,42 @@ export default function CreateSaleOrderModal({ open, onClose, onSuccess, batchId
                         </Grid>
                     </Grid>
                 ))}
+
+                {(hasTotalWeight || hasTotalAmount) && (
+                    <Box
+                        sx={{
+                            mt: 2,
+                            p: 1.5,
+                            bgcolor: "grey.50",
+                            border: "1px solid",
+                            borderColor: "grey.200",
+                            borderRadius: 1,
+                            display: "flex",
+                            gap: 4,
+                        }}
+                    >
+                        {hasTotalWeight && (
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">
+                                    Total Weight
+                                </Typography>
+                                <Typography variant="body1" fontWeight={600}>
+                                    {totalWeightKg.toFixed(3)} kg
+                                </Typography>
+                            </Box>
+                        )}
+                        {hasTotalAmount && (
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">
+                                    Estimated Total
+                                </Typography>
+                                <Typography variant="body1" fontWeight={600} color="success.main">
+                                    ${(totalWeightKg * parsedPricePerUnit).toFixed(3)}
+                                </Typography>
+                            </Box>
+                        )}
+                    </Box>
+                )}
 
                 {submitError && (
                     <Alert severity="error" sx={{ mt: 2 }}>
