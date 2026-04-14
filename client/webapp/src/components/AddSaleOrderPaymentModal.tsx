@@ -60,7 +60,7 @@ export default function AddSaleOrderPaymentModal({
         }
 
         if (parsedAmount > saleOrder.pendingAmount) {
-            setSubmitError(`Amount cannot exceed the pending amount ($${saleOrder.pendingAmount.toFixed(2)}).`);
+            setSubmitError(`Amount cannot exceed the pending amount ($${saleOrder.pendingAmount.toFixed(3)}).`);
             return;
         }
 
@@ -113,13 +113,13 @@ export default function AddSaleOrderPaymentModal({
                     <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                         <Typography variant="body2">Total value:</Typography>
                         <Typography variant="body2" fontWeight={500}>
-                            ${saleOrder.totalAmount.toFixed(2)}
+                            ${saleOrder.totalAmount.toFixed(3)}
                         </Typography>
                     </Box>
                     <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                         <Typography variant="body2">Already paid:</Typography>
                         <Typography variant="body2" color="success.main" fontWeight={500}>
-                            ${saleOrder.totalPaid.toFixed(2)}
+                            ${saleOrder.totalPaid.toFixed(3)}
                         </Typography>
                     </Box>
                     <Box sx={{ display: "flex", justifyContent: "space-between" }}>
@@ -127,7 +127,7 @@ export default function AddSaleOrderPaymentModal({
                             Pending:
                         </Typography>
                         <Typography variant="body2" color="error.main" fontWeight={600}>
-                            ${saleOrder.pendingAmount.toFixed(2)}
+                            ${saleOrder.pendingAmount.toFixed(3)}
                         </Typography>
                     </Box>
                 </Box>
@@ -140,8 +140,8 @@ export default function AddSaleOrderPaymentModal({
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
                             fullWidth
-                            inputProps={{ min: 0.01, max: saleOrder.pendingAmount, step: "0.01" }}
-                            helperText={`Max: $${saleOrder.pendingAmount.toFixed(2)}`}
+                            inputProps={{ min: 0.001, max: saleOrder.pendingAmount, step: "0.001" }}
+                            helperText={`Max: $${saleOrder.pendingAmount.toFixed(3)}`}
                         />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6 }}>

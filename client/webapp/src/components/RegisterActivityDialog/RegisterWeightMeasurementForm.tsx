@@ -73,7 +73,7 @@ export default function RegisterWeightMeasurementForm({
                 error={!!errors.averageWeight}
                 helperText={errors.averageWeight || "Enter the average weight of the sample"}
                 required
-                inputProps={{ step: "0.01", min: "0" }}
+                inputProps={{ step: "0.001", min: "0" }}
             />
 
             <TextField

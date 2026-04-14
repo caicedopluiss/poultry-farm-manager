@@ -194,7 +194,7 @@ export default function AssetFinancePage() {
                                 </Typography>
                             </Box>
                             <Typography variant="h5" sx={{ fontWeight: "bold" }}>
-                                ${averagePrice.toFixed(2)}
+                                ${averagePrice.toFixed(3)}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
                                 Per unit across all purchases
@@ -279,7 +279,7 @@ export default function AssetFinancePage() {
                                         </Box>
                                     </TableCell>
                                     <TableCell align="right">
-                                        <Chip label={`$${vp.lastUnitPrice.toFixed(2)}`} color="primary" size="small" />
+                                        <Chip label={`$${vp.lastUnitPrice.toFixed(3)}`} color="primary" size="small" />
                                     </TableCell>
                                     <TableCell>
                                         <Typography variant="body2">

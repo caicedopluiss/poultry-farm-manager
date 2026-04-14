@@ -187,7 +187,7 @@ export default function BatchFinancePage() {
                                 </Typography>
                             </Box>
                             <Typography variant="h5" sx={{ fontWeight: "bold", color: "success.dark", mb: 0.25 }}>
-                                ${totalSalesValue.toFixed(2)}
+                                ${totalSalesValue.toFixed(3)}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
                                 {saleOrders.filter((o) => o.status !== "Cancelled").length} active order(s)
@@ -213,7 +213,7 @@ export default function BatchFinancePage() {
                                 </Typography>
                             </Box>
                             <Typography variant="h5" sx={{ fontWeight: "bold", color: "primary.dark", mb: 0.25 }}>
-                                ${totalCollected.toFixed(2)}
+                                ${totalCollected.toFixed(3)}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
                                 Payments received
@@ -239,7 +239,7 @@ export default function BatchFinancePage() {
                                 </Typography>
                             </Box>
                             <Typography variant="h5" sx={{ fontWeight: "bold", color: "warning.dark", mb: 0.25 }}>
-                                ${totalPending.toFixed(2)}
+                                ${totalPending.toFixed(3)}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
                                 Outstanding balance
@@ -265,7 +265,7 @@ export default function BatchFinancePage() {
                                 </Typography>
                             </Box>
                             <Typography variant="h5" sx={{ fontWeight: "bold", color: "error.dark", mb: 0.25 }}>
-                                ${totalExpense.toFixed(2)}
+                                ${totalExpense.toFixed(3)}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
                                 {expenseTransactions.length} transaction(s)
@@ -295,7 +295,7 @@ export default function BatchFinancePage() {
                                 variant="h5"
                                 sx={{ fontWeight: "bold", color: net >= 0 ? "primary.dark" : "warning.dark", mb: 0.25 }}
                             >
-                                ${net.toFixed(2)}
+                                ${net.toFixed(3)}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
                                 Collected minus expenses

@@ -193,7 +193,7 @@ export default function CreateAssetForm({ open, onSubmit, onClose, loading, erro
                             value={formData.unitPrice}
                             onChange={handleInputChange("unitPrice")}
                             disabled={loading}
-                            inputProps={{ min: 0, step: 0.01 }}
+                            inputProps={{ min: 0, step: 0.001 }}
                         />
 
                         <TextField

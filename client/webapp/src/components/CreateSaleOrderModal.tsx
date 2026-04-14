@@ -21,6 +21,7 @@ import type { NewSaleOrder, NewSaleOrderItem } from "@/types/saleOrder";
 import type { Person } from "@/types/person";
 import { getPersons } from "@/api/v1/persons";
 import useSaleOrders from "@/hooks/useSaleOrders";
+import { convertToKilograms } from "@/utils/units";
 
 const UNIT_OPTIONS = ["Kilogram", "Gram", "Pound"] as const;
 
@@ -34,13 +35,11 @@ interface CreateSaleOrderModalProps {
 interface ItemForm {
     weight: string;
     unitOfMeasure: string;
-    processedDate: string;
 }
 
 const emptyItem = (): ItemForm => ({
     weight: "",
     unitOfMeasure: "Kilogram",
-    processedDate: moment().format("YYYY-MM-DD"),
 });
 
 export default function CreateSaleOrderModal({ open, onClose, onSuccess, batchId }: CreateSaleOrderModalProps) {
@@ -48,6 +47,7 @@ export default function CreateSaleOrderModal({ open, onClose, onSuccess, batchId
 
     const [customerId, setCustomerId] = useState("");
     const [date, setDate] = useState(moment().format("YYYY-MM-DD"));
+    const [processedDate, setProcessedDate] = useState(moment().format("YYYY-MM-DD"));
     const [pricePerUnit, setPricePerUnit] = useState("");
     const [notes, setNotes] = useState("");
     const [items, setItems] = useState<ItemForm[]>([emptyItem()]);
@@ -67,6 +67,7 @@ export default function CreateSaleOrderModal({ open, onClose, onSuccess, batchId
     function resetForm() {
         setCustomerId("");
         setDate(moment().format("YYYY-MM-DD"));
+        setProcessedDate(moment().format("YYYY-MM-DD"));
         setPricePerUnit("");
         setNotes("");
         setItems([emptyItem()]);
@@ -94,15 +95,15 @@ export default function CreateSaleOrderModal({ open, onClose, onSuccess, batchId
         setSubmitError(null);
 
         const parsedPrice = parseFloat(pricePerUnit);
-        if (!customerId || !date || isNaN(parsedPrice) || parsedPrice <= 0) {
+        if (!customerId || !date || !processedDate || isNaN(parsedPrice) || parsedPrice <= 0) {
             setSubmitError("Please fill in all required fields with valid values.");
             return;
         }
 
         for (const item of items) {
             const w = parseFloat(item.weight);
-            if (isNaN(w) || w <= 0 || !item.unitOfMeasure || !item.processedDate) {
-                setSubmitError("Each item must have a valid weight, unit of measure, and processed date.");
+            if (isNaN(w) || w <= 0 || !item.unitOfMeasure) {
+                setSubmitError("Each item must have a valid weight and unit of measure.");
                 return;
             }
         }
@@ -116,7 +117,7 @@ export default function CreateSaleOrderModal({ open, onClose, onSuccess, batchId
             items: items.map<NewSaleOrderItem>((item) => ({
                 weight: parseFloat(item.weight),
                 unitOfMeasure: item.unitOfMeasure,
-                processedDateClientIsoString: moment(item.processedDate).format(),
+                processedDateClientIsoString: moment(processedDate).format(),
             })),
         };
 
@@ -129,6 +130,22 @@ export default function CreateSaleOrderModal({ open, onClose, onSuccess, batchId
             setSubmitError(message);
         }
     }
+
+    const parsedPricePerUnit = parseFloat(pricePerUnit);
+    const allItemsValid =
+        items.length > 0 &&
+        items.every((item) => {
+            const w = parseFloat(item.weight);
+            return !isNaN(w) && w > 0 && !!item.unitOfMeasure;
+        });
+    const totalWeightKg = allItemsValid
+        ? items.reduce((sum, item) => {
+              const kg = convertToKilograms(parseFloat(item.weight), item.unitOfMeasure);
+              return isNaN(kg) ? sum : sum + kg;
+          }, 0)
+        : 0;
+    const hasTotalWeight = allItemsValid && totalWeightKg > 0;
+    const hasTotalAmount = hasTotalWeight && !isNaN(parsedPricePerUnit) && parsedPricePerUnit > 0;
 
     return (
         <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
@@ -168,12 +185,23 @@ export default function CreateSaleOrderModal({ open, onClose, onSuccess, batchId
 
                     <Grid size={{ xs: 12, sm: 6 }}>
                         <TextField
+                            label="Processed Date *"
+                            type="date"
+                            value={processedDate}
+                            onChange={(e) => setProcessedDate(e.target.value)}
+                            fullWidth
+                            InputLabelProps={{ shrink: true }}
+                        />
+                    </Grid>
+
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
                             label="Price per Kg *"
                             type="number"
                             value={pricePerUnit}
                             onChange={(e) => setPricePerUnit(e.target.value)}
                             fullWidth
-                            inputProps={{ min: 0, step: "0.01" }}
+                            inputProps={{ min: 0, step: "0.001" }}
                         />
                     </Grid>
 
@@ -201,7 +229,7 @@ export default function CreateSaleOrderModal({ open, onClose, onSuccess, batchId
 
                 {items.map((item, i) => (
                     <Grid container spacing={2} key={i} sx={{ mb: 1.5, alignItems: "center" }}>
-                        <Grid size={{ xs: 12, sm: 3 }}>
+                        <Grid size={{ xs: 12, sm: 5 }}>
                             <TextField
                                 label="Weight *"
                                 type="number"
@@ -209,10 +237,10 @@ export default function CreateSaleOrderModal({ open, onClose, onSuccess, batchId
                                 onChange={(e) => updateItem(i, "weight", e.target.value)}
                                 fullWidth
                                 size="small"
-                                inputProps={{ min: 0, step: "0.01" }}
+                                inputProps={{ min: 0, step: "0.001" }}
                             />
                         </Grid>
-                        <Grid size={{ xs: 12, sm: 3 }}>
+                        <Grid size={{ xs: 12, sm: 5 }}>
                             <TextField
                                 select
                                 label="Unit of Measure *"
@@ -228,17 +256,6 @@ export default function CreateSaleOrderModal({ open, onClose, onSuccess, batchId
                                 ))}
                             </TextField>
                         </Grid>
-                        <Grid size={{ xs: 12, sm: 4 }}>
-                            <TextField
-                                label="Processed Date *"
-                                type="date"
-                                value={item.processedDate}
-                                onChange={(e) => updateItem(i, "processedDate", e.target.value)}
-                                fullWidth
-                                size="small"
-                                InputLabelProps={{ shrink: true }}
-                            />
-                        </Grid>
                         <Grid size={{ xs: 12, sm: 2 }} sx={{ display: "flex", justifyContent: "center" }}>
                             <IconButton
                                 size="small"
@@ -251,6 +268,42 @@ export default function CreateSaleOrderModal({ open, onClose, onSuccess, batchId
                         </Grid>
                     </Grid>
                 ))}
+
+                {(hasTotalWeight || hasTotalAmount) && (
+                    <Box
+                        sx={{
+                            mt: 2,
+                            p: 1.5,
+                            bgcolor: "grey.50",
+                            border: "1px solid",
+                            borderColor: "grey.200",
+                            borderRadius: 1,
+                            display: "flex",
+                            gap: 4,
+                        }}
+                    >
+                        {hasTotalWeight && (
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">
+                                    Total Weight
+                                </Typography>
+                                <Typography variant="body1" fontWeight={600}>
+                                    {totalWeightKg.toFixed(3)} kg
+                                </Typography>
+                            </Box>
+                        )}
+                        {hasTotalAmount && (
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">
+                                    Estimated Total
+                                </Typography>
+                                <Typography variant="body1" fontWeight={600} color="success.main">
+                                    ${(totalWeightKg * parsedPricePerUnit).toFixed(3)}
+                                </Typography>
+                            </Box>
+                        )}
+                    </Box>
+                )}
 
                 {submitError && (
                     <Alert severity="error" sx={{ mt: 2 }}>

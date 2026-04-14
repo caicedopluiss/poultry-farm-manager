@@ -118,7 +118,7 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ open, onClose, 
                         value={editedStock}
                         onChange={(e) => setEditedStock(parseFloat(e.target.value))}
                         fullWidth
-                        inputProps={{ step: "0.01", min: "0" }}
+                        inputProps={{ step: "0.001", min: "0" }}
                     />
 
                     <TextField

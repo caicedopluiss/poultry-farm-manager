@@ -164,7 +164,7 @@ export default function CreateProductForm({ open, onSubmit, onClose, loading, er
                             onChange={handleInputChange("stock")}
                             required
                             disabled={loading}
-                            inputProps={{ min: 0, step: 0.01 }}
+                            inputProps={{ min: 0, step: 0.001 }}
                         />
                     </Stack>
                 </Box>
