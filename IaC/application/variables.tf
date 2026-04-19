@@ -77,3 +77,19 @@ variable "maintenance_mode" {
   type        = bool
   default     = false
 }
+
+variable "domain_name" {
+  description = "Root domain name to use as custom domain on DigitalOcean App Platform (e.g. example.com). Leave empty to skip custom domain setup."
+  type        = string
+  default     = ""
+}
+
+variable "subdomain" {
+  description = "Subdomain prefix (e.g. 'pollos' results in pollos.example.com). Leave empty to use the apex domain. Only used when domain_name is set."
+  type        = string
+  default     = ""
+  validation {
+    condition     = var.subdomain == "" || !startswith(var.subdomain, ".") && !endswith(var.subdomain, ".")
+    error_message = "subdomain must not start or end with a dot."
+  }
+}
