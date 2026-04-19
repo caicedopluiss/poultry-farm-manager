@@ -23,6 +23,7 @@ import {
     FeedingTableDetailPage,
 } from "@/pages";
 import { BatchesProvider } from "@/contexts/batches";
+import appLogo from "@/assets/applogo.png";
 
 // Create a basic MUI theme
 const theme = createTheme({
@@ -81,6 +82,7 @@ function App() {
             router={router}
             branding={{
                 title: "Poultry Farm Manager",
+                logo: <img src={appLogo} alt="Poultry Farm Manager" style={{ height: 32 }} />,
             }}
         >
             <BatchesProvider>
