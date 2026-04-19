@@ -13,17 +13,20 @@ on:
                 required: true
                 type: string
             env_vars:
-                description: "Additional environment variables (key=value format, newline-separated)"
+                description: "Additional environment variables (key=value format,
+                    newline-separated)"
                 required: false
                 type: string
                 default: ""
             output_names:
-                description: "Terraform output names to extract (newline-separated, only for apply action)"
+                description: "Terraform output names to extract (newline-separated, only for
+                    apply action)"
                 required: false
                 type: string
                 default: ""
             force_replace_resources:
-                description: "Resources to force replace (newline-separated, e.g., digitalocean_app.platform)"
+                description: "Resources to force replace (newline-separated, e.g.,
+                    digitalocean_app.platform)"
                 required: false
                 type: string
                 default: ""
@@ -102,7 +105,8 @@ jobs:
                   echo "✅ Terraform configuration is valid"
 
             - name: Build replace flags
-              if: (inputs.terraform_action == 'plan' || inputs.terraform_action == 'apply') && inputs.force_replace_resources != ''
+              if: (inputs.terraform_action == 'plan' || inputs.terraform_action == 'apply') &&
+                  inputs.force_replace_resources != ''
               run: |
                   echo "🔧 Building resource replacement flags..."
 

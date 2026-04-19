@@ -77,6 +77,16 @@ resource "digitalocean_app" "platform" {
         }
       }
     }
+
+    dynamic "domain" {
+      for_each = var.domain_name != "" ? [1] : []
+      content {
+        name     = "${var.subdomain}.${var.domain_name}"
+        type     = "PRIMARY"
+        wildcard = false
+        zone     = var.domain_name
+      }
+    }
   }
 
   # Explicit dependency to ensure database is created before the app
@@ -96,3 +106,10 @@ output "webapp_url" {
   description = "URL of the deployed Web Application"
   value       = digitalocean_app.platform.live_url
 }
+
+output "custom_domain_url" {
+  description = "Custom domain URL (only set when domain_name variable is configured)"
+  value       = var.domain_name != "" ? "https://${var.subdomain}.${var.domain_name}" : null
+}
+
+
