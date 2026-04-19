@@ -207,7 +207,8 @@ jobs:
 
                               # Check if output exists and get its value
                               if terraform output "$output_name" >/dev/null 2>&1; then
-                                  OUTPUT_VALUE=$(terraform output -raw "$output_name")
+                                  # Use -raw but fall back to empty string for null-valued outputs
+                                  OUTPUT_VALUE=$(terraform output -raw "$output_name" 2>/dev/null || true)
 
                                   # Add to extracted outputs
                                   if [[ -z "$EXTRACTED_OUTPUTS" ]]; then
