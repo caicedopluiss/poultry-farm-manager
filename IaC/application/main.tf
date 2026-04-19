@@ -62,6 +62,24 @@ resource "digitalocean_app" "platform" {
         type  = "SECRET"
         value = "Host=${local.db_secrets.host};Port=${local.db_secrets.port};Database=${local.db_secrets.database};Username=${local.db_secrets.app_user};Password=${local.db_secrets.app_user_password};Pooling=true;Trust Server Certificate=true;"
       }
+
+      # CORS is not configured here because this is a standalone deployment where
+      # the React frontend and the .NET API are served from the same container
+      # behind nginx. They always share the same origin (DO URL or custom domain),
+      # so the browser never issues a cross-origin request and CORS headers are
+      # irrelevant in production. CORS origins for local development are set in
+      # appsettings.json (localhost:5173 / localhost:4173).
+      #
+      # If the architecture changes (e.g. frontend deployed separately), uncomment
+      # and adjust the following to allow the appropriate origins:
+      #
+      # dynamic "env" {
+      #   for_each = var.domain_name != "" ? [1] : []
+      #   content {
+      #     key   = "Cors__AllowedOrigins__0"
+      #     value = "https://${var.subdomain != "" ? "${var.subdomain}." : ""}${var.domain_name}"
+      #   }
+      # }
     }
 
     ingress {

@@ -4,7 +4,9 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using PoultryFarmManager.Application;
 using PoultryFarmManager.Infrastructure;
@@ -42,12 +44,30 @@ public class Program
             .AddApplicationServices()
             .AddInfrastructureServices(builder.Configuration);
 
+        const string CorsPolicyName = "CorsPolicy";
         builder.Services.AddCors(options =>
         {
-            options.AddPolicy("AllowAllOrigins",
-                builder => builder.AllowAnyOrigin()
-                                  .AllowAnyMethod()
-                                  .AllowAnyHeader());
+            options.AddPolicy(CorsPolicyName, policy =>
+            {
+                var allowedOrigins = builder.Configuration
+                    .GetSection("Cors:AllowedOrigins")
+                    .Get<string[]>() ?? [];
+
+                if (allowedOrigins.Length > 0)
+                {
+                    policy.WithOrigins(allowedOrigins)
+                          .AllowAnyMethod()
+                          .AllowAnyHeader();
+                }
+                else if (builder.Environment.IsDevelopment())
+                {
+                    // Development fallback: allow all origins for convenience
+                    policy.AllowAnyOrigin()
+                          .AllowAnyMethod()
+                          .AllowAnyHeader();
+                }
+                // Production with no origins configured: no CORS headers (deny all cross-origin)
+            });
         });
 
         builder.Services.AddEndpointsApiExplorer();
@@ -87,6 +107,8 @@ public class Program
             config.SwaggerEndpoint($"{endpointPrefix}/swagger/v1/swagger.json", "v1");
             config.RoutePrefix = string.Empty;
         });
+
+        app.UseCors(CorsPolicyName);
 
         string apiPrefix = "api";
 
@@ -154,8 +176,6 @@ public class Program
         app.MapEndpoint<GetSaleOrderByIdEndpoint>(apiPrefix);
         app.MapEndpoint<AddSaleOrderPaymentEndpoint>(apiPrefix);
         app.MapEndpoint<CancelSaleOrderEndpoint>(apiPrefix);
-
-        app.UseCors("AllowAllOrigins");
 
         app.Run();
     }
