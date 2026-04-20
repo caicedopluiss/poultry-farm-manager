@@ -872,6 +872,7 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                                                             const kg = convertToKilograms(
                                                                 totalBatchAmountPerSession,
                                                                 currentDayEntry.unitOfMeasure,
+                                                                true,
                                                             );
                                                             return !isNaN(kg) ? (
                                                                 <Typography variant="body2" color="text.secondary">
@@ -1290,7 +1291,11 @@ export default function BatchDetail({ batch, activities = [], onRefresh }: Batch
                                                     if (entry.unitOfMeasure === "Kilogram") {
                                                         return <TableCell>—</TableCell>;
                                                     }
-                                                    const kg = convertToKilograms(perSession, entry.unitOfMeasure);
+                                                    const kg = convertToKilograms(
+                                                        perSession,
+                                                        entry.unitOfMeasure,
+                                                        true,
+                                                    );
                                                     return (
                                                         <TableCell>
                                                             {!isNaN(kg) ? `${kg.toFixed(2)} kg` : "—"}
